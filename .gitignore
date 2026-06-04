@@ -1,0 +1,35 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+.venv-build/
+
+# Local configuration and secrets
+.env
+*.env
+API/.env
+
+# Build and packaging outputs
+build/
+dist/
+*.egg-info/
+*.manifest
+*.log
+
+# Runtime/generated data
+output/
+data/canvases/
+data/conversations/
+assets/input/
+assets/output/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
