@@ -94,7 +94,12 @@ try {
         notes = $ReleaseNotes
     }
     $manifestPath = Join-Path $InstallerOutDir "update.json"
-    $manifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+    $manifestJson = $manifest | ConvertTo-Json -Depth 5
+    [System.IO.File]::WriteAllText(
+        $manifestPath,
+        $manifestJson + [Environment]::NewLine,
+        [System.Text.UTF8Encoding]::new($false)
+    )
 
     Write-Host "Installer built: $setupPath"
     Write-Host "Update manifest built: $manifestPath"
