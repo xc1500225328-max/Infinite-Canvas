@@ -8,6 +8,16 @@
         return localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY) || 'light';
     }
 
+    function notifyNativeTheme(theme){
+        const next = theme === 'dark' ? 'dark' : 'light';
+        try {
+            if(window.pywebview?.api?.setTheme) {
+                const result = window.pywebview.api.setTheme(next);
+                if(result?.catch) result.catch(() => {});
+            }
+        } catch(e) {}
+    }
+
     function applyTheme(theme){
         const next = theme === 'dark' ? 'dark' : 'light';
         const dark = next === 'dark';
@@ -17,6 +27,7 @@
             document.body.classList.toggle('studio-theme-dark', dark);
             document.body.classList.toggle('theme-dark', dark);
         }
+        notifyNativeTheme(next);
         window.dispatchEvent(new CustomEvent('studio-theme-change', { detail: { theme: next } }));
     }
 
@@ -175,6 +186,7 @@
     applyTheme(currentTheme());
     applyScale(currentScaleMode());
 
+    window.addEventListener('pywebviewready', () => notifyNativeTheme(currentTheme()));
     document.addEventListener('DOMContentLoaded', () => {
         applyTheme(currentTheme());
         applyScale(currentScaleMode());

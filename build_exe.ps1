@@ -3,6 +3,9 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Python = Join-Path $Root ".venv-build\Scripts\python.exe"
 $DistDir = Join-Path $Root "dist\InfiniteCanvas"
+$IconFile = Join-Path $Root "assets\app-icon.ico"
+$IconPngFile = Join-Path $Root "assets\app-icon.png"
+$IconArg = "assets\app-icon.ico"
 $LegacyCustomWorkflowFolder = -join ([char[]](0x81ea, 0x5b9a, 0x4e49))
 $DataDir = if ($env:INFINITE_CANVAS_DATA_DIR) {
     [System.IO.Path]::GetFullPath($env:INFINITE_CANVAS_DATA_DIR)
@@ -16,6 +19,10 @@ else {
 
 if (!(Test-Path $Python)) {
     throw "Build virtualenv not found: $Python"
+}
+
+if (!(Test-Path -LiteralPath $IconFile)) {
+    throw "Application icon not found: $IconFile. Run tools\generate_app_icon.py first."
 }
 
 function Copy-MissingFile {
@@ -86,6 +93,15 @@ function Remove-StaleRuntimeData {
     }
 }
 
+function Copy-AppIcon {
+    $iconDistDir = Join-Path $DistDir "assets"
+    New-Item -ItemType Directory -Force -Path $iconDistDir | Out-Null
+    Copy-Item -LiteralPath $IconFile -Destination (Join-Path $iconDistDir "app-icon.ico") -Force
+    if (Test-Path -LiteralPath $IconPngFile) {
+        Copy-Item -LiteralPath $IconPngFile -Destination (Join-Path $iconDistDir "app-icon.png") -Force
+    }
+}
+
 Push-Location $Root
 try {
     Migrate-LegacyRuntimeData
@@ -95,6 +111,9 @@ try {
         --clean `
         --onedir `
         --name InfiniteCanvas `
+        --icon $IconArg `
+        --add-data "assets\app-icon.ico;assets" `
+        --add-data "assets\app-icon.png;assets" `
         --hidden-import uvicorn.logging `
         --hidden-import uvicorn.loops `
         --hidden-import uvicorn.loops.auto `
@@ -129,6 +148,7 @@ try {
         }
 
     Remove-StaleRuntimeData
+    Copy-AppIcon
 }
 finally {
     Pop-Location

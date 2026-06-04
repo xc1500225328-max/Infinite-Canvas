@@ -86,6 +86,7 @@ let mentionSource = 'input';
 let mentionAssetCategoryId = '';
 let assetLibraryUpdatedAt = 0;
 let assetLibraryRefreshTimer = null;
+const SMART_ASSET_LIBRARY_OPEN_KEY = 'smart_canvas_asset_library_open';
 const PROMPT_PRESETS_KEY = 'smart_canvas_prompt_presets_v1';
 const PROMPT_TEMPLATE_GROUPS_KEY = 'smart_canvas_prompt_template_groups_v1';
 const PROMPT_TEMPLATE_OVERRIDES_KEY = 'smart_canvas_prompt_template_overrides_v1';
@@ -630,12 +631,19 @@ function clearPromptInput(options={}){
         activeComposerSubject.promptDraftText = '';
     }
 }
+function notifyNativeTheme(theme){
+    try {
+        const result = window.pywebview?.api?.setTheme?.(theme === 'dark' ? 'dark' : 'light');
+        if(result?.catch) result.catch(() => {});
+    } catch(e) {}
+}
 function applyTheme(theme){
     const dark = theme === 'dark';
     document.documentElement.classList.toggle('theme-dark', dark);
     document.documentElement.classList.toggle('studio-theme-dark', dark);
     document.body?.classList.toggle('theme-dark', dark);
     document.body?.classList.toggle('studio-theme-dark', dark);
+    notifyNativeTheme(dark ? 'dark' : 'light');
 }
 function toast(text){
     const el = document.getElementById('toast');
@@ -3525,11 +3533,20 @@ function setAssetLibraryFromResponse(data, options={}){
         if(mentionPicker?.classList?.contains('open') && mentionSource === 'asset') renderMentionPicker('asset');
     }
 }
-function toggleAssetLibrary(open=!assetLibraryOpen){
+function applyAssetLibraryState(open){
     if(!assetPanel || !assetToggle) return;
     assetLibraryOpen = !!open;
     assetPanel.classList.toggle('open', assetLibraryOpen);
     assetToggle?.classList.toggle('active', assetLibraryOpen);
+    assetToggle?.setAttribute('aria-pressed', assetLibraryOpen ? 'true' : 'false');
+}
+function restoreAssetLibraryState(){
+    applyAssetLibraryState(localStorage.getItem(SMART_ASSET_LIBRARY_OPEN_KEY) === '1');
+}
+function toggleAssetLibrary(open=!assetLibraryOpen){
+    const next = !!open;
+    applyAssetLibraryState(next);
+    localStorage.setItem(SMART_ASSET_LIBRARY_OPEN_KEY, next ? '1' : '0');
     if(assetLibraryOpen) loadAssetLibrary();
     render();
 }
@@ -12377,6 +12394,7 @@ window.onload = async () => {
     connectAssetLibrarySyncSocket();
     await loadConfig();
     await loadAssetLibrary();
+    restoreAssetLibraryState();
     await loadCanvas();
     syncApiKindToggleVisibility();
     render();

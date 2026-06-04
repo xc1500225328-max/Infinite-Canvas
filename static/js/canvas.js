@@ -292,6 +292,7 @@ const MANAGED_IMAGE_MODELS_KEY = 'canvas_image_models_ordered';
 const MANAGED_CHAT_MODELS_KEY = 'canvas_chat_models_ordered';
 const CANVAS_THEME_KEY = 'canvas_theme';
 const QUICK_TOOLBAR_COLLAPSED_KEY = 'canvas_quick_toolbar_collapsed';
+const CANVAS_ASSET_LIBRARY_OPEN_KEY = 'canvas_asset_library_open';
 const CANVAS_SESSION_VIEWPORTS_KEY = 'canvas_session_viewports_v1';
 let canvasSessionViewportFallback = {};
 const DEFAULT_VIDEO_MODELS = [
@@ -346,6 +347,12 @@ function saveLocalViewport(){
         sessionStorage.setItem(CANVAS_SESSION_VIEWPORTS_KEY, JSON.stringify(map));
     } catch(e) {}
 }
+function notifyNativeTheme(theme){
+    try {
+        const result = window.pywebview?.api?.setTheme?.(theme === 'dark' ? 'dark' : 'light');
+        if(result?.catch) result.catch(() => {});
+    } catch(e) {}
+}
 function applyTheme(theme){
     const dark = theme === 'dark';
     document.documentElement.classList.toggle('studio-theme-dark', dark);
@@ -353,6 +360,7 @@ function applyTheme(theme){
     document.body.classList.toggle('studio-theme-dark', dark);
     document.body.classList.toggle('theme-dark', dark);
     shell.classList.toggle('theme-dark', dark);
+    notifyNativeTheme(dark ? 'dark' : 'light');
 }
 function applyQuickToolbarState(){
     const toolbar = document.getElementById('quickToolbar');
@@ -794,6 +802,7 @@ function refreshGateViewControls(){
 function setCanvasMode(open){
     shell.classList.toggle('no-canvas', !open);
     if(!open){
+        applyCanvasAssetLibraryState(false);
         nodesEl.innerHTML = '';
         linksEl.innerHTML = '';
         linkControlsEl.innerHTML = '';
@@ -801,6 +810,7 @@ function setCanvasMode(open){
     } else if(currentCanvasTitle) {
         currentCanvasTitle.textContent = canvas?.title || tr('canvas.untitled');
         currentCanvasTime.textContent = formatCanvasTime(canvas?.updated_at || canvas?.created_at);
+        restoreCanvasAssetLibraryState();
     }
     refreshIcons();
 }
@@ -5793,11 +5803,21 @@ function renderCanvasAssetLibrary(){
     });
     refreshIcons();
 }
-function toggleCanvasAssetLibrary(open=!canvasAssetLibraryOpen){
+function applyCanvasAssetLibraryState(open){
     canvasAssetLibraryOpen = !!open;
     canvasAssetPanel?.classList.toggle('open', canvasAssetLibraryOpen);
     canvasAssetToggle?.classList.toggle('active', canvasAssetLibraryOpen);
+    canvasAssetToggle?.setAttribute('aria-pressed', canvasAssetLibraryOpen ? 'true' : 'false');
     if(!canvasAssetLibraryOpen) hideCanvasAssetHoverPreview();
+}
+function restoreCanvasAssetLibraryState(){
+    applyCanvasAssetLibraryState(Boolean(canvas) && localStorage.getItem(CANVAS_ASSET_LIBRARY_OPEN_KEY) === '1');
+    if(canvasAssetLibraryOpen) loadCanvasAssetLibrary();
+}
+function toggleCanvasAssetLibrary(open=!canvasAssetLibraryOpen){
+    const next = !!open;
+    applyCanvasAssetLibraryState(Boolean(canvas) && next);
+    localStorage.setItem(CANVAS_ASSET_LIBRARY_OPEN_KEY, next ? '1' : '0');
     if(canvasAssetLibraryOpen) loadCanvasAssetLibrary();
 }
 async function addUrlToCanvasAssetLibrary(url, name=''){
@@ -11151,6 +11171,9 @@ canvasAssetAddCategoryBtn?.addEventListener('click', async () => {
     activeCanvasAssetCategoryId = data.category?.id || activeCanvasAssetCategoryId;
     renderCanvasAssetLibrary();
 });
+canvasAssetPanel?.addEventListener('pointerdown', event => event.stopPropagation());
+canvasAssetPanel?.addEventListener('mousedown', event => event.stopPropagation());
+canvasAssetPanel?.addEventListener('click', event => event.stopPropagation());
 canvasAssetPanel?.addEventListener('wheel', event => {
     event.stopPropagation();
     const scroller = event.target.closest?.('.canvas-asset-grid') || canvasAssetGrid;

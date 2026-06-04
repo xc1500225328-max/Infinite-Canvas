@@ -11,7 +11,7 @@ a = Analysis(
     ['desktop_launcher.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('assets\\app-icon.ico', 'assets'), ('assets\\app-icon.png', 'assets')],
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
@@ -38,6 +38,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['assets\\app-icon.ico'],
 )
 coll = COLLECT(
     exe,

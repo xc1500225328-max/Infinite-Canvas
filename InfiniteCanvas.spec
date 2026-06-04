@@ -5,7 +5,7 @@ a = Analysis(
     ['app_launcher.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('assets\\app-icon.ico', 'assets'), ('assets\\app-icon.png', 'assets')],
     hiddenimports=['uvicorn.logging', 'uvicorn.loops', 'uvicorn.loops.auto', 'uvicorn.protocols', 'uvicorn.protocols.http', 'uvicorn.protocols.http.auto', 'uvicorn.protocols.websockets', 'uvicorn.protocols.websockets.auto', 'uvicorn.lifespan', 'uvicorn.lifespan.on'],
     hookspath=[],
     hooksconfig={},
@@ -32,6 +32,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['assets\\app-icon.ico'],
 )
 coll = COLLECT(
     exe,

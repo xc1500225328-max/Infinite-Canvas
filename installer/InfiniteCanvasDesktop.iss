@@ -21,6 +21,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir={#OutputDir}
 OutputBaseFilename=InfiniteCanvasDesktopSetup
+SetupIconFile=..\assets\app-icon.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -33,7 +34,7 @@ CloseApplicationsFilter={#MyAppExeName}
 LicenseFile=..\LICENSE
 
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "chinesesimplified"; MessagesFile: "ChineseSimplified.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked

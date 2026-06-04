@@ -17,7 +17,7 @@ import websockets
 
 os.environ.setdefault("INFINITE_CANVAS_DESKTOP_DATA", "1")
 
-from main import DATA_ROOT_DIR, LOG_DIR, app
+from main import BASE_DIR, DATA_ROOT_DIR, LOG_DIR, app
 
 
 HOST = "127.0.0.1"
@@ -27,10 +27,14 @@ DEFAULT_WINDOW = {"width": 1440, "height": 900, "x": None, "y": None, "maximized
 MIN_WINDOW_SIZE = (1024, 700)
 WINDOW_STATE_FILE = os.path.join(DATA_ROOT_DIR, "desktop_window.json")
 DESKTOP_LOG_FILE = os.path.join(LOG_DIR, "desktop.log")
+APP_ICON_FILE = os.path.join(BASE_DIR, "assets", "app-icon.ico")
+DESKTOP_THEME_FILE = os.path.join(DATA_ROOT_DIR, "desktop_theme.json")
 server = None
 instance_mutex = None
 window_state_lock = threading.Lock()
 window_state = dict(DEFAULT_WINDOW)
+desktop_theme_lock = threading.Lock()
+desktop_theme = "light"
 desktop_logger = logging.getLogger("infinite_canvas.desktop")
 
 
@@ -69,6 +73,117 @@ def show_error(message):
 
 def env_flag(name):
     return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def app_icon_path():
+    return APP_ICON_FILE if os.path.isfile(APP_ICON_FILE) else None
+
+
+def normalize_theme(theme):
+    return "dark" if str(theme or "").strip().lower() == "dark" else "light"
+
+
+def load_desktop_theme():
+    try:
+        if os.path.exists(DESKTOP_THEME_FILE):
+            with open(DESKTOP_THEME_FILE, "r", encoding="utf-8") as file:
+                raw = json.load(file) or {}
+            return normalize_theme(raw.get("theme"))
+    except Exception as exc:
+        desktop_logger.exception("Failed to load desktop theme: %s", exc)
+    return "light"
+
+
+def persist_desktop_theme(theme):
+    try:
+        os.makedirs(os.path.dirname(DESKTOP_THEME_FILE), exist_ok=True)
+        with open(DESKTOP_THEME_FILE, "w", encoding="utf-8") as file:
+            json.dump({"theme": normalize_theme(theme)}, file, ensure_ascii=False, indent=2)
+    except Exception as exc:
+        desktop_logger.exception("Failed to save desktop theme: %s", exc)
+
+
+def rgb_to_colorref(red, green, blue):
+    return int(red) | (int(green) << 8) | (int(blue) << 16)
+
+
+def set_dwm_attribute(hwnd, attribute, value):
+    try:
+        value_ref = ctypes.c_int(int(value))
+        return ctypes.windll.dwmapi.DwmSetWindowAttribute(
+            wintypes.HWND(hwnd),
+            ctypes.c_uint(attribute),
+            ctypes.byref(value_ref),
+            ctypes.sizeof(value_ref),
+        ) == 0
+    except Exception as exc:
+        desktop_logger.debug("DWM attribute %s failed: %s", attribute, exc)
+        return False
+
+
+def native_window_handle(window):
+    try:
+        native = getattr(window, "native", None)
+        handle = getattr(native, "Handle", None)
+        if handle is None:
+            return None
+        if hasattr(handle, "ToInt64"):
+            return int(handle.ToInt64())
+        if hasattr(handle, "ToInt32"):
+            return int(handle.ToInt32())
+        return int(handle)
+    except Exception as exc:
+        desktop_logger.debug("Failed to resolve native window handle: %s", exc)
+    return None
+
+
+def apply_title_bar_theme(window, theme):
+    if os.name != "nt" or window is None:
+        return False
+    next_theme = normalize_theme(theme)
+    hwnd = native_window_handle(window)
+    if not hwnd:
+        return False
+
+    dark = next_theme == "dark"
+    set_dwm_attribute(hwnd, 20, 1 if dark else 0)
+    set_dwm_attribute(hwnd, 38, 2 if dark else 1)
+    if dark:
+        set_dwm_attribute(hwnd, 35, rgb_to_colorref(31, 35, 43))
+        set_dwm_attribute(hwnd, 36, rgb_to_colorref(241, 245, 249))
+        set_dwm_attribute(hwnd, 34, rgb_to_colorref(49, 57, 69))
+    else:
+        set_dwm_attribute(hwnd, 35, rgb_to_colorref(255, 255, 255))
+        set_dwm_attribute(hwnd, 36, rgb_to_colorref(17, 24, 39))
+        set_dwm_attribute(hwnd, 34, rgb_to_colorref(229, 231, 235))
+    return True
+
+
+def patch_native_theme_source(window):
+    try:
+        native = getattr(window, "native", None)
+        if native is not None:
+            native.is_dark_theme = lambda: desktop_theme == "dark"
+    except Exception as exc:
+        desktop_logger.debug("Failed to patch native title bar theme source: %s", exc)
+
+
+class DesktopApi:
+    def __init__(self):
+        self.window = None
+
+    def bind_window(self, window):
+        self.window = window
+
+    def setTheme(self, theme):
+        global desktop_theme
+        next_theme = normalize_theme(theme)
+        with desktop_theme_lock:
+            desktop_theme = next_theme
+        persist_desktop_theme(next_theme)
+        patch_native_theme_source(self.window)
+        apply_title_bar_theme(self.window, next_theme)
+        return {"theme": next_theme}
 
 
 def acquire_single_instance():
@@ -310,7 +425,7 @@ def self_test():
 
 
 def main():
-    global window_state
+    global desktop_theme, window_state
     if not acquire_single_instance():
         show_message("Infinite Canvas is already running. Please use the existing window.")
         return
@@ -326,10 +441,13 @@ def main():
 
     url = f"http://{HOST}:{port}/"
     window_state = load_window_state()
+    desktop_theme = load_desktop_theme()
+    desktop_api = DesktopApi()
     try:
         window = webview.create_window(
             APP_TITLE,
             url,
+            js_api=desktop_api,
             width=window_state["width"],
             height=window_state["height"],
             x=window_state["x"],
@@ -338,8 +456,13 @@ def main():
             maximized=window_state["maximized"],
             text_select=True,
         )
+        desktop_api.bind_window(window)
         attach_window_state_handlers(window)
-        webview.start(debug=os.getenv("INFINITE_CANVAS_DESKTOP_DEBUG", "0") == "1")
+        window.events.shown += lambda: (patch_native_theme_source(window), apply_title_bar_theme(window, desktop_theme))
+        webview.start(
+            debug=os.getenv("INFINITE_CANVAS_DESKTOP_DEBUG", "0") == "1",
+            icon=app_icon_path(),
+        )
     finally:
         desktop_logger.info("Desktop app shutting down.")
         stop_backend(backend_thread)
