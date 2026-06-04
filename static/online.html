@@ -605,7 +605,19 @@
             if(res.success) document.getElementById(`history-${ts}`)?.remove();
         }
         const observer = new IntersectionObserver(entries => { if(entries[0].isIntersecting && currentIndex < allHistory.length) loadHistory(1); }, {threshold:.1});
-        window.onload = async () => { applyLanguage(); setRatio('square'); setResolution('1k'); await initModels(); await loadHistory(0); window.HistoryBulkManager?.attach({masonry:'#masonry'}); observer.observe(document.getElementById('loadMoreTrigger')); document.getElementById('loadMoreTrigger').onclick = () => loadHistory(1); };
+        window.onload = async () => {
+            applyLanguage();
+            setRatio('square');
+            setResolution('1k');
+            await initModels();
+            await loadHistory(0);
+            window.HistoryBulkManager?.attach({masonry:'#masonry'});
+            const loadMoreTrigger = document.getElementById('loadMoreTrigger');
+            if(loadMoreTrigger) {
+                observer.observe(loadMoreTrigger);
+                loadMoreTrigger.onclick = () => loadHistory(1);
+            }
+        };
     </script>
 </body>
 </html>

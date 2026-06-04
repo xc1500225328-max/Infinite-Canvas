@@ -60,8 +60,6 @@
             --divider: rgba(0, 0, 0, 0.1);
             --scrollbar: #d8d8d8;
             --scrollbar-hover: #c0c0c0;
-            --author-name: #000;
-            --social-icon: #ccc;
         }
 
         html.theme-dark,
@@ -80,8 +78,6 @@
             --divider: rgba(255, 255, 255, 0.15);
             --scrollbar: #334155;
             --scrollbar-hover: #475569;
-            --author-name: #e5e9f0;
-            --social-icon: #64748b;
         }
 
         /* 极简滚动条 */
@@ -464,78 +460,6 @@
             font-size: 9px;
         }
 
-        /* 作者组件 */
-        .author-box {
-            width: 100%;
-            height: 60px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .dx-letter {
-            position: absolute;
-            font-size: 14px;
-            font-weight: 800;
-            color: var(--text);
-            /* 只过渡 hover 时真正改的 transform/opacity，避免 all 触发延迟 */
-            transition: transform 0.5s var(--fluid-ease) 0.4s, opacity 0.5s var(--fluid-ease) 0.4s;
-            z-index: 10;
-        }
-
-        .letter-d { transform: translateX(-8px); }
-        .letter-x { transform: translateX(8px); }
-
-        .sidebar:hover .letter-d {
-            transform: translateX(-120px);
-            opacity: 0;
-            transition-delay: 0s;
-        }
-
-        .sidebar:hover .letter-x {
-            transform: translateX(120px);
-            opacity: 0;
-            transition-delay: 0s;
-        }
-
-        .author-content-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            opacity: 0;
-            transform: scale(0.9);
-            transition: all 0.4s var(--fluid-ease) 0s;
-            pointer-events: none;
-        }
-
-        .sidebar:hover .author-content-wrap {
-            opacity: 1;
-            transform: scale(1);
-            transition-delay: 0.2s;
-            pointer-events: auto;
-        }
-
-        .author-name-lite {
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--author-name);
-        }
-
-        .social-row-lite { display: flex; gap: 12px; }
-
-        .social-icon-lite {
-            color: var(--social-icon);
-            transition: color 0.2s, transform 0.2s;
-        }
-
-        .social-icon-lite:hover {
-            color: var(--text);
-            transform: translateY(-1px);
-        }
-
         .side-actions {
             margin-top:12px;
             margin-bottom:12px;
@@ -721,6 +645,19 @@
             color:#052e16;
         }
 
+        .side-pill.desktop-ready {
+            color:#2563eb;
+            border-color:rgba(37,99,235,.26);
+            background:rgba(37,99,235,.06);
+        }
+
+        html.theme-dark .side-pill.desktop-ready,
+        body.theme-dark .side-pill.desktop-ready {
+            color:#93c5fd;
+            border-color:rgba(147,197,253,.32);
+            background:rgba(96,165,250,.10);
+        }
+
         @media (max-height: 760px) {
             .sidebar { padding: 18px 0 14px; }
             .logo-ring { margin-bottom: 16px !important; }
@@ -748,7 +685,6 @@
             }
             .project-version-badge { width:40px; min-height:16px; font-size:8px; }
             .update-now-btn.show { min-height:22px; width:48px; }
-            .author-box { display:none; }
         }
 
         @media (max-height: 660px) {
@@ -965,6 +901,100 @@
             word-break:break-word;
         }
 
+        .desktop-path-summary {
+            display:grid;
+            gap:8px;
+            margin-bottom:14px;
+            padding:12px;
+            border:1px solid #e5e7eb;
+            border-radius:8px;
+            background:#f8fafc;
+        }
+
+        .desktop-path-key {
+            color:#64748b;
+            font-size:11px;
+            font-weight:900;
+            letter-spacing:.04em;
+            text-transform:uppercase;
+        }
+
+        .desktop-path-value {
+            display:block;
+            max-width:100%;
+            color:#0f172a;
+            font-size:12px;
+            line-height:1.55;
+            word-break:break-all;
+            white-space:normal;
+            font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        .desktop-path-grid {
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:10px;
+        }
+
+        .desktop-path-card {
+            min-height:74px;
+            padding:12px;
+            border-radius:8px;
+            border:1px solid #e5e7eb;
+            background:#fff;
+            color:#0f172a;
+            display:flex;
+            align-items:flex-start;
+            gap:10px;
+            text-align:left;
+            cursor:pointer;
+        }
+
+        .desktop-path-card:hover {
+            border-color:#2563eb;
+            background:#eff6ff;
+        }
+
+        .desktop-path-card[disabled] {
+            opacity:.64;
+            cursor:wait;
+        }
+
+        .desktop-path-card svg {
+            width:18px;
+            height:18px;
+            margin-top:1px;
+            flex:0 0 auto;
+            color:#2563eb;
+        }
+
+        .desktop-path-card strong {
+            display:block;
+            margin-bottom:4px;
+            color:inherit;
+            font-size:13px;
+            font-weight:900;
+        }
+
+        .desktop-path-card small {
+            display:block;
+            max-width:190px;
+            color:#64748b;
+            font-size:11px;
+            line-height:1.4;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+
+        .desktop-path-status {
+            min-height:18px;
+            margin-top:12px;
+            color:#64748b;
+            font-size:12px;
+            line-height:1.5;
+        }
+
         .studio-modal-actions {
             display:flex;
             justify-content:flex-end;
@@ -1056,6 +1086,8 @@
         body.theme-dark .studio-modal-close,
         html.theme-dark .connectivity-row,
         body.theme-dark .connectivity-row,
+        html.theme-dark .desktop-path-card,
+        body.theme-dark .desktop-path-card,
         html.theme-dark .studio-modal-actions,
         body.theme-dark .studio-modal-actions,
         html.theme-dark .studio-modal-btn,
@@ -1080,7 +1112,9 @@
         }
 
         html.theme-dark .update-modal-summary,
-        body.theme-dark .update-modal-summary {
+        body.theme-dark .update-modal-summary,
+        html.theme-dark .desktop-path-summary,
+        body.theme-dark .desktop-path-summary {
             background:#0c0d10;
             border-color:#25262b;
             color:#9aa6b8;
@@ -1089,8 +1123,16 @@
         html.theme-dark .update-modal-summary strong,
         body.theme-dark .update-modal-summary strong,
         html.theme-dark .connectivity-name,
-        body.theme-dark .connectivity-name {
+        body.theme-dark .connectivity-name,
+        html.theme-dark .desktop-path-value,
+        body.theme-dark .desktop-path-value {
             color:#e8e8ea;
+        }
+
+        html.theme-dark .desktop-path-card:hover,
+        body.theme-dark .desktop-path-card:hover {
+            background:rgba(96,165,250,.12);
+            border-color:#60a5fa;
         }
 
         html.theme-dark .studio-modal-btn.primary,
@@ -1136,6 +1178,9 @@
             .studio-modal-btn {
                 flex:1 1 130px;
             }
+            .desktop-path-grid {
+                grid-template-columns:1fr;
+            }
         }
 
         .sidebar.is-pinned {
@@ -1167,22 +1212,6 @@
         .sidebar.is-pinned .nav-text {
             opacity: 1;
             transition-delay: 0.1s;
-        }
-        .sidebar.is-pinned .letter-d {
-            transform: translateX(-120px);
-            opacity: 0;
-            transition-delay: 0s;
-        }
-        .sidebar.is-pinned .letter-x {
-            transform: translateX(120px);
-            opacity: 0;
-            transition-delay: 0s;
-        }
-        .sidebar.is-pinned .author-content-wrap {
-            opacity: 1;
-            transform: scale(1);
-            transition-delay: 0.2s;
-            pointer-events: auto;
         }
         .sidebar.is-pinned .side-pill {
             width: 170px;
@@ -1230,19 +1259,6 @@
         }
         .sidebar.is-collapsing:hover .nav-text {
             opacity: 0;
-        }
-        .sidebar.is-collapsing:hover .letter-d {
-            transform: translateX(-8px);
-            opacity: 1;
-        }
-        .sidebar.is-collapsing:hover .letter-x {
-            transform: translateX(8px);
-            opacity: 1;
-        }
-        .sidebar.is-collapsing:hover .author-content-wrap {
-            opacity: 0;
-            transform: scale(0.9);
-            pointer-events: none;
         }
         .sidebar.is-collapsing:hover .side-pill {
             width: 44px;
@@ -1526,11 +1542,25 @@
                     </svg>
                     <span class="side-pill-text" data-i18n="common.comfyuiSettings">工作流设置</span>
                 </button>
+                <button id="desktop-center-btn" class="side-pill desktop-ready" onclick="openDesktopManager(event)" type="button" title="桌面管理">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 20h16"></path>
+                        <rect x="5" y="4" width="14" height="11" rx="2"></rect>
+                        <path d="M9 20v-5h6v5"></path>
+                    </svg>
+                    <span id="desktop-center-text" class="side-pill-text">桌面管理</span>
+                </button>
                 <button id="github-entry-btn" class="side-pill" onclick="openProjectPage()" type="button" title="GitHub">
                     <svg fill="currentColor" stroke="none" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.05c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.74.08-.74 1.21.09 1.85 1.25 1.85 1.25 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.53.12-3.18 0 0 1.01-.32 3.3 1.23a11.45 11.45 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.49 5.93.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.57A12 12 0 0 0 12 .5Z"></path>
                     </svg>
                     <span class="side-pill-text" data-i18n="common.project">项目主页</span>
+                </button>
+                <button id="original-author-btn" class="side-pill" onclick="openOriginalAuthorPage()" type="button" title="原作者主页">
+                    <svg fill="currentColor" stroke="none" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.05c-3.34.73-4.04-1.42-4.04-1.42-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.74.08-.74 1.21.09 1.85 1.25 1.85 1.25 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.53.12-3.18 0 0 1.01-.32 3.3 1.23a11.45 11.45 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.49 5.93.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.57A12 12 0 0 0 12 .5Z"></path>
+                    </svg>
+                    <span class="side-pill-text">原作者主页</span>
                 </button>
                 <button id="update-now-btn" class="update-now-btn" onclick="runProjectUpdate()" type="button" title="一键更新">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1542,36 +1572,6 @@
                 <div id="project-version-badge" class="project-version-badge" title="当前版本">v-</div>
             </div>
 
-            <div class="author-box">
-                <span class="dx-letter letter-d">D</span>
-                <span class="dx-letter letter-x">X</span>
-
-                <div class="author-content-wrap">
-                    <div class="author-name-lite">wuli大雄</div>
-                    <div class="social-row-lite">
-                        <a href="https://space.bilibili.com/78652351" target="_blank" class="social-icon-lite">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M17.813 4.653h-.854L15.66 3.053a1.147 1.147 0 00-1.63 0l-1.3 1.6h-1.46L9.97 3.053a1.147 1.147 0 00-1.63 0L7.043 4.653h-.854a3.946 3.946 0 00-3.93 3.934v8.117a3.946 3.946 0 003.93 3.934h11.624a3.946 3.946 0 003.93-3.934V8.587a3.946 3.946 0 00-3.93-3.934zM7.152 13.9a1.465 1.465 0 111.47-1.462 1.465 1.465 0 01-1.47 1.462zm7.696 0a1.465 1.465 0 111.47-1.462 1.465 1.465 0 01-1.47 1.462z" />
-                            </svg>
-                        </a>
-                        <a href="https://www.xiaohongshu.com/user/profile/6433c34c000000001a023538" target="_blank" class="social-icon-lite">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" />
-                            </svg>
-                        </a>
-                        <a href="https://www.youtube.com/@%E5%A4%A7%E9%9B%84dx" target="_blank" class="social-icon-lite">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                            </svg>
-                        </a>
-                        <a href="https://x.com/dx8152?s=21" target="_blank" class="social-icon-lite">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
         </aside>
         <script>
             /* 在侧栏 DOM 解析完后立即把 active 类移到当前页对应的入口，避免首屏先在文生图上闪一下 */
@@ -1615,6 +1615,38 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <div id="desktop-location-modal" class="studio-modal" hidden role="dialog" aria-modal="true" aria-labelledby="desktop-location-title">
+        <div class="studio-modal-panel">
+            <div class="studio-modal-head">
+                <div>
+                    <div id="desktop-location-kicker" class="studio-modal-kicker">DESKTOP</div>
+                    <h2 id="desktop-location-title" class="studio-modal-title">桌面管理</h2>
+                </div>
+                <button id="desktop-location-close" class="studio-modal-close" type="button" onclick="closeDesktopManager()" title="关闭" aria-label="关闭">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="studio-modal-body">
+                <div class="desktop-path-summary">
+                    <span id="desktop-data-label" class="desktop-path-key">DATA DIRECTORY</span>
+                    <code id="desktop-data-dir" class="desktop-path-value">-</code>
+                    <span id="desktop-mode-label" class="desktop-path-key">MODE</span>
+                    <code id="desktop-mode-value" class="desktop-path-value">-</code>
+                </div>
+                <div id="desktop-path-grid" class="desktop-path-grid"></div>
+                <div id="desktop-location-status" class="desktop-path-status" aria-live="polite"></div>
+            </div>
+            <div class="studio-modal-actions">
+                <button class="studio-modal-btn" type="button" onclick="closeDesktopManager()">
+                    <span id="desktop-location-cancel-text">关闭</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <div id="project-update-modal" class="studio-modal" hidden role="dialog" aria-modal="true" aria-labelledby="project-update-title">
@@ -1682,10 +1714,28 @@
         const DEFAULT_PAGE_ID = 'zimage';
         const PAGE_IDS = ['zimage','enhance','klein','angle','online','gpt-chat','canvas','asset-manager','api-settings','comfyui-settings'];
         const LOCAL_PAGE_IDS = ['zimage','enhance','klein','angle'];
-        const PROJECT_URL = 'https://github.com/hero8152/Infinite-Canvas';
-        let appInfo = { version:'', repo_url:PROJECT_URL, version_url:'https://raw.githubusercontent.com/hero8152/Infinite-Canvas/main/VERSION' };
+        const PROJECT_URL = 'https://github.com/xc1500225328-max/Infinite-Canvas';
+        const ORIGINAL_AUTHOR_URL = 'https://github.com/hero8152';
+        let appInfo = {
+            version:'',
+            repo_url:PROJECT_URL,
+            version_url:'https://raw.githubusercontent.com/xc1500225328-max/Infinite-Canvas/main/VERSION',
+            tree_url:'https://api.github.com/repos/xc1500225328-max/Infinite-Canvas/git/trees/main?recursive=1',
+            update_manifest_url:'https://github.com/xc1500225328-max/Infinite-Canvas/releases/latest/download/update.json',
+            installer_update_supported:false
+        };
         let updateConnectivityResult = null;
+        let installerUpdateInfo = null;
         let projectUpdateRunning = false;
+        const DESKTOP_LOCATION_ORDER = ['data', 'output', 'assets', 'workflows', 'logs', 'install'];
+        const DESKTOP_LOCATION_META = {
+            data: ['数据目录', 'Data folder'],
+            output: ['输出图片', 'Output folder'],
+            assets: ['素材目录', 'Assets folder'],
+            workflows: ['用户工作流', 'User workflows'],
+            logs: ['日志目录', 'Logs folder'],
+            install: ['程序目录', 'Install folder'],
+        };
 
         function setSidebarPinned(pinned, options = {}) {
             const sidebar = document.getElementById('studioSidebar');
@@ -1890,6 +1940,7 @@
             updateProjectUpdateTitle();
             refreshUpdateButtonText();
             refreshProjectUpdateModalText();
+            renderDesktopLocations();
         }
 
         function syncLanguageToFrame(frame) {
@@ -1917,6 +1968,7 @@
             const theme = window.StudioTheme ? window.StudioTheme.get() : 'light';
             updateThemeIcon(theme);
             if(window.StudioI18n) window.StudioI18n.apply();
+            refreshDesktopText();
             broadcastLanguage();
             checkForUpdates();
         });
@@ -1931,6 +1983,124 @@
 
         function openProjectPage() {
             window.open(appInfo.repo_url || PROJECT_URL, '_blank', 'noopener');
+        }
+
+        function openOriginalAuthorPage() {
+            window.open(ORIGINAL_AUTHOR_URL, '_blank', 'noopener');
+        }
+
+        function desktopLocationLabel(key) {
+            const item = DESKTOP_LOCATION_META[key] || [key, key];
+            return window.StudioI18n?.lang?.() === 'en' ? item[1] : item[0];
+        }
+
+        function desktopFolderIcon() {
+            return '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2h8.5A2.5 2.5 0 0 1 22 9.5v7A2.5 2.5 0 0 1 19.5 19h-15A2.5 2.5 0 0 1 2 16.5v-9Z"></path></svg>';
+        }
+
+        function setDesktopStatus(text, mode = '') {
+            const status = document.getElementById('desktop-location-status');
+            if(!status) return;
+            status.textContent = text || '';
+            status.style.color = mode === 'error' ? '#ef4444' : '';
+        }
+
+        function refreshDesktopText() {
+            const isEn = window.StudioI18n?.lang?.() === 'en';
+            const btnText = document.getElementById('desktop-center-text');
+            const btn = document.getElementById('desktop-center-btn');
+            const title = document.getElementById('desktop-location-title');
+            const kicker = document.getElementById('desktop-location-kicker');
+            const dataLabel = document.getElementById('desktop-data-label');
+            const modeLabel = document.getElementById('desktop-mode-label');
+            const closeBtn = document.getElementById('desktop-location-close');
+            const cancelText = document.getElementById('desktop-location-cancel-text');
+            if(btnText) btnText.textContent = isEn ? 'Desktop' : '桌面管理';
+            if(btn) btn.title = isEn ? 'Desktop folders' : '桌面管理';
+            if(title) title.textContent = isEn ? 'Desktop folders' : '桌面管理';
+            if(kicker) kicker.textContent = isEn ? 'LOCAL FILES' : '本地文件';
+            if(dataLabel) dataLabel.textContent = isEn ? 'DATA DIRECTORY' : '数据目录';
+            if(modeLabel) modeLabel.textContent = isEn ? 'RUNNING MODE' : '运行模式';
+            if(closeBtn) {
+                closeBtn.title = isEn ? 'Close' : '关闭';
+                closeBtn.setAttribute('aria-label', closeBtn.title);
+            }
+            if(cancelText) cancelText.textContent = isEn ? 'Close' : '关闭';
+        }
+
+        function renderDesktopLocations() {
+            refreshDesktopText();
+            const grid = document.getElementById('desktop-path-grid');
+            const dataDir = document.getElementById('desktop-data-dir');
+            const modeValue = document.getElementById('desktop-mode-value');
+            if(dataDir) dataDir.textContent = appInfo.data_dir || '-';
+            if(modeValue) {
+                modeValue.textContent = appInfo.desktop_data
+                    ? updateUiText('桌面模式：用户数据保存在独立数据目录', 'Desktop mode: user data is stored in a separate data folder')
+                    : updateUiText('便携/源码模式：用户数据保存在程序目录', 'Portable/source mode: user data is stored beside the app');
+            }
+            if(!grid) return;
+            grid.replaceChildren();
+            const locations = appInfo.desktop_locations || {};
+            DESKTOP_LOCATION_ORDER.forEach(key => {
+                const path = locations[key] || '';
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'desktop-path-card';
+                btn.dataset.location = key;
+                btn.innerHTML = `${desktopFolderIcon()}<span><strong></strong><small></small></span>`;
+                btn.querySelector('strong').textContent = desktopLocationLabel(key);
+                btn.querySelector('small').textContent = path || updateUiText('未创建', 'Not created');
+                btn.onclick = () => openDesktopLocation(key);
+                grid.append(btn);
+            });
+        }
+
+        async function refreshAppInfoForDesktop() {
+            try {
+                const info = await fetch('/api/app-info', { cache:'no-store' }).then(r => r.json());
+                appInfo = {...appInfo, ...info};
+                setProjectVersionBadge(appInfo.version || '');
+            } catch(e) {}
+        }
+
+        async function openDesktopManager(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const modal = document.getElementById('desktop-location-modal');
+            if(!modal) return;
+            modal.hidden = false;
+            setDesktopStatus(updateUiText('正在读取目录...', 'Loading folders...'));
+            await refreshAppInfoForDesktop();
+            renderDesktopLocations();
+            setDesktopStatus('');
+            document.querySelector('#desktop-path-grid button')?.focus?.();
+        }
+
+        function closeDesktopManager() {
+            const modal = document.getElementById('desktop-location-modal');
+            if(modal) modal.hidden = true;
+        }
+
+        async function openDesktopLocation(location) {
+            const isEn = window.StudioI18n?.lang?.() === 'en';
+            const btn = document.querySelector(`.desktop-path-card[data-location="${location}"]`);
+            if(btn) btn.disabled = true;
+            setDesktopStatus(isEn ? 'Opening folder...' : '正在打开目录...');
+            try {
+                const res = await fetch('/api/desktop/open-location', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({ location })
+                });
+                const data = await res.json().catch(() => ({}));
+                if(!res.ok) throw new Error(data.detail || (isEn ? 'Failed to open folder' : '打开目录失败'));
+                setDesktopStatus((isEn ? 'Opened: ' : '已打开：') + (data.path || desktopLocationLabel(location)));
+            } catch(e) {
+                setDesktopStatus((isEn ? 'Failed: ' : '失败：') + String(e?.message || e), 'error');
+            } finally {
+                if(btn) btn.disabled = false;
+            }
         }
 
         function versionParts(value) {
@@ -1986,11 +2156,15 @@
             const btn = document.getElementById('update-now-btn');
             const text = document.getElementById('update-now-text');
             if(!btn || !text || !btn.classList.contains('show')) return;
-            const remoteVersion = document.getElementById('github-entry-btn')?.dataset.remoteVersion || '';
+            const gitBtn = document.getElementById('github-entry-btn');
+            const remoteVersion = gitBtn?.dataset.remoteVersion || '';
+            const updateMode = gitBtn?.dataset.updateMode || 'source';
             const isEn = window.StudioI18n?.lang?.() === 'en';
             text.removeAttribute('data-i18n');
             if(remoteVersion) {
-                const prefix = isEn ? 'Update to' : '更新到';
+                const prefix = updateMode === 'installer'
+                    ? (isEn ? 'Install' : '安装到')
+                    : (isEn ? 'Update to' : '更新到');
                 text.replaceChildren();
                 const prefixSpan = document.createElement('span');
                 prefixSpan.className = 'update-action-prefix';
@@ -2014,23 +2188,27 @@
             setProjectVersionBadge(appInfo.version || gitBtn?.dataset.localVersion || '');
             if(!gitBtn?.classList.contains('update-available')) return;
             const remoteVersion = gitBtn.dataset.remoteVersion || '';
+            const updateMode = gitBtn.dataset.updateMode || 'source';
             const isEn = window.StudioI18n?.lang?.() === 'en';
             gitBtn.title = isEn
                 ? `Current ${versionLabel(gitBtn.dataset.localVersion || appInfo.version)} · latest ${versionLabel(remoteVersion)}`
                 : `当前 ${versionLabel(gitBtn.dataset.localVersion || appInfo.version)} · 最新 ${versionLabel(remoteVersion)}`;
             const updateBtn = document.getElementById('update-now-btn');
             if(updateBtn) updateBtn.title = remoteVersion
-                ? (isEn ? `Update to ${versionLabel(remoteVersion)}` : `更新到 ${versionLabel(remoteVersion)}`)
+                ? (updateMode === 'installer'
+                    ? (isEn ? `Install ${versionLabel(remoteVersion)}` : `安装到 ${versionLabel(remoteVersion)}`)
+                    : (isEn ? `Update to ${versionLabel(remoteVersion)}` : `更新到 ${versionLabel(remoteVersion)}`))
                 : (isEn ? 'Update main.py and static files from GitHub' : '从 GitHub 更新 main.py 和 static 文件');
             refreshUpdateButtonText();
         }
 
-        function showUpdateNotice(localVersion, remoteVersion) {
+        function showUpdateNotice(localVersion, remoteVersion, mode = 'source') {
             const gitBtn = document.getElementById('github-entry-btn');
             if(!gitBtn) return;
             gitBtn.classList.add('update-available');
             gitBtn.dataset.localVersion = localVersion || '';
             gitBtn.dataset.remoteVersion = remoteVersion || '';
+            gitBtn.dataset.updateMode = mode || 'source';
             document.getElementById('update-now-btn')?.classList.add('show');
             updateProjectUpdateTitle();
         }
@@ -2050,12 +2228,19 @@
             return window.StudioI18n?.lang?.() === 'en' ? en : zh;
         }
 
+        function currentProjectUpdateMode() {
+            const mode = document.getElementById('github-entry-btn')?.dataset.updateMode || 'source';
+            return mode === 'installer' ? 'installer' : 'source';
+        }
+
         function updateTargetLabel(name) {
             const labels = {
                 'GitHub 更新列表': ['GitHub 更新列表', 'GitHub update API'],
                 'GitHub 版本文件': ['GitHub 版本文件', 'GitHub version file'],
                 'GitHub 主页': ['GitHub 主页', 'GitHub home page'],
                 'Google 连通性': ['Google 连通性', 'Google connectivity'],
+                '更新清单': ['更新清单', 'Update manifest'],
+                '安装包': ['安装包', 'Installer package'],
             };
             const item = labels[name] || [name, name];
             return window.StudioI18n?.lang?.() === 'en' ? item[1] : item[0];
@@ -2082,9 +2267,9 @@
 
         function updateConnectivityTargets() {
             return [
-                { name:'GitHub 更新列表', url:appInfo.tree_url || 'https://api.github.com/repos/hero8152/Infinite-Canvas/git/trees/main?recursive=1' },
-                { name:'GitHub 版本文件', url:appInfo.version_url || 'https://raw.githubusercontent.com/hero8152/Infinite-Canvas/main/VERSION' },
-                { name:'GitHub 主页', url:'https://github.com/' },
+                { name:'GitHub 更新列表', url:appInfo.tree_url || 'https://api.github.com/repos/xc1500225328-max/Infinite-Canvas/git/trees/main?recursive=1' },
+                { name:'GitHub 版本文件', url:appInfo.version_url || 'https://raw.githubusercontent.com/xc1500225328-max/Infinite-Canvas/main/VERSION' },
+                { name:'GitHub 主页', url:appInfo.repo_url || PROJECT_URL },
                 { name:'Google 连通性', url:'https://www.google.com/generate_204' },
             ];
         }
@@ -2125,8 +2310,11 @@
             const gitBtn = document.getElementById('github-entry-btn');
             const remoteVersion = gitBtn?.dataset.remoteVersion || '';
             const localVersion = gitBtn?.dataset.localVersion || appInfo.version || '';
+            const updateMode = currentProjectUpdateMode();
             const title = remoteVersion
-                ? updateUiText(`更新到 ${versionLabel(remoteVersion)}`, `Update to ${versionLabel(remoteVersion)}`)
+                ? (updateMode === 'installer'
+                    ? updateUiText(`安装到 ${versionLabel(remoteVersion)}`, `Install ${versionLabel(remoteVersion)}`)
+                    : updateUiText(`更新到 ${versionLabel(remoteVersion)}`, `Update to ${versionLabel(remoteVersion)}`))
                 : updateUiText('一键更新', 'One-click update');
             const titleEl = document.getElementById('project-update-title');
             const copyEl = document.getElementById('project-update-copy');
@@ -2135,16 +2323,53 @@
             const confirmText = document.getElementById('project-update-confirm-text');
             const closeBtn = document.querySelector('#project-update-modal .studio-modal-close');
             if(titleEl) titleEl.textContent = title;
-            if(copyEl) copyEl.textContent = updateUiText(
-                `将从 GitHub 更新 main.py、VERSION 和 static 文件。更新前会自动备份，更新完成后后端会自动重启。当前 ${versionLabel(localVersion)}，最新 ${versionLabel(remoteVersion || localVersion)}。`,
-                `This updates main.py, VERSION, and static files from GitHub. A backup is created first, then the backend restarts automatically. Current ${versionLabel(localVersion)}, latest ${versionLabel(remoteVersion || localVersion)}.`
-            );
-            if(testText) testText.textContent = updateConnectivityResult ? updateUiText('重新测试', 'Retest') : updateUiText('测试连通性', 'Test connectivity');
+            if(copyEl) {
+                copyEl.textContent = updateMode === 'installer'
+                    ? updateUiText(
+                        `将下载新版安装包，校验 SHA256 后启动安装器。安装器会覆盖程序文件并保留用户数据目录。当前 ${versionLabel(localVersion)}，最新 ${versionLabel(remoteVersion || localVersion)}。`,
+                        `This downloads the new installer, verifies SHA256, then launches setup. User data is kept. Current ${versionLabel(localVersion)}, latest ${versionLabel(remoteVersion || localVersion)}.`
+                    )
+                    : updateUiText(
+                        `将从 GitHub 更新 main.py、VERSION 和 static 文件。更新前会自动备份，更新完成后后端会自动重启。当前 ${versionLabel(localVersion)}，最新 ${versionLabel(remoteVersion || localVersion)}。`,
+                        `This updates main.py, VERSION, and static files from GitHub. A backup is created first, then the backend restarts automatically. Current ${versionLabel(localVersion)}, latest ${versionLabel(remoteVersion || localVersion)}.`
+                    );
+            }
+            if(testText) testText.textContent = updateMode === 'installer'
+                ? updateUiText('检查安装包', 'Check installer')
+                : (updateConnectivityResult ? updateUiText('重新测试', 'Retest') : updateUiText('测试连通性', 'Test connectivity'));
             if(cancelText) cancelText.textContent = updateUiText('取消', 'Cancel');
-            if(confirmText && !projectUpdateRunning) confirmText.textContent = updateUiText('开始更新', 'Start update');
+            if(confirmText && !projectUpdateRunning) confirmText.textContent = updateMode === 'installer'
+                ? updateUiText('下载安装包', 'Download installer')
+                : updateUiText('开始更新', 'Start update');
             if(closeBtn) {
                 closeBtn.title = updateUiText('关闭', 'Close');
                 closeBtn.setAttribute('aria-label', closeBtn.title);
+            }
+            if(updateMode === 'installer') {
+                if(!updateConnectivityResult) {
+                    setUpdateSummary(
+                        'warn',
+                        updateUiText('准备安装包更新', 'Installer update ready'),
+                        updateUiText('点击后会下载安装包并启动安装器；如果安装到 Program Files，Windows 可能会请求管理员权限。', 'The installer will be downloaded and launched; Windows may request administrator permission.')
+                    );
+                } else if(updateConnectivityResult.ok) {
+                    setUpdateSummary(
+                        'ok',
+                        updateUiText('安装包信息可用', 'Installer info available'),
+                        updateUiText('更新清单已读取，可以下载安装包。', 'The update manifest is readable. The installer can be downloaded.')
+                    );
+                } else {
+                    setUpdateSummary(
+                        'fail',
+                        updateUiText('安装包信息不可用', 'Installer info unavailable'),
+                        updateUiText('无法读取 update.json 或安装包信息，请检查发布文件和网络。', 'Cannot read update.json or installer metadata. Check release files and network.')
+                    );
+                }
+                renderConnectivityList(updateConnectivityResult?.results || [
+                    { name:'更新清单', url:appInfo.update_manifest_url || '', pending:false, untouched:true },
+                    { name:'安装包', url:installerUpdateInfo?.setup_url || '', pending:false, untouched:true },
+                ]);
+                return;
             }
             if(!updateConnectivityResult) {
                 setUpdateSummary(
@@ -2205,18 +2430,167 @@
             if(event.target?.id === 'project-update-modal') closeProjectUpdateModal();
         });
 
-        window.addEventListener('keydown', event => {
-            if(event.key === 'Escape') closeProjectUpdateModal();
+        document.getElementById('desktop-location-modal')?.addEventListener('click', event => {
+            if(event.target?.id === 'desktop-location-modal') closeDesktopManager();
         });
 
-        async function runProjectUpdate() {
-            openProjectUpdateModal();
+        window.addEventListener('keydown', event => {
+            if(event.key === 'Escape') {
+                closeDesktopManager();
+                closeProjectUpdateModal();
+            }
+        });
+
+        async function runInstallerUpdateCheck(options = {}) {
+            const testBtn = document.getElementById('connectivity-test-btn');
+            const text = document.getElementById('connectivity-test-text');
+            const keepDisabled = !!options.keepDisabled;
+            if(testBtn) testBtn.disabled = true;
+            if(text) text.textContent = updateUiText('检查中...', 'Checking...');
+            setUpdateSummary(
+                'warn',
+                updateUiText('正在读取更新清单', 'Reading update manifest'),
+                updateUiText('正在检查 update.json 和安装包信息。', 'Checking update.json and installer metadata.')
+            );
+            updateConnectivityResult = {
+                ok:false,
+                results:[
+                    { name:'更新清单', url:appInfo.update_manifest_url || '', pending:true },
+                    { name:'安装包', url:installerUpdateInfo?.setup_url || '', pending:true },
+                ]
+            };
+            renderConnectivityList(updateConnectivityResult.results);
+            try {
+                const res = await fetch('/api/installer-update-info', { cache:'no-store' });
+                const data = await res.json().catch(() => ({}));
+                if(!res.ok) throw new Error(data.detail || updateUiText('读取更新清单失败', 'Failed to read update manifest'));
+                installerUpdateInfo = data;
+                updateConnectivityResult = {
+                    ok:!!data.supported && !!data.available,
+                    results:[
+                        {
+                            name:'更新清单',
+                            url:data.manifest_url || appInfo.update_manifest_url || '',
+                            ok:!!data.supported,
+                            elapsed_ms:0,
+                            error:data.supported ? '' : (data.reason || '')
+                        },
+                        {
+                            name:'安装包',
+                            url:data.setup_url || '',
+                            ok:!!data.available,
+                            elapsed_ms:0,
+                            error:data.available ? '' : updateUiText('没有可用的新安装包', 'No newer installer available')
+                        },
+                    ]
+                };
+            } catch(e) {
+                updateConnectivityResult = {
+                    ok:false,
+                    results:[
+                        { name:'更新清单', url:appInfo.update_manifest_url || '', ok:false, elapsed_ms:0, error:String(e?.message || e) },
+                        { name:'安装包', url:installerUpdateInfo?.setup_url || '', ok:false, elapsed_ms:0, error:String(e?.message || e) },
+                    ]
+                };
+            } finally {
+                if(testBtn && !keepDisabled) testBtn.disabled = false;
+                refreshProjectUpdateModalText();
+            }
+            return updateConnectivityResult;
         }
 
-        async function runUpdateConnectivityTest() {
+        async function runInstallerPackageUpdate() {
+            const isEn = window.StudioI18n?.lang?.() === 'en';
+            const btn = document.getElementById('update-now-btn');
+            const text = document.getElementById('update-now-text');
+            const confirmBtn = document.getElementById('project-update-confirm-btn');
+            const confirmText = document.getElementById('project-update-confirm-text');
+            const testBtn = document.getElementById('connectivity-test-btn');
+            const oldText = text?.textContent || '';
+            if(projectUpdateRunning) return false;
+            projectUpdateRunning = true;
+            if(btn) btn.disabled = true;
+            if(confirmBtn) confirmBtn.disabled = true;
+            if(testBtn) testBtn.disabled = true;
+            if(text) text.textContent = isEn ? 'Downloading...' : '下载中...';
+            if(confirmText) confirmText.textContent = isEn ? 'Downloading...' : '下载中...';
+            setUpdateSummary(
+                'warn',
+                isEn ? 'Downloading installer' : '正在下载安装包',
+                isEn ? 'The installer is being downloaded and verified. Do not close the app.' : '正在下载安装包并校验 SHA256，请不要关闭程序。'
+            );
+            renderConnectivityList([
+                { name:'更新清单', url:appInfo.update_manifest_url || '', ok:true, elapsed_ms:0 },
+                { name:'安装包', url:installerUpdateInfo?.setup_url || '', pending:true },
+            ]);
+            try {
+                const res = await fetch('/api/update-installer', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({ silent:true, launch:true })
+                });
+                const data = await res.json().catch(() => ({}));
+                if(!res.ok) throw new Error(data.detail || (isEn ? 'Installer update failed' : '安装包更新失败'));
+                if(data.available === false) {
+                    setUpdateSummary('ok', isEn ? 'Already up to date' : '已经是最新版本', isEn ? 'No newer installer is available.' : '没有可用的新安装包。');
+                    return true;
+                }
+                setUpdateSummary(
+                    'ok',
+                    isEn ? 'Installer launched' : '安装器已启动',
+                    isEn
+                        ? 'The installer has been launched. Windows may ask for administrator permission; this app will close automatically.'
+                        : '安装器已经启动。Windows 可能会请求管理员权限，当前程序会自动关闭。'
+                );
+                document.getElementById('github-entry-btn')?.classList.remove('update-available');
+                btn?.classList.remove('show');
+                return true;
+            } catch(e) {
+                setUpdateSummary('fail', isEn ? 'Installer update failed' : '安装包更新失败', describeNetworkError(e, isEn));
+                return false;
+            } finally {
+                projectUpdateRunning = false;
+                if(btn) btn.disabled = false;
+                if(confirmBtn) confirmBtn.disabled = false;
+                if(testBtn) testBtn.disabled = false;
+                if(text) text.textContent = oldText || (isEn ? 'Update' : '一键更新');
+                if(confirmText) confirmText.textContent = isEn ? 'Download installer' : '下载安装包';
+                refreshUpdateButtonText();
+            }
+        }
+
+        async function runProjectUpdate() {
+            if(projectUpdateRunning) return;
+            openProjectUpdateModal();
+            if(currentProjectUpdateMode() === 'installer') {
+                await runInstallerPackageUpdate();
+                return;
+            }
+            const btn = document.getElementById('update-now-btn');
+            const confirmBtn = document.getElementById('project-update-confirm-btn');
+            const testBtn = document.getElementById('connectivity-test-btn');
+            if(btn) btn.disabled = true;
+            if(confirmBtn) confirmBtn.disabled = true;
+            if(testBtn) testBtn.disabled = true;
+            const result = await runUpdateConnectivityTest({ keepDisabled:true });
+            if(!result?.ok || result.backend_missing) {
+                if(btn) btn.disabled = false;
+                if(confirmBtn) confirmBtn.disabled = false;
+                if(testBtn) testBtn.disabled = false;
+                refreshUpdateButtonText();
+                return;
+            }
+            await confirmProjectUpdate({ skipConnectivityCheck:true });
+        }
+
+        async function runUpdateConnectivityTest(options = {}) {
+            if(currentProjectUpdateMode() === 'installer') {
+                return await runInstallerUpdateCheck(options);
+            }
             const isEn = window.StudioI18n?.lang?.() === 'en';
             const btn = document.getElementById('connectivity-test-btn');
             const text = document.getElementById('connectivity-test-text');
+            const keepDisabled = !!options.keepDisabled;
             if(btn) btn.disabled = true;
             if(text) text.textContent = isEn ? 'Testing...' : '检测中...';
             updateConnectivityResult = null;
@@ -2239,10 +2613,10 @@
                             error:message
                         }))
                     };
-                    return;
+                } else {
+                    if(!res.ok) throw new Error(data.detail || (isEn ? 'Connectivity test failed' : '连通性测试失败'));
+                    updateConnectivityResult = data;
                 }
-                if(!res.ok) throw new Error(data.detail || (isEn ? 'Connectivity test failed' : '连通性测试失败'));
-                updateConnectivityResult = data;
             } catch(e) {
                 updateConnectivityResult = {
                     ok:false,
@@ -2254,12 +2628,16 @@
                     }))
                 };
             } finally {
-                if(btn) btn.disabled = false;
+                if(btn && !keepDisabled) btn.disabled = false;
                 refreshProjectUpdateModalText();
             }
+            return updateConnectivityResult;
         }
 
-        async function confirmProjectUpdate() {
+        async function confirmProjectUpdate(options = {}) {
+            if(currentProjectUpdateMode() === 'installer') {
+                return await runInstallerPackageUpdate();
+            }
             const isEn = window.StudioI18n?.lang?.() === 'en';
             const btn = document.getElementById('update-now-btn');
             const text = document.getElementById('update-now-text');
@@ -2267,6 +2645,20 @@
             const confirmText = document.getElementById('project-update-confirm-text');
             const testBtn = document.getElementById('connectivity-test-btn');
             const oldText = text?.textContent || '';
+            if(projectUpdateRunning) return false;
+            if(!options.skipConnectivityCheck && (!updateConnectivityResult || !updateConnectivityResult.ok || updateConnectivityResult.backend_missing)) {
+                if(btn) btn.disabled = true;
+                if(confirmBtn) confirmBtn.disabled = true;
+                if(testBtn) testBtn.disabled = true;
+                const result = await runUpdateConnectivityTest({ keepDisabled:true });
+                if(!result?.ok || result.backend_missing) {
+                    if(btn) btn.disabled = false;
+                    if(confirmBtn) confirmBtn.disabled = false;
+                    if(testBtn) testBtn.disabled = false;
+                    refreshUpdateButtonText();
+                    return false;
+                }
+            }
             projectUpdateRunning = true;
             if(btn) btn.disabled = true;
             if(confirmBtn) confirmBtn.disabled = true;
@@ -2298,8 +2690,10 @@
                 btn?.classList.remove('show');
                 setProjectVersionBadge(data.version || document.getElementById('github-entry-btn')?.dataset.remoteVersion || appInfo.version);
                 if(restarting) waitForBackendAndReload();
+                return true;
             } catch(e) {
                 setUpdateSummary('fail', isEn ? 'Update failed' : '更新失败', describeNetworkError(e, isEn));
+                return false;
             } finally {
                 projectUpdateRunning = false;
                 if(btn) btn.disabled = false;
@@ -2363,9 +2757,26 @@
                 appInfo = {...appInfo, ...info};
                 const current = String(appInfo.version || '').trim();
                 setProjectVersionBadge(current);
-                const remoteText = await fetch(`${appInfo.version_url || ''}?t=${Date.now()}`, { cache:'no-store' }).then(r => r.ok ? r.text() : '');
-                const remote = String(remoteText || '').trim().split(/\r?\n/)[0].trim();
-                if(current && remote && compareVersions(remote, current) > 0) showUpdateNotice(current, remote);
+                if(appInfo.installer_update_supported) {
+                    try {
+                        const installerInfo = await fetch(`/api/installer-update-info?t=${Date.now()}`, { cache:'no-store' }).then(r => r.ok ? r.json() : null);
+                        installerUpdateInfo = installerInfo || null;
+                        if(installerInfo?.available && installerInfo.version) {
+                            showUpdateNotice(current, String(installerInfo.version || '').trim(), 'installer');
+                        }
+                    } catch(e) {}
+                    return;
+                }
+                let remote = '';
+                try {
+                    const remoteInfo = await fetch(`/api/update-version?t=${Date.now()}`, { cache:'no-store' }).then(r => r.ok ? r.json() : null);
+                    remote = String(remoteInfo?.version || '').trim();
+                } catch(e) {}
+                if(!remote && appInfo.version_url) {
+                    const remoteText = await fetch(`${appInfo.version_url}?t=${Date.now()}`, { cache:'no-store' }).then(r => r.ok ? r.text() : '');
+                    remote = String(remoteText || '').trim().split(/\r?\n/)[0].trim();
+                }
+                if(current && remote && compareVersions(remote, current) > 0) showUpdateNotice(current, remote, 'source');
             } catch(e) {
                 // 离线包里没有网络时保持安静，不影响本地使用。
             }

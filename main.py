@@ -16,6 +16,7 @@ import time
 import shutil
 import asyncio
 import logging
+from logging.handlers import RotatingFileHandler
 import requests
 import zipfile
 import mimetypes
@@ -158,10 +159,28 @@ class ConnectionManager:
 manager = ConnectionManager()
 GLOBAL_LOOP = None
 APP_VERSION = "2026.05.19"
-GITHUB_REPO_URL = "https://github.com/hero8152/Infinite-Canvas"
-GITHUB_VERSION_URL = "https://raw.githubusercontent.com/hero8152/Infinite-Canvas/main/VERSION"
-GITHUB_TREE_URL = "https://api.github.com/repos/hero8152/Infinite-Canvas/git/trees/main?recursive=1"
-GITHUB_RAW_ROOT = "https://raw.githubusercontent.com/hero8152/Infinite-Canvas/main"
+
+def normalize_github_repo_url(value: str) -> str:
+    text = str(value or "").strip().rstrip("/")
+    if text.endswith(".git"):
+        text = text[:-4]
+    return text or "https://github.com/xc1500225328-max/Infinite-Canvas"
+
+def github_repo_slug(repo_url: str) -> str:
+    parsed = urllib.parse.urlparse(repo_url)
+    if parsed.netloc.lower() == "github.com":
+        return parsed.path.strip("/")
+    return "xc1500225328-max/Infinite-Canvas"
+
+GITHUB_REPO_URL = normalize_github_repo_url(os.getenv("INFINITE_CANVAS_GITHUB_REPO_URL", "https://github.com/xc1500225328-max/Infinite-Canvas"))
+GITHUB_BRANCH = os.getenv("INFINITE_CANVAS_GITHUB_BRANCH", "main").strip() or "main"
+GITHUB_REPO_SLUG = github_repo_slug(GITHUB_REPO_URL)
+GITHUB_VERSION_URL = os.getenv("INFINITE_CANVAS_GITHUB_VERSION_URL", f"https://raw.githubusercontent.com/{GITHUB_REPO_SLUG}/{GITHUB_BRANCH}/VERSION")
+GITHUB_TREE_URL = os.getenv("INFINITE_CANVAS_GITHUB_TREE_URL", f"https://api.github.com/repos/{GITHUB_REPO_SLUG}/git/trees/{GITHUB_BRANCH}?recursive=1")
+GITHUB_RAW_ROOT = os.getenv("INFINITE_CANVAS_GITHUB_RAW_ROOT", f"https://raw.githubusercontent.com/{GITHUB_REPO_SLUG}/{GITHUB_BRANCH}")
+GITHUB_TOKEN = os.getenv("INFINITE_CANVAS_GITHUB_TOKEN", "").strip() or os.getenv("GITHUB_TOKEN", "").strip()
+GITHUB_RELEASES_URL = os.getenv("INFINITE_CANVAS_GITHUB_RELEASES_URL", f"https://github.com/{GITHUB_REPO_SLUG}/releases")
+UPDATE_MANIFEST_URL = os.getenv("INFINITE_CANVAS_UPDATE_MANIFEST_URL", f"{GITHUB_RELEASES_URL}/latest/download/update.json")
 
 @app.on_event("startup")
 async def startup_event():
@@ -187,33 +206,59 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str = None):
 
 CLIENT_ID = str(uuid.uuid4())
 
-def app_base_dir():
+APP_DATA_DIR_NAME = "InfiniteCanvas"
+
+def app_install_dir():
     if getattr(sys, "frozen", False):
         return os.path.dirname(os.path.abspath(sys.executable))
     return os.path.dirname(os.path.abspath(__file__))
 
-BASE_DIR = app_base_dir()
-WORKFLOW_DIR = os.path.join(BASE_DIR, "workflows")
-WORKFLOW_PATH = os.path.join(WORKFLOW_DIR, "Z-Image.json")
+def env_flag(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+def app_data_dir():
+    override = os.getenv("INFINITE_CANVAS_DATA_DIR", "").strip()
+    if override:
+        return os.path.abspath(os.path.expanduser(override))
+    if env_flag("INFINITE_CANVAS_PORTABLE_DATA"):
+        return app_install_dir()
+    if getattr(sys, "frozen", False) or env_flag("INFINITE_CANVAS_DESKTOP_DATA"):
+        if os.name == "nt":
+            root = os.getenv("APPDATA") or os.path.join(os.path.expanduser("~"), "AppData", "Roaming")
+            return os.path.join(root, APP_DATA_DIR_NAME)
+        if sys.platform == "darwin":
+            return os.path.join(os.path.expanduser("~/Library/Application Support"), APP_DATA_DIR_NAME)
+        root = os.getenv("XDG_DATA_HOME") or os.path.join(os.path.expanduser("~"), ".local", "share")
+        return os.path.join(root, APP_DATA_DIR_NAME)
+    return app_install_dir()
+
+BASE_DIR = app_install_dir()
+DATA_ROOT_DIR = app_data_dir()
+BUILTIN_WORKFLOW_DIR = os.path.join(BASE_DIR, "workflows")
+USER_WORKFLOW_DIR = os.path.join(DATA_ROOT_DIR, "workflows")
+WORKFLOW_DIR = BUILTIN_WORKFLOW_DIR
+WORKFLOW_PATH = os.path.join(BUILTIN_WORKFLOW_DIR, "Z-Image.json")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 STATIC_RUNNINGHUB_DIR = os.path.join(STATIC_DIR, "runninghub")
 STATIC_RUNNINGHUB_THUMBNAIL_DIR = os.path.join(STATIC_RUNNINGHUB_DIR, "thumbnails")
 STATIC_RUNNINGHUB_API_PROVIDERS_FILE = os.path.join(STATIC_RUNNINGHUB_DIR, "api_providers.json")
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
-ASSETS_DIR = os.path.join(BASE_DIR, "assets")
+OUTPUT_DIR = os.path.join(DATA_ROOT_DIR, "output")
+ASSETS_DIR = os.path.join(DATA_ROOT_DIR, "assets")
 OUTPUT_INPUT_DIR = os.path.join(ASSETS_DIR, "input")
 OUTPUT_OUTPUT_DIR = os.path.join(ASSETS_DIR, "output")
 ASSET_LIBRARY_DIR = os.path.join(ASSETS_DIR, "library")
-HISTORY_FILE = os.path.join(BASE_DIR, "history.json")
-API_ENV_FILE = os.path.join(BASE_DIR, "API", ".env")
-DATA_DIR = os.path.join(BASE_DIR, "data")
+HISTORY_FILE = os.path.join(DATA_ROOT_DIR, "history.json")
+API_ENV_FILE = os.path.join(DATA_ROOT_DIR, "API", ".env")
+DATA_DIR = os.path.join(DATA_ROOT_DIR, "data")
 CONVERSATION_DIR = os.path.join(DATA_DIR, "conversations")
 CANVAS_DIR = os.path.join(DATA_DIR, "canvases")
 ASSET_LIBRARY_PATH = os.path.join(DATA_DIR, "asset_library.json")
 PROMPT_LIBRARY_PATH = os.path.join(DATA_DIR, "prompt_libraries.json")
 API_PROVIDERS_FILE = os.path.join(DATA_DIR, "api_providers.json")
 RUNNINGHUB_WORKFLOW_STORE_FILE = os.path.join(DATA_DIR, "runninghub_workflows.json")
-GLOBAL_CONFIG_FILE = os.path.join(BASE_DIR, "global_config.json")
+GLOBAL_CONFIG_FILE = os.path.join(DATA_ROOT_DIR, "global_config.json")
+LOG_DIR = os.path.join(DATA_ROOT_DIR, "logs")
+BACKEND_LOG_FILE = os.path.join(LOG_DIR, "backend.log")
 CANVAS_TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000
 LOCAL_IMAGE_IMPORT_MAX_BYTES = int(os.getenv("LOCAL_IMAGE_IMPORT_MAX_BYTES", str(50 * 1024 * 1024)))
 LOCAL_IMAGE_IMPORT_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
@@ -238,6 +283,15 @@ JIMENG_LOGIN_SESSION = {
 
 PROVIDER_ID_RE = re.compile(r"^[a-zA-Z0-9_-]{2,40}$")
 SUPPORTED_PROVIDER_PROTOCOLS = {"openai", "apimart", "gemini", "volcengine", "runninghub", "jimeng"}
+
+DESKTOP_OPEN_LOCATIONS = {
+    "data": lambda: DATA_ROOT_DIR,
+    "output": lambda: OUTPUT_DIR,
+    "assets": lambda: ASSETS_DIR,
+    "workflows": lambda: USER_WORKFLOW_DIR,
+    "logs": lambda: LOG_DIR,
+    "install": lambda: BASE_DIR,
+}
 RUNNINGHUB_DEFAULT_BASE_URL = "https://www.runninghub.cn"
 JIMENG_DEFAULT_IMAGE_MODELS = [
     "5.0",
@@ -383,16 +437,75 @@ RUNNINGHUB_DEFAULT_WORKFLOWS = [
     },
 ]
 
+def copy_missing_file(src: str, dst: str):
+    if not os.path.isfile(src) or os.path.exists(dst):
+        return
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.copy2(src, dst)
+
+def copy_missing_tree(src: str, dst: str):
+    if not os.path.isdir(src):
+        return
+    for root, _, files in os.walk(src):
+        rel = os.path.relpath(root, src)
+        dst_root = dst if rel == "." else os.path.join(dst, rel)
+        os.makedirs(dst_root, exist_ok=True)
+        for name in files:
+            src_file = os.path.join(root, name)
+            dst_file = os.path.join(dst_root, name)
+            if not os.path.exists(dst_file):
+                shutil.copy2(src_file, dst_file)
+
+def migrate_legacy_runtime_data():
+    if os.path.abspath(DATA_ROOT_DIR) == os.path.abspath(BASE_DIR):
+        return
+    marker = os.path.join(DATA_ROOT_DIR, ".legacy-runtime-data-migrated")
+    if os.path.exists(marker):
+        return
+    try:
+        os.makedirs(DATA_ROOT_DIR, exist_ok=True)
+        copy_missing_file(os.path.join(BASE_DIR, "history.json"), HISTORY_FILE)
+        copy_missing_file(os.path.join(BASE_DIR, "global_config.json"), GLOBAL_CONFIG_FILE)
+        for name in ("API", "data", "assets", "output"):
+            copy_missing_tree(os.path.join(BASE_DIR, name), os.path.join(DATA_ROOT_DIR, name))
+        legacy_workflow_root = os.path.join(BASE_DIR, "workflows")
+        for folder in ("custom", "\u81ea\u5b9a\u4e49"):
+            copy_missing_tree(os.path.join(legacy_workflow_root, folder), os.path.join(USER_WORKFLOW_DIR, folder))
+        with open(marker, "w", encoding="utf-8") as f:
+            f.write(time.strftime("%Y-%m-%d %H:%M:%S"))
+    except Exception as e:
+        print(f"Legacy runtime data migration failed: {e}")
+
 def ensure_runtime_config_files():
     """首次运行时提前创建配置目录，避免第一次保存 API Key 时才创建目录/文件。"""
     try:
+        migrate_legacy_runtime_data()
         os.makedirs(os.path.dirname(API_ENV_FILE), exist_ok=True)
         os.makedirs(DATA_DIR, exist_ok=True)
+        os.makedirs(LOG_DIR, exist_ok=True)
         if not os.path.exists(API_ENV_FILE):
             with open(API_ENV_FILE, "a", encoding="utf-8"):
                 pass
     except Exception as e:
         print(f"初始化 API 配置目录失败: {e}")
+
+def configure_backend_logging():
+    try:
+        os.makedirs(LOG_DIR, exist_ok=True)
+        target = os.path.abspath(BACKEND_LOG_FILE)
+        formatter = logging.Formatter("%(asctime)s %(levelname)s [%(name)s] %(message)s")
+        for logger_name in ("", "uvicorn", "uvicorn.error", "infinite_canvas"):
+            logger = logging.getLogger(logger_name)
+            if any(getattr(handler, "baseFilename", "") == target for handler in logger.handlers):
+                continue
+            handler = RotatingFileHandler(target, maxBytes=5 * 1024 * 1024, backupCount=5, encoding="utf-8")
+            handler.setFormatter(formatter)
+            handler.setLevel(logging.INFO)
+            logger.addHandler(handler)
+            if logger.level == logging.NOTSET or logger.level > logging.INFO:
+                logger.setLevel(logging.INFO)
+    except Exception as e:
+        print(f"初始化日志目录失败: {e}")
 
 def load_env_file():
     if not os.path.exists(API_ENV_FILE):
@@ -410,6 +523,7 @@ def load_env_file():
     except Exception as e:
         print(f"加载 API/.env 失败: {e}")
 ensure_runtime_config_files()
+configure_backend_logging()
 load_env_file()
 
 COMFYUI_INSTANCES = [s.strip() for s in os.getenv("COMFYUI_INSTANCES", "127.0.0.1:8188").split(",") if s.strip()]
@@ -509,6 +623,16 @@ async def request_validation_exception_handler(request: Request, exc: RequestVal
         status_code=422,
         content={"detail": friendly_validation_error(exc.errors()), "errors": exc.errors()},
     )
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logging.getLogger("infinite_canvas").error(
+        "Unhandled backend error on %s %s",
+        request.method,
+        request.url.path,
+        exc_info=(type(exc), exc, exc.__traceback__),
+    )
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 def model_list(env_name, primary, defaults):
     configured = os.getenv(env_name, "")
@@ -1222,6 +1346,8 @@ os.makedirs(OUTPUT_OUTPUT_DIR, exist_ok=True)
 os.makedirs(ASSET_LIBRARY_DIR, exist_ok=True)
 os.makedirs(STATIC_DIR, exist_ok=True)
 os.makedirs(WORKFLOW_DIR, exist_ok=True)
+os.makedirs(USER_WORKFLOW_DIR, exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
 os.makedirs(CONVERSATION_DIR, exist_ok=True)
 os.makedirs(CANVAS_DIR, exist_ok=True)
 
@@ -1395,14 +1521,77 @@ def parse_prompt_template_markdown(text: str):
 @app.get("/api/app-info")
 def app_info():
     version = current_app_version()
+    desktop_locations = {
+        key: resolver()
+        for key, resolver in DESKTOP_OPEN_LOCATIONS.items()
+    }
     return {
         "version": version,
         "repo_url": GITHUB_REPO_URL,
         "version_url": GITHUB_VERSION_URL,
         "tree_url": GITHUB_TREE_URL,
+        "update_manifest_url": UPDATE_MANIFEST_URL,
+        "installer_update_supported": installer_update_supported(),
+        "install_dir": BASE_DIR,
+        "data_dir": DATA_ROOT_DIR,
+        "desktop_data": os.path.abspath(DATA_ROOT_DIR) != os.path.abspath(BASE_DIR),
+        "desktop_locations": desktop_locations,
     }
 
-def connectivity_probe(name: str, url: str, timeout: float = 8.0) -> Dict[str, Any]:
+class DesktopOpenLocationRequest(BaseModel):
+    location: str
+
+def is_local_request(request: Request) -> bool:
+    host = (request.client.host if request.client else "") or ""
+    return host in {"127.0.0.1", "::1", "localhost"} or host.startswith("127.")
+
+def open_folder(path: str):
+    os.makedirs(path, exist_ok=True)
+    if os.name == "nt":
+        os.startfile(path)  # type: ignore[attr-defined]
+        return
+    opener = "open" if sys.platform == "darwin" else "xdg-open"
+    subprocess.Popen([opener, path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+@app.post("/api/desktop/open-location")
+def desktop_open_location(payload: DesktopOpenLocationRequest, request: Request):
+    if not is_local_request(request):
+        raise HTTPException(status_code=403, detail="Desktop file actions are only available from localhost")
+    key = str(payload.location or "").strip().lower()
+    resolver = DESKTOP_OPEN_LOCATIONS.get(key)
+    if not resolver:
+        raise HTTPException(status_code=400, detail="Unknown desktop location")
+    path = os.path.abspath(resolver())
+    open_folder(path)
+    return {"ok": True, "location": key, "path": path}
+
+def github_request_headers(extra: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    headers = {"User-Agent": "Infinite-Canvas-Updater"}
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    if extra:
+        headers.update(extra)
+    return headers
+
+def is_github_host(url: str) -> bool:
+    try:
+        host = urllib.parse.urlparse(url).netloc.lower()
+    except Exception:
+        return False
+    return host == "github.com" or host.endswith(".github.com") or host == "raw.githubusercontent.com" or host.endswith(".githubusercontent.com")
+
+def update_request_headers(url: str, extra: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    if is_github_host(url):
+        return github_request_headers(extra)
+    headers = {"User-Agent": "Infinite-Canvas-Updater"}
+    if extra:
+        headers.update(extra)
+    return headers
+
+def installer_update_supported() -> bool:
+    return os.name == "nt" and (getattr(sys, "frozen", False) or env_flag("INFINITE_CANVAS_FORCE_INSTALLER_UPDATE"))
+
+def connectivity_probe(name: str, url: str, timeout: float = 8.0, headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
     started = time.time()
     item = {
         "name": name,
@@ -1415,7 +1604,7 @@ def connectivity_probe(name: str, url: str, timeout: float = 8.0) -> Dict[str, A
     try:
         response = requests.get(
             url,
-            headers={"User-Agent": "Infinite-Canvas-Updater"},
+            headers=headers or {"User-Agent": "Infinite-Canvas-Updater"},
             timeout=timeout,
             stream=True,
             proxies=urllib.request.getproxies() or None,
@@ -1433,19 +1622,271 @@ def connectivity_probe(name: str, url: str, timeout: float = 8.0) -> Dict[str, A
 
 @app.get("/api/update-connectivity")
 def update_connectivity():
+    github_headers = github_request_headers()
     targets = [
-        ("GitHub 更新列表", GITHUB_TREE_URL),
-        ("GitHub 版本文件", GITHUB_VERSION_URL),
-        ("GitHub 主页", "https://github.com/"),
-        ("Google 连通性", "https://www.google.com/generate_204"),
+        ("GitHub 更新列表", GITHUB_TREE_URL, github_headers),
+        ("GitHub 版本文件", GITHUB_VERSION_URL, github_headers),
+        ("GitHub 主页", GITHUB_REPO_URL, {"User-Agent": "Infinite-Canvas-Updater"}),
+        ("Google 连通性", "https://www.google.com/generate_204", {"User-Agent": "Infinite-Canvas-Updater"}),
     ]
-    results = [connectivity_probe(name, url) for name, url in targets]
+    results = [connectivity_probe(name, url, headers=headers) for name, url, headers in targets]
     return {
         "ok": all(item["ok"] for item in results[:2]),
         "results": results,
         "required": ["GitHub 更新列表", "GitHub 版本文件"],
         "optional": ["GitHub 主页", "Google 连通性"],
+        "auth_configured": bool(GITHUB_TOKEN),
     }
+
+@app.get("/api/update-version")
+def update_version():
+    try:
+        text = github_bytes(GITHUB_VERSION_URL).decode("utf-8", errors="replace")
+        version = (text.strip().splitlines() or [""])[0].strip()
+        if not version:
+            raise ValueError("VERSION is empty")
+        return {
+            "ok": True,
+            "version": version,
+            "version_url": GITHUB_VERSION_URL,
+            "auth_configured": bool(GITHUB_TOKEN),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Unable to read remote VERSION: {exc}")
+
+def parse_version_parts(value: str) -> List[int]:
+    return [int(part) for part in re.findall(r"\d+", str(value or ""))]
+
+def compare_versions_py(left: str, right: str) -> int:
+    a = parse_version_parts(left)
+    b = parse_version_parts(right)
+    size = max(len(a), len(b), 1)
+    a += [0] * (size - len(a))
+    b += [0] * (size - len(b))
+    for x, y in zip(a, b):
+        if x > y:
+            return 1
+        if x < y:
+            return -1
+    return 0
+
+def ensure_http_download_url(url: str) -> str:
+    text = str(url or "").strip()
+    parsed = urllib.parse.urlparse(text)
+    if parsed.scheme not in {"https", "http"} or not parsed.netloc:
+        raise ValueError("安装包下载地址必须是 HTTP/HTTPS URL")
+    if parsed.scheme == "http" and parsed.hostname not in {"127.0.0.1", "localhost", "::1"}:
+        raise ValueError("安装包下载地址必须使用 HTTPS")
+    return text
+
+def normalize_sha256(value: str) -> str:
+    text = re.sub(r"[^a-fA-F0-9]", "", str(value or "")).lower()
+    if text and len(text) != 64:
+        raise ValueError("sha256 必须是 64 位十六进制字符串")
+    return text
+
+def fetch_update_manifest() -> Dict[str, Any]:
+    url = ensure_http_download_url(UPDATE_MANIFEST_URL)
+    response = requests.get(
+        url,
+        headers=update_request_headers(url, {"Accept": "application/json"}),
+        timeout=20,
+        proxies=urllib.request.getproxies() or None,
+    )
+    if response.status_code >= 400:
+        raise urllib.error.HTTPError(url, response.status_code, response.reason, response.headers, None)
+    try:
+        data = response.json()
+    except Exception as exc:
+        raise ValueError("update.json 不是有效 JSON") from exc
+    if not isinstance(data, dict):
+        raise ValueError("update.json 顶层必须是对象")
+    return data
+
+def normalized_installer_manifest() -> Dict[str, Any]:
+    data = fetch_update_manifest()
+    version = str(data.get("version") or "").strip()
+    setup_url = str(data.get("setup_url") or data.get("installer_url") or "").strip()
+    if not version:
+        raise ValueError("update.json 缺少 version")
+    if not setup_url:
+        raise ValueError("update.json 缺少 setup_url")
+    setup_url = ensure_http_download_url(setup_url)
+    sha256 = normalize_sha256(str(data.get("sha256") or ""))
+    notes = str(data.get("notes") or "").strip()
+    mandatory = bool(data.get("mandatory", False))
+    filename = os.path.basename(urllib.parse.urlparse(setup_url).path) or "InfiniteCanvasDesktopSetup.exe"
+    if not filename.lower().endswith(".exe"):
+        filename = "InfiniteCanvasDesktopSetup.exe"
+    return {
+        "version": version,
+        "setup_url": setup_url,
+        "sha256": sha256,
+        "notes": notes,
+        "mandatory": mandatory,
+        "filename": filename,
+        "manifest_url": UPDATE_MANIFEST_URL,
+        "auth_configured": bool(GITHUB_TOKEN),
+    }
+
+@app.get("/api/installer-update-info")
+def installer_update_info():
+    if not installer_update_supported():
+        return {
+            "ok": True,
+            "supported": False,
+            "available": False,
+            "current_version": current_app_version(),
+            "manifest_url": UPDATE_MANIFEST_URL,
+            "reason": "Installer update is only enabled for the Windows desktop EXE",
+        }
+    try:
+        manifest = normalized_installer_manifest()
+        current = current_app_version()
+        available = compare_versions_py(manifest["version"], current) > 0
+        return {
+            "ok": True,
+            "supported": True,
+            "available": available,
+            "current_version": current,
+            **manifest,
+        }
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"读取 update.json 失败：HTTP {exc.code}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"读取 update.json 失败：{exc}") from exc
+
+def downloaded_installer_path(version: str, filename: str) -> str:
+    safe_version = re.sub(r"[^a-zA-Z0-9._-]+", "_", version or "latest")[:80] or "latest"
+    safe_name = re.sub(r"[^a-zA-Z0-9._-]+", "_", filename or "InfiniteCanvasDesktopSetup.exe")
+    if not safe_name.lower().endswith(".exe"):
+        safe_name = "InfiniteCanvasDesktopSetup.exe"
+    download_dir = os.path.join(DATA_ROOT_DIR, "update_downloads")
+    os.makedirs(download_dir, exist_ok=True)
+    return os.path.join(download_dir, f"{safe_version}-{safe_name}")
+
+def sha256_file(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+def download_installer_file(url: str, target: str, expected_sha256: str = "") -> Tuple[int, str]:
+    tmp = f"{target}.download"
+    bytes_written = 0
+    try:
+        with requests.get(
+            url,
+            headers=update_request_headers(url),
+            timeout=60,
+            stream=True,
+            proxies=urllib.request.getproxies() or None,
+        ) as response:
+            if response.status_code >= 400:
+                raise urllib.error.HTTPError(url, response.status_code, response.reason, response.headers, None)
+            with open(tmp, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1024 * 1024):
+                    if not chunk:
+                        continue
+                    f.write(chunk)
+                    bytes_written += len(chunk)
+        actual_sha256 = sha256_file(tmp)
+        if expected_sha256 and actual_sha256.lower() != expected_sha256.lower():
+            raise ValueError(f"安装包 SHA256 校验失败：expected {expected_sha256}, got {actual_sha256}")
+        os.replace(tmp, target)
+        return bytes_written, actual_sha256
+    finally:
+        if os.path.exists(tmp):
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+
+def schedule_installer_launch(installer_path: str, silent: bool = True, delay_seconds: int = 2) -> bool:
+    if os.name != "nt":
+        raise RuntimeError("安装包更新仅支持 Windows")
+    installer_abs = os.path.abspath(installer_path)
+    if not os.path.exists(installer_abs):
+        raise FileNotFoundError(installer_abs)
+    pid = os.getpid()
+    args = "/VERYSILENT /NORESTART /CLOSEAPPLICATIONS" if silent else "/NORESTART /CLOSEAPPLICATIONS"
+    script_dir = os.path.join(DATA_ROOT_DIR, "update_downloads")
+    os.makedirs(script_dir, exist_ok=True)
+    bat_path = os.path.join(script_dir, "run_installer_update.bat")
+    log_path = os.path.join(LOG_DIR, "installer-update.log")
+    delay = max(1, int(delay_seconds or 2))
+    script = (
+        "@echo off\r\n"
+        "chcp 65001 >nul\r\n"
+        "setlocal\r\n"
+        f"set \"INSTALLER={installer_abs}\"\r\n"
+        f"set \"LOG_FILE={log_path}\"\r\n"
+        f"set \"TARGET_PID={pid}\"\r\n"
+        f"timeout /t {delay} /nobreak >nul\r\n"
+        "echo [%date% %time%] launching installer: %INSTALLER% >> \"%LOG_FILE%\"\r\n"
+        f"start \"Infinite Canvas Installer\" \"%INSTALLER%\" {args}\r\n"
+        "timeout /t 2 /nobreak >nul\r\n"
+        "echo [%date% %time%] stopping old process %TARGET_PID% >> \"%LOG_FILE%\"\r\n"
+        "taskkill /F /PID %TARGET_PID% >nul 2>&1\r\n"
+        "del \"%~f0\"\r\n"
+    )
+    with open(bat_path, "w", encoding="utf-8") as f:
+        f.write(script)
+    subprocess.Popen(
+        ["cmd", "/c", bat_path],
+        creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
+        close_fds=True,
+    )
+    return True
+
+class InstallerUpdateRequest(BaseModel):
+    silent: bool = True
+    launch: bool = True
+
+@app.post("/api/update-installer")
+def update_installer(req: InstallerUpdateRequest, request: Request):
+    if not is_local_request(request):
+        raise HTTPException(status_code=403, detail="Installer update is only available from localhost")
+    if not installer_update_supported():
+        raise HTTPException(status_code=400, detail="安装包更新仅支持 Windows 桌面 EXE")
+    if not UPDATE_LOCK.acquire(blocking=False):
+        raise HTTPException(status_code=409, detail="正在更新中，请稍后再试")
+    try:
+        manifest = normalized_installer_manifest()
+        current = current_app_version()
+        if compare_versions_py(manifest["version"], current) <= 0:
+            return {
+                "ok": True,
+                "available": False,
+                "current_version": current,
+                "version": manifest["version"],
+                "message": "当前已是最新版本",
+            }
+        target = downloaded_installer_path(manifest["version"], manifest["filename"])
+        size, actual_sha256 = download_installer_file(manifest["setup_url"], target, manifest["sha256"])
+        launched = False
+        if req.launch:
+            launched = schedule_installer_launch(target, silent=req.silent)
+        return {
+            "ok": True,
+            "available": True,
+            "version": manifest["version"],
+            "current_version": current,
+            "installer_path": target,
+            "size": size,
+            "sha256": actual_sha256,
+            "launched": launched,
+            "silent": req.silent,
+        }
+    except urllib.error.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"安装包下载失败：HTTP {exc.code}") from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail=f"无法下载安装包：{exc.reason}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"安装包更新失败：{exc}") from exc
+    finally:
+        UPDATE_LOCK.release()
 
 def update_allowed_file(path: str) -> bool:
     path = str(path or "").replace("\\", "/").lstrip("/")
@@ -1471,10 +1912,7 @@ def github_get(url: str, headers: Optional[Dict[str, str]] = None, timeout: int 
     return response
 
 def github_json(url: str, use_etag_cache: bool = False):
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "Infinite-Canvas-Updater",
-    }
+    headers = github_request_headers({"Accept": "application/vnd.github+json"})
     cache_key = url
     if use_etag_cache and cache_key == GITHUB_TREE_URL:
         if GITHUB_TREE_CACHE["data"] and time.time() < GITHUB_TREE_CACHE["expires_at"]:
@@ -1500,7 +1938,7 @@ def github_json(url: str, use_etag_cache: bool = False):
         raise
 
 def github_bytes(url: str) -> bytes:
-    resp = github_get(url, headers={"User-Agent": "Infinite-Canvas-Updater"}, timeout=60)
+    resp = github_get(url, headers=github_request_headers(), timeout=60)
     return resp.content
 
 def download_github_update_files(files: List[str], staging_root: str) -> None:
@@ -9218,7 +9656,7 @@ def generate(req: GenerateRequest):
                     except Exception as e:
                         print(f"Sync upload failed: {e}")
 
-        workflow_path = os.path.join(WORKFLOW_DIR, req.workflow_json)
+        workflow_path = workflow_path_from_name(req.workflow_json)
         if not os.path.exists(workflow_path) and req.workflow_json == "Z-Image.json":
             workflow_path = WORKFLOW_PATH
         if not os.path.exists(workflow_path):
@@ -9401,14 +9839,45 @@ class WorkflowRunRequest(BaseModel):
 def workflow_path_from_name(name: str) -> str:
     if not WORKFLOW_NAME_RE.match(name):
         raise HTTPException(status_code=400, detail="Invalid workflow name")
-    path = os.path.abspath(os.path.join(WORKFLOW_DIR, *name.split("/")))
-    workflow_root = os.path.abspath(WORKFLOW_DIR)
+    root = USER_WORKFLOW_DIR if "/" in name else BUILTIN_WORKFLOW_DIR
+    path = safe_workflow_path(root, name)
+    if "/" in name and not os.path.exists(path):
+        legacy_path = safe_workflow_path(BUILTIN_WORKFLOW_DIR, name)
+        if os.path.exists(legacy_path):
+            return legacy_path
+    return path
+
+def safe_workflow_path(root: str, name: str) -> str:
+    path = os.path.abspath(os.path.join(root, *name.split("/")))
+    workflow_root = os.path.abspath(root)
     if os.path.commonpath([workflow_root, path]) != workflow_root:
         raise HTTPException(status_code=400, detail="Invalid workflow name")
     return path
 
 def workflow_config_path(name: str) -> str:
-    return workflow_path_from_name(name).replace(".json", ".config.json")
+    return safe_workflow_path(USER_WORKFLOW_DIR, name).replace(".json", ".config.json")
+
+def workflow_builtin_config_path(name: str) -> str:
+    return safe_workflow_path(BUILTIN_WORKFLOW_DIR, name).replace(".json", ".config.json")
+
+def workflow_config_paths(name: str) -> List[str]:
+    paths = [workflow_config_path(name)]
+    fallback = workflow_builtin_config_path(name)
+    if fallback not in paths:
+        paths.append(fallback)
+    return paths
+
+def load_workflow_config(name: str, default: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    cfg = dict(default or {})
+    for cfg_path in workflow_config_paths(name):
+        if not os.path.exists(cfg_path):
+            continue
+        try:
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                return json.load(f) or cfg
+        except Exception:
+            pass
+    return cfg
 
 def is_builtin_workflow(name: str) -> bool:
     return "/" not in name and os.path.basename(name) in BUILTIN_WORKFLOWS
@@ -9780,32 +10249,28 @@ def save_comfyui_instances(payload: ComfyInstancesPayload):
 
 @app.get("/api/workflows")
 def list_workflows():
-    if not os.path.isdir(WORKFLOW_DIR):
-        return {"workflows": []}
     items = []
-    for root, dirs, files in os.walk(WORKFLOW_DIR):
-        if os.path.abspath(root) == os.path.abspath(WORKFLOW_DIR):
-            dirs[:] = [d for d in dirs if d in {CUSTOM_WORKFLOW_FOLDER, LEGACY_CUSTOM_WORKFLOW_FOLDER}]
-        for fn in sorted(files):
-            if not fn.endswith(".json") or fn.endswith(".config.json"):
-                continue
-            rel = os.path.relpath(os.path.join(root, fn), WORKFLOW_DIR).replace("\\", "/")
-            if is_builtin_workflow(rel):
-                continue
-            cfg = {}
-            cfg_path = workflow_config_path(rel)
-            if os.path.exists(cfg_path):
-                try:
-                    with open(cfg_path, "r", encoding="utf-8") as f:
-                        cfg = json.load(f) or {}
-                except Exception:
-                    cfg = {}
-            items.append({
-                "name": rel,
-                "title": cfg.get("title") or fn.replace(".json", ""),
-                "builtin": False,
-                "field_count": len(cfg.get("fields") or []),
-            })
+    seen = set()
+    for workflow_root in (USER_WORKFLOW_DIR, BUILTIN_WORKFLOW_DIR):
+        if not os.path.isdir(workflow_root):
+            continue
+        for root, dirs, files in os.walk(workflow_root):
+            if os.path.abspath(root) == os.path.abspath(workflow_root):
+                dirs[:] = [d for d in dirs if d in {CUSTOM_WORKFLOW_FOLDER, LEGACY_CUSTOM_WORKFLOW_FOLDER}]
+            for fn in sorted(files):
+                if not fn.endswith(".json") or fn.endswith(".config.json"):
+                    continue
+                rel = os.path.relpath(os.path.join(root, fn), workflow_root).replace("\\", "/")
+                if rel in seen or is_builtin_workflow(rel) or "/" not in rel:
+                    continue
+                seen.add(rel)
+                cfg = load_workflow_config(rel, {})
+                items.append({
+                    "name": rel,
+                    "title": cfg.get("title") or fn.replace(".json", ""),
+                    "builtin": False,
+                    "field_count": len(cfg.get("fields") or []),
+                })
     items.sort(key=lambda item: (0 if item["name"].startswith(f"{CUSTOM_WORKFLOW_FOLDER}/") else 1, item["title"]))
     return {"workflows": items}
 
@@ -9818,14 +10283,7 @@ def get_workflow(name: str):
         raise HTTPException(status_code=404, detail="Workflow not found")
     with open(workflow_path, "r", encoding="utf-8") as f:
         workflow = json.load(f)
-    cfg = {"title": name.replace(".json", ""), "fields": []}
-    cfg_path = workflow_config_path(name)
-    if os.path.exists(cfg_path):
-        try:
-            with open(cfg_path, "r", encoding="utf-8") as f:
-                cfg = json.load(f) or cfg
-        except Exception:
-            pass
+    cfg = load_workflow_config(name, {"title": name.replace(".json", ""), "fields": []})
     return {"name": name, "workflow": workflow, "config": cfg, "builtin": is_builtin_workflow(name)}
 
 @app.post("/api/workflows")
@@ -9841,7 +10299,7 @@ def upload_workflow(payload: WorkflowUploadRequest):
     sample = next(iter(payload.workflow.values()), None)
     if not isinstance(sample, dict) or "class_type" not in sample:
         raise HTTPException(status_code=400, detail="不是有效的 ComfyUI API 工作流 JSON（需包含 class_type）")
-    custom_dir = os.path.join(WORKFLOW_DIR, CUSTOM_WORKFLOW_FOLDER)
+    custom_dir = os.path.join(USER_WORKFLOW_DIR, CUSTOM_WORKFLOW_FOLDER)
     os.makedirs(custom_dir, exist_ok=True)
     stored_name = f"{CUSTOM_WORKFLOW_FOLDER}/{name}"
     path = workflow_path_from_name(stored_name)
@@ -9857,6 +10315,7 @@ def save_workflow_config(name: str, payload: WorkflowConfig):
     if not os.path.exists(workflow_path):
         raise HTTPException(status_code=404, detail="Workflow not found")
     cfg_path = workflow_config_path(name)
+    os.makedirs(os.path.dirname(cfg_path), exist_ok=True)
     with open(cfg_path, "w", encoding="utf-8") as f:
         json.dump(payload.dict(), f, ensure_ascii=False, indent=2)
     return {"config": payload.dict()}
@@ -9871,6 +10330,13 @@ def delete_workflow(name: str):
     cfg_path = workflow_config_path(name)
     if not os.path.exists(workflow_path):
         raise HTTPException(status_code=404, detail="Workflow not found")
+    user_workflow_root = os.path.abspath(USER_WORKFLOW_DIR)
+    try:
+        is_user_workflow = os.path.commonpath([user_workflow_root, os.path.abspath(workflow_path)]) == user_workflow_root
+    except ValueError:
+        is_user_workflow = False
+    if not is_user_workflow:
+        raise HTTPException(status_code=400, detail="Workflow is stored in the install directory and cannot be deleted")
     os.remove(workflow_path)
     if os.path.exists(cfg_path):
         os.remove(cfg_path)

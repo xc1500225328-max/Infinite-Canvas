@@ -1291,7 +1291,8 @@
 
             loadHistory();
             window.HistoryBulkManager?.attach({masonry:'#masonry'});
-            observer.observe(document.getElementById('loadMoreTrigger'));
+            const loadMoreTrigger = document.getElementById('loadMoreTrigger');
+            if(loadMoreTrigger) observer.observe(loadMoreTrigger);
         };
 
         // WebSocket for real-time updates (optional but good for multi-tab sync)
