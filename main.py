@@ -35,6 +35,10 @@ from fastapi.responses import FileResponse, Response, StreamingResponse, JSONRes
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("application/javascript", ".mjs")
+mimetypes.add_type("text/css", ".css")
+
 QUIET_ACCESS_PATHS = {
     "/api/queue_status",
     "/api/canvases",
@@ -286,7 +290,7 @@ SUPPORTED_PROVIDER_PROTOCOLS = {"openai", "apimart", "gemini", "volcengine", "ru
 
 DESKTOP_OPEN_LOCATIONS = {
     "data": lambda: DATA_ROOT_DIR,
-    "output": lambda: OUTPUT_DIR,
+    "output": lambda: OUTPUT_OUTPUT_DIR,
     "assets": lambda: ASSETS_DIR,
     "workflows": lambda: USER_WORKFLOW_DIR,
     "logs": lambda: LOG_DIR,
@@ -1377,8 +1381,15 @@ def versioned_static_html(html: str) -> str:
     if not version:
         return html
     safe_version = urllib.parse.quote(version, safe="._-")
-    pattern = re.compile(r'(?P<prefix>(?:src|href)=["\']|@import\s+url\(["\'])(?P<url>/static/[^"\')?#]+(?:\.(?:js|css|html)))(?:\?v=[^"\')#]*)?', re.I)
-    return pattern.sub(lambda m: f"{m.group('prefix')}{m.group('url')}?v={safe_version}", html)
+    pattern = re.compile(r'(?P<prefix>(?:src|href)=["\']|@import\s+url\(["\'])(?P<url>/static/[^"\')?#]+(?:\.(?:js|css|html)))(?P<query>\?v=[^"\')#]*)?', re.I)
+
+    def replace_version(match):
+        url = match.group("url")
+        if url.startswith("/static/blindbox/"):
+            return match.group(0) if match.group("query") else f"{match.group('prefix')}{url}?v={safe_version}"
+        return f"{match.group('prefix')}{url}?v={safe_version}"
+
+    return pattern.sub(replace_version, html)
 
 def sync_static_html_versions():
     version = current_app_version()
@@ -1394,7 +1405,15 @@ def sync_static_html_versions():
                 continue
             with open(path, "r", encoding="utf-8") as f:
                 old = f.read()
-            new = re.sub(r'([?&]v=)[^"\'`\s<>)]*', rf'\g<1>{safe_version}', old)
+            static_version_pattern = re.compile(r'(?P<url>/static/[^"\'`\s<>)]*?)(?P<prefix>[?&]v=)[^"\'`\s<>)]*', re.I)
+
+            def replace_static_version(match):
+                url = match.group("url")
+                if url.startswith("/static/blindbox/"):
+                    return match.group(0)
+                return f"{url}{match.group('prefix')}{safe_version}"
+
+            new = static_version_pattern.sub(replace_static_version, old)
             if new != old:
                 with open(path, "w", encoding="utf-8", newline="") as f:
                     f.write(new)
@@ -4498,6 +4517,246 @@ def content_type_for_path(path):
         return "image/png"
     return "application/octet-stream"
 
+GLOBAL_OUTPUT_MEDIA_EXTS = {
+    ".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tif", ".tiff",
+    ".mp4", ".webm", ".mov", ".m4v", ".mkv",
+    ".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac",
+}
+
+def timestamp_to_ms(value) -> int:
+    try:
+        num = float(value or 0)
+    except (TypeError, ValueError):
+        return 0
+    if num <= 0:
+        return 0
+    return int(num * 1000) if num < 100000000000 else int(num)
+
+def media_kind_from_path_or_url(path: str = "", url: str = "", content_type: str = "") -> str:
+    ext = os.path.splitext(path or urllib.parse.urlsplit(str(url or "")).path)[1].lower()
+    ct = (content_type or "").lower()
+    if ext in {".mp4", ".webm", ".mov", ".m4v", ".mkv"} or ct.startswith("video/"):
+        return "video"
+    if ext in {".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"} or ct.startswith("audio/"):
+        return "audio"
+    if ext in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tif", ".tiff"} or ct.startswith("image/"):
+        return "image"
+    return "file"
+
+def global_output_url_for_file(path: str) -> str:
+    path_abs = os.path.abspath(path)
+    roots = [
+        (os.path.abspath(ASSETS_DIR), "/assets"),
+        (os.path.abspath(OUTPUT_DIR), "/output"),
+    ]
+    for root, prefix in roots:
+        try:
+            if os.path.commonpath([root, path_abs]) == root:
+                rel = os.path.relpath(path_abs, root).replace("\\", "/")
+                return f"{prefix}/{urllib.parse.quote(rel, safe='/')}"
+        except ValueError:
+            continue
+    return ""
+
+def global_output_url_value(item) -> str:
+    if isinstance(item, str):
+        return item
+    if isinstance(item, dict):
+        for key in ("url", "image_url", "imageUrl", "video_url", "videoUrl", "output", "src", "path"):
+            value = item.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+    return ""
+
+def global_output_name(item, url: str, path: str = "") -> str:
+    if isinstance(item, dict):
+        for key in ("name", "filename", "fileName", "title"):
+            value = str(item.get(key) or "").strip()
+            if value:
+                return sanitize_export_filename(value, value)
+    if path:
+        return os.path.basename(path)
+    return filename_from_media_url(url, "output")
+
+def global_output_score(item: Dict[str, Any]) -> Tuple[int, int, int, int]:
+    source_rank = {"canvas": 3, "history": 2, "disk": 1}.get(item.get("source_type"), 0)
+    has_prompt = 1 if item.get("prompt") else 0
+    exists = 1 if item.get("exists") else 0
+    return (source_rank, has_prompt, int(item.get("created_at") or 0), exists)
+
+def add_global_output_item(
+    items: Dict[str, Dict[str, Any]],
+    raw_item,
+    *,
+    source_type: str,
+    source_label: str,
+    prompt: str = "",
+    model: str = "",
+    created_at: Any = 0,
+    canvas_id: str = "",
+    node_id: str = "",
+) -> None:
+    url = global_output_url_value(raw_item)
+    if not url:
+        return
+    path = output_file_from_url(url) or local_media_file_by_basename(filename_from_media_url(url, ""))
+    if not path and os.path.isfile(str(url)):
+        path = os.path.abspath(str(url))
+        url = global_output_url_for_file(path) or url
+    ext = os.path.splitext(path or urllib.parse.urlsplit(url).path)[1].lower()
+    if ext and ext not in GLOBAL_OUTPUT_MEDIA_EXTS:
+        return
+    kind = media_kind_from_path_or_url(path, url, content_type_for_path(path) if path else "")
+    if kind not in {"image", "video", "audio"}:
+        return
+    exists = bool(path and os.path.isfile(path))
+    created_ms = timestamp_to_ms(created_at)
+    if not created_ms and path and os.path.exists(path):
+        try:
+            created_ms = int(os.path.getmtime(path) * 1000)
+        except OSError:
+            created_ms = 0
+    clean_url = url.split("?", 1)[0] if url.startswith(("/output/", "/assets/")) else url
+    item = {
+        "id": hashlib.sha1(clean_url.encode("utf-8", errors="ignore")).hexdigest()[:16],
+        "url": clean_url,
+        "kind": kind,
+        "name": global_output_name(raw_item, clean_url, path),
+        "source_type": source_type,
+        "source_label": source_label,
+        "prompt": str(prompt or ""),
+        "model": str(model or ""),
+        "created_at": created_ms,
+        "canvas_id": canvas_id,
+        "node_id": node_id,
+        "exists": exists or clean_url.startswith(("http://", "https://")),
+    }
+    current = items.get(clean_url)
+    if not current or global_output_score(item) >= global_output_score(current):
+        items[clean_url] = item
+
+def collect_global_outputs_from_history(items: Dict[str, Dict[str, Any]]) -> None:
+    if not os.path.exists(HISTORY_FILE):
+        return
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            history = json.load(f)
+    except Exception:
+        return
+    if not isinstance(history, list):
+        return
+    for record in history:
+        if not isinstance(record, dict):
+            continue
+        source_label = str(record.get("type") or "history")
+        raw_outputs = []
+        for key in ("images", "outputs", "videos", "audios"):
+            value = record.get(key)
+            if isinstance(value, list):
+                raw_outputs.extend(value)
+        for raw in raw_outputs:
+            add_global_output_item(
+                items,
+                raw,
+                source_type="history",
+                source_label=source_label,
+                prompt=record.get("prompt") or "",
+                model=record.get("model") or "",
+                created_at=record.get("timestamp") or record.get("created_at") or 0,
+            )
+
+def collect_global_outputs_from_canvases(items: Dict[str, Dict[str, Any]]) -> None:
+    if not os.path.isdir(CANVAS_DIR):
+        return
+    for filename in os.listdir(CANVAS_DIR):
+        if not filename.endswith(".json"):
+            continue
+        try:
+            with open(os.path.join(CANVAS_DIR, filename), "r", encoding="utf-8") as f:
+                canvas_data = json.load(f)
+        except Exception:
+            continue
+        if not isinstance(canvas_data, dict) or canvas_data.get("deleted_at"):
+            continue
+        canvas_id = str(canvas_data.get("id") or os.path.splitext(filename)[0])
+        canvas_title = str(canvas_data.get("title") or "Canvas")
+        for log in canvas_data.get("logs", []) or []:
+            if not isinstance(log, dict):
+                continue
+            request = log.get("request") if isinstance(log.get("request"), dict) else {}
+            prompt = log.get("prompt") or request.get("prompt") or ""
+            raw_outputs = []
+            for key in ("outputs", "images", "videos", "audios"):
+                value = log.get(key)
+                if isinstance(value, list):
+                    raw_outputs.extend(value)
+            for raw in raw_outputs:
+                add_global_output_item(
+                    items,
+                    raw,
+                    source_type="canvas",
+                    source_label=canvas_title,
+                    prompt=prompt,
+                    model=log.get("model") or request.get("model") or "",
+                    created_at=log.get("createdAt") or log.get("created_at") or log.get("timestamp") or canvas_data.get("updated_at") or 0,
+                    canvas_id=canvas_id,
+                )
+        for node in canvas_data.get("nodes", []) or []:
+            if not isinstance(node, dict):
+                continue
+            raw_outputs = []
+            for key in ("images", "generatedOutputs", "outputs"):
+                value = node.get(key)
+                if isinstance(value, list):
+                    raw_outputs.extend(value)
+            if node.get("type") == "image" and node.get("url") and (node.get("runPrompt") or node.get("runAt")):
+                raw_outputs.append({"url": node.get("url"), "name": node.get("name")})
+            prompt = node.get("runPrompt") or node.get("runModelPrompt") or ""
+            model = ""
+            settings = node.get("runSettings") if isinstance(node.get("runSettings"), dict) else {}
+            model = settings.get("model") or settings.get("imageModel") or settings.get("apiImageModel") or ""
+            for raw in raw_outputs:
+                add_global_output_item(
+                    items,
+                    raw,
+                    source_type="canvas",
+                    source_label=canvas_title,
+                    prompt=prompt,
+                    model=model,
+                    created_at=node.get("runAt") or node.get("updated_at") or canvas_data.get("updated_at") or 0,
+                    canvas_id=canvas_id,
+                    node_id=str(node.get("id") or ""),
+                )
+
+def collect_global_outputs_from_disk(items: Dict[str, Dict[str, Any]]) -> None:
+    roots = [(OUTPUT_OUTPUT_DIR, "output"), (OUTPUT_DIR, "legacy-output")]
+    for root, label in roots:
+        if not os.path.isdir(root):
+            continue
+        for dirpath, _, filenames in os.walk(root):
+            for filename in filenames:
+                ext = os.path.splitext(filename)[1].lower()
+                if ext not in GLOBAL_OUTPUT_MEDIA_EXTS:
+                    continue
+                path = os.path.join(dirpath, filename)
+                url = global_output_url_for_file(path)
+                if not url:
+                    continue
+                add_global_output_item(
+                    items,
+                    {"url": url, "name": filename},
+                    source_type="disk",
+                    source_label=label,
+                    created_at=os.path.getmtime(path) if os.path.exists(path) else 0,
+                )
+
+def build_global_outputs() -> List[Dict[str, Any]]:
+    items: Dict[str, Dict[str, Any]] = {}
+    collect_global_outputs_from_history(items)
+    collect_global_outputs_from_canvases(items)
+    collect_global_outputs_from_disk(items)
+    return sorted(items.values(), key=lambda item: int(item.get("created_at") or 0), reverse=True)
+
 def is_image_reference_value(value):
     if not isinstance(value, str) or not value:
         return False
@@ -6443,6 +6702,49 @@ def download_output(url: str, name: str = "", inline: bool = False):
     disposition = "inline" if inline else "attachment"
     headers = {"Content-Disposition": f"{disposition}; filename*=UTF-8''{urllib.parse.quote(filename)}"}
     return Response(content, media_type=content_type, headers=headers)
+
+class BlindboxSaveArtifactRequest(BaseModel):
+    image: str
+    name: str = ""
+
+@app.post("/api/blindbox/save-artifact")
+def save_blindbox_artifact(payload: BlindboxSaveArtifactRequest):
+    value = str(payload.image or "")
+    match = re.match(r"^data:image/(png|jpe?g|webp);base64,(.+)$", value, re.I | re.S)
+    if not match:
+        raise HTTPException(status_code=400, detail="仅支持 data:image/*;base64 格式的画幅")
+    ext = match.group(1).lower()
+    ext = "jpg" if ext in {"jpg", "jpeg"} else ext
+    try:
+        raw = base64.b64decode(match.group(2), validate=True)
+    except Exception:
+        raise HTTPException(status_code=400, detail="画幅 base64 数据无效")
+    if not raw:
+        raise HTTPException(status_code=400, detail="画幅内容为空")
+    if len(raw) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="画幅超过 50MB，无法保存")
+
+    fallback = f"blindbox_artifact_{uuid.uuid4().hex[:10]}.{ext}"
+    filename = sanitize_export_filename(os.path.basename(payload.name or ""), fallback)
+    if not re.search(r"\.[a-z0-9]{2,8}$", filename, re.I):
+        filename = f"{filename}.{ext}"
+    if not filename.lower().endswith(f".{ext}"):
+        filename = re.sub(r"\.[^.]+$", f".{ext}", filename)
+
+    base, suffix = os.path.splitext(filename)
+    path = output_path_for(filename, "output")
+    while os.path.exists(path):
+        filename = f"{base}_{uuid.uuid4().hex[:6]}{suffix}"
+        path = output_path_for(filename, "output")
+
+    with open(path, "wb") as f:
+        f.write(raw)
+    return {
+        "success": True,
+        "filename": filename,
+        "url": output_url_for(filename, "output"),
+        "path": os.path.abspath(path),
+    }
 
 @app.post("/api/upload")
 async def upload_image(files: List[UploadFile] = File(...)):
@@ -8432,6 +8734,24 @@ async def download_canvas_assets(payload: CanvasAssetDownloadRequest):
     encoded = urllib.parse.quote(filename)
     headers = {"Content-Disposition": f"attachment; filename*=UTF-8''{encoded}"}
     return Response(buffer.getvalue(), media_type="application/zip", headers=headers)
+
+@app.get("/api/global-outputs")
+async def get_global_outputs(kind: str = "", source: str = "", q: str = "", limit: int = 1000):
+    outputs = build_global_outputs()
+    kind_filter = str(kind or "").strip().lower()
+    source_filter = str(source or "").strip().lower()
+    query = str(q or "").strip().lower()
+    if kind_filter and kind_filter != "all":
+        outputs = [item for item in outputs if str(item.get("kind") or "").lower() == kind_filter]
+    if source_filter and source_filter != "all":
+        outputs = [item for item in outputs if str(item.get("source_type") or "").lower() == source_filter]
+    if query:
+        outputs = [
+            item for item in outputs
+            if query in " ".join(str(item.get(key) or "") for key in ("name", "source_label", "prompt", "model", "url")).lower()
+        ]
+    max_items = max(1, min(3000, int(limit or 1000)))
+    return {"items": outputs[:max_items], "total": len(outputs)}
 
 def sanitize_export_filename(name: str, fallback: str) -> str:
     base = os.path.basename(str(name or "").strip()) or fallback

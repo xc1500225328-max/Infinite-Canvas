@@ -1489,6 +1489,14 @@
                     </svg>
                     <span class="nav-text" data-i18n="nav.gpt">GPT 对话</span>
                 </div>
+                <div class="nav-item" onclick="switchUI(this, 'blindbox')">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                        <path d="m3.3 7 8.7 5 8.7-5"></path>
+                        <path d="M12 22V12"></path>
+                    </svg>
+                    <span class="nav-text">AI 盲盒</span>
+                </div>
                 <div class="nav-item" onclick="switchUI(this, 'canvas')">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="7" height="7"></rect>
@@ -1608,6 +1616,7 @@
             <iframe id="frame-angle" data-src="/static/angle.html?v=2026.06.04.2" scrolling="yes"></iframe>
             <iframe id="frame-online" data-src="/static/online.html?v=2026.06.04.2" scrolling="yes"></iframe>
             <iframe id="frame-gpt-chat" data-src="/static/gpt-chat.html?v=2026.06.04.2" scrolling="yes"></iframe>
+            <iframe id="frame-blindbox" data-src="/static/blindbox/index.html?v=2026.06.05.16" scrolling="yes"></iframe>
             <iframe id="frame-canvas" data-src="/static/canvas.html?v=2026.06.04.2" scrolling="yes"></iframe>
             <iframe id="frame-asset-manager" data-src="/static/asset-manager.html?v=2026.06.04.2" scrolling="yes"></iframe>
             <iframe id="frame-api-settings" data-src="/static/api-settings.html?v=2026.06.04.2" scrolling="yes"></iframe>
@@ -1724,7 +1733,7 @@
         const LOCAL_NAV_COLLAPSED_KEY = 'studio_local_nav_collapsed';
         const SIDEBAR_PINNED_KEY = 'studio_sidebar_pinned';
         const DEFAULT_PAGE_ID = 'zimage';
-        const PAGE_IDS = ['zimage','enhance','klein','angle','online','gpt-chat','canvas','asset-manager','api-settings','comfyui-settings'];
+        const PAGE_IDS = ['zimage','enhance','klein','angle','online','gpt-chat','blindbox','canvas','asset-manager','api-settings','comfyui-settings'];
         const LOCAL_PAGE_IDS = ['zimage','enhance','klein','angle'];
         const PROJECT_URL = 'https://github.com/xc1500225328-max/Infinite-Canvas';
         const ORIGINAL_AUTHOR_URL = 'https://github.com/hero8152';
@@ -1828,6 +1837,12 @@
             // 切换到画布时通知刷新工作流列表（防止在 comfyui-settings 修改后画布未及时更新）
             if (id === 'canvas' && target.src) {
                 try { target.contentWindow?.postMessage({ type: 'canvas-focus' }, '*'); } catch(e) {}
+            }
+            const blindboxFrame = document.getElementById('frame-blindbox');
+            if (blindboxFrame && blindboxFrame.contentWindow) {
+                try {
+                    blindboxFrame.contentWindow.postMessage({ type: 'blindbox-active', active: id === 'blindbox' }, '*');
+                } catch(e) {}
             }
             resetStudioRootScroll();
         }
