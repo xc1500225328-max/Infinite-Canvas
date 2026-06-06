@@ -1,0 +1,704 @@
+[
+    {
+        "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_e8a523e537.jpg"
+        ],
+        "timestamp": 1780663293.1599412,
+        "type": "online",
+        "model": "doubao-seedream-5-0-260128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-5-0-260128",
+            "size": "1008x1344",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14490,
+            "total_tokens": 14490
+        }
+    },
+    {
+        "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_d6d9bcd276.jpg"
+        ],
+        "timestamp": 1780663262.2216027,
+        "type": "online",
+        "model": "doubao-seedream-5-0-260128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-5-0-260128",
+            "size": "1008x1344",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14490,
+            "total_tokens": 14490
+        }
+    },
+    {
+        "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_f512e84445.jpg"
+        ],
+        "timestamp": 1780663226.2024815,
+        "type": "online",
+        "model": "doubao-seedream-5-0-260128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-5-0-260128",
+            "size": "1008x1344",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14490,
+            "total_tokens": 14490
+        }
+    },
+    {
+        "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_c61bdcc173.jpg"
+        ],
+        "timestamp": 1780663196.8002172,
+        "type": "online",
+        "model": "doubao-seedream-5-0-260128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-5-0-260128",
+            "size": "1008x1344",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14490,
+            "total_tokens": 14490
+        }
+    },
+    {
+        "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_aff6e3cb24.jpg"
+        ],
+        "timestamp": 1780663167.145124,
+        "type": "online",
+        "model": "doubao-seedream-5-0-260128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-5-0-260128",
+            "size": "1008x1344",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14490,
+            "total_tokens": 14490
+        }
+    },
+    {
+        "prompt": "蓝色线条的赛博木鱼图标. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_d042434654.jpg"
+        ],
+        "timestamp": 1780661749.39376,
+        "type": "online",
+        "model": "doubao-seedream-5-0-260128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-5-0-260128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "蓝色线条的赛博木鱼图标. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_769df5d0cb.jpg"
+        ],
+        "timestamp": 1780661716.6641662,
+        "type": "online",
+        "model": "doubao-seedream-5-0-260128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-5-0-260128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "蓝色线条的赛博木鱼. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_e31b980d56.jpg"
+        ],
+        "timestamp": 1780661583.658716,
+        "type": "online",
+        "model": "doubao-seedream-5-0-260128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-5-0-260128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_5045ba3080.jpg"
+        ],
+        "timestamp": 1780660105.2803361,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1536",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14454,
+            "total_tokens": 14454
+        }
+    },
+    {
+        "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_12db5354b1.jpg"
+        ],
+        "timestamp": 1780660093.4501567,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1536",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14454,
+            "total_tokens": 14454
+        }
+    },
+    {
+        "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_dcfcc3fb31.jpg"
+        ],
+        "timestamp": 1780660080.676948,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1536",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14454,
+            "total_tokens": 14454
+        }
+    },
+    {
+        "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_4bda089004.jpg"
+        ],
+        "timestamp": 1780660063.7819588,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1536",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14454,
+            "total_tokens": 14454
+        }
+    },
+    {
+        "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
+        "images": [
+            "/assets/output/online_5d196da478.jpg"
+        ],
+        "timestamp": 1780660048.4319742,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1536",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14454,
+            "total_tokens": 14454
+        }
+    },
+    {
+        "prompt": "可持续微型仿生公寓，外壳如同叶绿体细胞，绿叶覆盖的阳台，风力微型风扇旋转，通透的有机玻璃和太阳能材质，阳光普照，温润生态风格. Style direction: 太阳能朋克温室. Theme: 生态未来.",
+        "images": [
+            "/assets/output/online_c9f5b638fc.jpg"
+        ],
+        "timestamp": 1780658780.3518608,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "可持续微型仿生公寓，外壳如同叶绿体细胞，绿叶覆盖的阳台，风力微型风扇旋转，通透的有机玻璃和太阳能材质，阳光普照，温润生态风格. Style direction: 仿生细胞住宅. Theme: 生态未来.",
+        "images": [
+            "/assets/output/online_e1a60d2fa4.jpg"
+        ],
+        "timestamp": 1780658769.4046454,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "可持续微型仿生公寓，外壳如同叶绿体细胞，绿叶覆盖的阳台，风力微型风扇旋转，通透的有机玻璃和太阳能材质，阳光普照，温润生态风格. Style direction: 仿生细胞住宅. Theme: 生态未来.",
+        "images": [
+            "/assets/output/online_a84ff0cc3c.jpg"
+        ],
+        "timestamp": 1780658759.2583516,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "参数化流体结构建筑，极其动感的起伏白色曲线，大跨度悬挑，晶莹剔透的玻璃幕墙，流线型曲面，大师扎哈·哈迪德风格，日落余晖，建筑摄影. Style direction: 扎哈·哈迪德仿生流体. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_007804adb3.jpg"
+        ],
+        "timestamp": 1780658053.8982456,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "参数化流体结构建筑，极其动感的起伏白色曲线，大跨度悬挑，晶莹剔透的玻璃幕墙，流线型曲面，大师扎哈·哈迪德风格，日落余晖，建筑摄影. Style direction: OMA大都市解构狂想. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_2ded9c269e.jpg"
+        ],
+        "timestamp": 1780658042.1307158,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "参数化流体结构建筑，极其动感的起伏白色曲线，大跨度悬挑，晶莹剔透的玻璃幕墙，流线型曲面，大师扎哈·哈迪德风格，日落余晖，建筑摄影. Style direction: 安藤忠雄双重清水混凝土. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_307d0b3e7f.jpg"
+        ],
+        "timestamp": 1780658002.3081875,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "参数化流体结构建筑，极其动感的起伏白色曲线，大跨度悬挑，晶莹剔透的玻璃幕墙，流线型曲面，大师扎哈·哈迪德风格，日落余晖，建筑摄影. Style direction: 安藤忠雄双重清水混凝土. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_f74a2dadb4.jpg"
+        ],
+        "timestamp": 1780657989.4582703,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "参数化流体结构建筑，极其动感的起伏白色曲线，大跨度悬挑，晶莹剔透的玻璃幕墙，流线型曲面，大师扎哈·哈迪德风格，日落余晖，建筑摄影. Style direction: 马岩松山水未来派. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_b65c57e882.jpg"
+        ],
+        "timestamp": 1780657975.6236005,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "极简建筑师安藤忠雄清水混凝土，完美的几何圆形和方形墙壁，一条笔直的自然光线穿过狭长的缝隙切割黑暗，静谧禅意，建筑摄影，低彩色调. Style direction: 安藤忠雄双重清水混凝土. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_569aebe231.jpg"
+        ],
+        "timestamp": 1780657248.5367472,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "极简建筑师安藤忠雄清水混凝土，完美的几何圆形和方形墙壁，一条笔直的自然光线穿过狭长的缝隙切割黑暗，静谧禅意，建筑摄影，低彩色调. Style direction: 扎哈·哈迪德仿生流体. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_91d878c7a2.jpg"
+        ],
+        "timestamp": 1780657239.1349924,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "极简建筑师安藤忠雄清水混凝土，完美的几何圆形和方形墙壁，一条笔直的自然光线穿过狭长的缝隙切割黑暗，静谧禅意，建筑摄影，低彩色调. Style direction: 马岩松山水未来派. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_e5410d71de.jpg"
+        ],
+        "timestamp": 1780657220.274947,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "极简建筑师安藤忠雄清水混凝土，完美的几何圆形和方形墙壁，一条笔直的自然光线穿过狭长的缝隙切割黑暗，静谧禅意，建筑摄影，低彩色调. Style direction: OMA大都市解构狂想. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_503b3dee72.jpg"
+        ],
+        "timestamp": 1780657209.8926027,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "极简建筑师安藤忠雄清水混凝土，完美的几何圆形和方形墙壁，一条笔直的自然光线穿过狭长的缝隙切割黑暗，静谧禅意，建筑摄影，低彩色调. Style direction: 安藤忠雄双重清水混凝土. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_53aa6fb52c.jpg"
+        ],
+        "timestamp": 1780657111.9517064,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    },
+    {
+        "prompt": "参数化山水城市建筑群，马岩松MAD风格，灵感来自中国水墨画的飘逸白色仿生山峰建筑，云雾缭绕在白色的波浪层板间，未来极简，航拍视角. Style direction: 马岩松山水未来派. Theme: 大师概念.",
+        "images": [
+            "/assets/output/online_edb231706c.jpg"
+        ],
+        "timestamp": 1780656839.5990481,
+        "type": "online",
+        "model": "doubao-seedream-4-5-251128",
+        "provider_id": "volcengine",
+        "provider_name": "火山引擎",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "volcengine",
+            "model": "doubao-seedream-4-5-251128",
+            "size": "1024x1024",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": {
+            "generated_images": 1,
+            "output_tokens": 14400,
+            "total_tokens": 14400
+        }
+    }
+]

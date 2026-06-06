@@ -139,7 +139,25 @@
             </div>
             <div class="asset-tabs">
                 <button class="asset-tab active" type="button" data-asset-tab="image" data-i18n="smart.assetImages">图片资产</button>
+                <button class="asset-tab" type="button" data-asset-tab="output">全局输出</button>
                 <button class="asset-tab" type="button" data-asset-tab="workflow" data-i18n="smart.assetWorkflows">工作流</button>
+            </div>
+            <div id="globalOutputControls" class="global-output-controls" hidden>
+                <div class="global-output-search"><i data-lucide="search"></i><input id="globalOutputSearch" type="search" placeholder="搜索输出、提示词或来源"></div>
+                <div class="global-output-filters">
+                    <select id="globalOutputKind">
+                        <option value="all">全部类型</option>
+                        <option value="image">图片</option>
+                        <option value="video">视频</option>
+                        <option value="audio">音频</option>
+                    </select>
+                    <select id="globalOutputSource">
+                        <option value="all">全部来源</option>
+                        <option value="history">历史记录</option>
+                        <option value="canvas">画布输出</option>
+                        <option value="disk">磁盘输出</option>
+                    </select>
+                </div>
             </div>
             <div id="assetImageControls">
                 <select id="assetLibrarySelect" class="asset-category-select asset-library-select" title="选择资产库"></select>

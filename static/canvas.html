@@ -111,6 +111,7 @@
                 <button class="menu-btn" onclick="menuAdd('comfy')"><i data-lucide="workflow" class="w-4 h-4"></i><span data-i18n="canvas.comfyGenerate">ComfyUI 生成</span></button>
                 <button class="menu-btn" onclick="menuAdd('ltxDirector')"><i data-lucide="film" class="w-4 h-4"></i><span data-i18n="canvas.ltxDirector">LTX Director</span></button>
                 <button class="menu-btn" onclick="menuAdd('output')"><i data-lucide="circle-dot" class="w-4 h-4"></i>Output</button>
+                <button class="menu-btn" onclick="menuAdd('compare')"><i data-lucide="columns-2" class="w-4 h-4"></i><span>图像对比</span></button>
             </div>
             <div id="linkCreateMenu" class="create-menu"></div>
             <div id="nodeInputMenu" class="create-menu"></div>
@@ -130,6 +131,27 @@
                 <div class="canvas-asset-head">
                     <strong><i data-lucide="library" class="w-4 h-4"></i><span>资产库</span></strong>
                     <button id="canvasAssetCloseBtn" class="canvas-asset-icon-btn" type="button" title="关闭"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="canvas-asset-tabs">
+                    <button class="active" type="button" data-canvas-asset-tab="assets"><i data-lucide="image" class="w-4 h-4"></i><span>资产库</span></button>
+                    <button type="button" data-canvas-asset-tab="outputs"><i data-lucide="images" class="w-4 h-4"></i><span>全局输出</span></button>
+                </div>
+                <div id="canvasGlobalOutputControls" class="canvas-global-output-controls" hidden>
+                    <div class="canvas-global-search"><i data-lucide="search" class="w-4 h-4"></i><input id="canvasGlobalOutputSearch" type="search" placeholder="搜索输出、提示词或来源"></div>
+                    <div class="canvas-global-filters">
+                        <select id="canvasGlobalOutputKind">
+                            <option value="all">全部类型</option>
+                            <option value="image">图片</option>
+                            <option value="video">视频</option>
+                            <option value="audio">音频</option>
+                        </select>
+                        <select id="canvasGlobalOutputSource">
+                            <option value="all">全部来源</option>
+                            <option value="history">历史记录</option>
+                            <option value="canvas">画布输出</option>
+                            <option value="disk">磁盘输出</option>
+                        </select>
+                    </div>
                 </div>
                 <select id="canvasAssetLibrarySelect" class="canvas-asset-select"></select>
                 <div class="canvas-asset-row">
@@ -164,6 +186,8 @@
                     <div id="outputResolution" class="output-resolution">--</div>
                     <div class="output-preview-actions">
                         <button id="outputDownloadBtn" class="preview-icon-btn" type="button" title="下载" aria-label="下载" data-i18n-title="canvas.download"><i data-lucide="download" class="w-4 h-4"></i></button>
+                        <button id="outputCopyImageBtn" class="preview-icon-btn" type="button" title="复制图片" aria-label="复制图片"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                        <button id="outputComparePickBtn" class="preview-icon-btn" type="button" title="加入对比" aria-label="加入对比"><i data-lucide="columns-2" class="w-4 h-4"></i></button>
                         <button id="outputDownloadAllBtn" class="preview-icon-btn" type="button" title="下载全部图片" aria-label="下载全部图片" data-i18n-title="canvas.outputDownloadAllImages" style="display:none"><i data-lucide="archive" class="w-4 h-4"></i></button>
                         <button class="preview-icon-btn" type="button" title="关闭" aria-label="关闭" onclick="closeOutputLightbox()" data-i18n-title="common.close"><i data-lucide="x" class="w-4 h-4"></i></button>
                     </div>

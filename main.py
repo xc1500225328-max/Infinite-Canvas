@@ -162,7 +162,6 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 GLOBAL_LOOP = None
-APP_VERSION = "2026.05.19"
 
 def normalize_github_repo_url(value: str) -> str:
     text = str(value or "").strip().rstrip("/")
@@ -190,7 +189,6 @@ UPDATE_MANIFEST_URL = os.getenv("INFINITE_CANVAS_UPDATE_MANIFEST_URL", f"{GITHUB
 async def startup_event():
     global GLOBAL_LOOP
     GLOBAL_LOOP = asyncio.get_running_loop()
-    sync_static_html_versions()
 
 @app.websocket("/ws/stats")
 async def websocket_endpoint(websocket: WebSocket, client_id: str = None):
@@ -1251,8 +1249,38 @@ def public_provider(provider):
         })
     return item
 
+LOCAL_COMFY_PROVIDER_ID = "local-comfy"
+LOCAL_COMFY_PROVIDER_NAME = "本地 ComfyUI"
+LOCAL_COMFY_IMAGE_MODELS = ["Z-Image.json"]
+
+def local_comfy_public_provider():
+    return {
+        "id": LOCAL_COMFY_PROVIDER_ID,
+        "name": LOCAL_COMFY_PROVIDER_NAME,
+        "protocol": LOCAL_COMFY_PROVIDER_ID,
+        "base_url": "",
+        "image_generation_endpoint": "",
+        "image_edit_endpoint": "",
+        "enabled": True,
+        "primary": False,
+        "image_models": list(LOCAL_COMFY_IMAGE_MODELS),
+        "chat_models": [],
+        "video_models": [],
+        "ms_loras": [],
+        "rh_apps": [],
+        "rh_workflows": [],
+        "volcengine_project_name": "",
+        "volcengine_region": "",
+    }
+
 def public_api_providers():
     return [public_provider(p) for p in load_api_providers()]
+
+def public_generation_providers():
+    providers = public_api_providers()
+    if not any(p.get("id") == LOCAL_COMFY_PROVIDER_ID for p in providers):
+        providers.append(local_comfy_public_provider())
+    return providers
 
 def get_primary_provider_id(providers=None):
     """返回当前首选 provider 的 id；优先 primary=True 的，否则取第一个非 modelscope 的，再次取第一个。"""
@@ -7288,7 +7316,7 @@ async def jimeng_query_media(payload: JimengQueryMediaRequest):
 @app.get("/api/config")
 async def ai_config():
     preferred_chat_model = next((m for m in CHAT_MODELS if m == "gpt-5.5"), CHAT_MODELS[0] if CHAT_MODELS else CHAT_MODEL)
-    providers = public_api_providers()
+    providers = public_generation_providers()
     return {
         "base_url": AI_BASE_URL,
         "chat_model": preferred_chat_model,
@@ -7890,6 +7918,8 @@ async def fetch_upstream_models(provider_id: str):
     return await fetch_models_from_upstream(provider.get("base_url") or "", api_key, provider_protocol(provider))
 
 async def build_online_image_result(payload: OnlineImageRequest):
+    if (payload.provider_id or "").strip().lower() == LOCAL_COMFY_PROVIDER_ID:
+        return await build_local_comfy_image_result(payload)
     provider = get_api_provider(payload.provider_id)
     default_model = (provider.get("image_models") or [IMAGE_MODEL])[0]
     model = selected_model(payload.model, default_model)
@@ -7932,6 +7962,66 @@ async def build_online_image_result(payload: OnlineImageRequest):
     if GLOBAL_LOOP:
         asyncio.run_coroutine_threadsafe(manager.broadcast_new_image(result), GLOBAL_LOOP)
     return result
+
+async def build_local_comfy_image_result(payload: OnlineImageRequest):
+    refs = [ref.dict() for ref in payload.reference_images if ref.url]
+    if refs:
+        raise HTTPException(status_code=400, detail="本地盲盒文生图暂不支持参考图，请清空参考图后重试")
+    width, height = parse_size_pair(payload.size)
+    workflow_json = (payload.model or LOCAL_COMFY_IMAGE_MODELS[0]).strip() or LOCAL_COMFY_IMAGE_MODELS[0]
+    if workflow_json not in LOCAL_COMFY_IMAGE_MODELS:
+        raise HTTPException(status_code=400, detail=f"本地盲盒暂不支持该工作流：{workflow_json}")
+    count = max(1, min(8, int(payload.n or 1)))
+
+    async def generate_one():
+        req = GenerateRequest(
+            prompt=payload.prompt,
+            width=width,
+            height=height,
+            workflow_json=workflow_json,
+            type="blindbox-local",
+            client_id=str(uuid.uuid4()),
+        )
+        data = await asyncio.to_thread(generate, req)
+        if not isinstance(data, dict):
+            raise HTTPException(status_code=502, detail="本地 ComfyUI 没有返回有效结果")
+        if data.get("error"):
+            raise HTTPException(status_code=502, detail=str(data.get("error")))
+        images = data.get("images") or []
+        if not images:
+            raise HTTPException(status_code=502, detail="本地 ComfyUI 没有返回图片")
+        return data
+
+    generated = await asyncio.gather(*(generate_one() for _ in range(count)))
+    local_urls = []
+    for item in generated:
+        for url in item.get("images") or []:
+            if url:
+                local_urls.append(url)
+    raw = generated[0] if generated else {}
+    if not local_urls:
+        raise HTTPException(status_code=502, detail="本地 ComfyUI 没有返回图片")
+    return {
+        "prompt": payload.prompt,
+        "images": local_urls,
+        "timestamp": raw.get("timestamp") or time.time(),
+        "type": "local",
+        "model": workflow_json,
+        "provider_id": LOCAL_COMFY_PROVIDER_ID,
+        "provider_name": LOCAL_COMFY_PROVIDER_NAME,
+        "task_id": raw.get("task_id"),
+        "request_id": raw.get("prompt_id"),
+        "params": {
+            "provider_id": LOCAL_COMFY_PROVIDER_ID,
+            "model": workflow_json,
+            "size": f"{width}x{height}",
+            "quality": payload.quality,
+            "n": count,
+            "reference_images": [],
+            "workflow_json": workflow_json,
+        },
+        "raw_usage": None,
+    }
 
 @app.post("/api/online-image")
 async def online_image(payload: OnlineImageRequest):

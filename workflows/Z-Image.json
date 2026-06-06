@@ -17,7 +17,7 @@
   },
   "22": {
     "inputs": {
-      "seed": 1104391495230198,
+      "seed": 142827465876472,
       "steps": 10,
       "cfg": 1,
       "sampler_name": "euler",
@@ -47,13 +47,7 @@
   },
   "23": {
     "inputs": {
-      "text": "",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
+      "text": "韩系甜妹，清透水光肌，浅棕卷发，卧室暖黄落地灯环境，低角度自拍，微歪头，浅杏色卫衣，胶片颗粒质感，复古调色，虚化杂乱背景，氛围感胶片自拍，发丝透光，画质细腻",
       "clip": [
         "34",
         0
@@ -78,7 +72,7 @@
   },
   "27": {
     "inputs": {
-      "vae_name": "flux ultra vae.safetensors"
+      "vae_name": "ae.safetensors"
     },
     "class_type": "VAELoader",
     "_meta": {
@@ -110,32 +104,6 @@
     "class_type": "LoadTextEncoderShared //Inspire",
     "_meta": {
       "title": "Shared Text Encoder Loader (Inspire)"
-    }
-  },
-  "89": {
-    "inputs": {
-      "rgthree_comparer": {
-        "images": [
-          {
-            "name": "A",
-            "selected": true,
-            "url": "/api/view?filename=rgthree.compare._temp_gmjxy_00001_.png&type=temp&subfolder=&rand=0.7230996201608886"
-          },
-          {
-            "name": "B",
-            "selected": true,
-            "url": "/api/view?filename=rgthree.compare._temp_gmjxy_00002_.png&type=temp&subfolder=&rand=0.6218111120009978"
-          }
-        ]
-      },
-      "image_a": [
-        "20",
-        0
-      ]
-    },
-    "class_type": "Image Comparer (rgthree)",
-    "_meta": {
-      "title": "图像对比"
     }
   },
   "137": {

@@ -99,8 +99,8 @@
       "sampler_name": "euler",
       "scheduler": "sgm_uniform",
       "denoise": [
-        "202",
-        0
+        "201",
+        1
       ],
       "model": [
         "166",
@@ -225,8 +225,8 @@
       "sampler_name": "euler_cfg_pp",
       "scheduler": "simple",
       "denoise": [
-        "202",
-        0
+        "201",
+        1
       ],
       "model": [
         "33",
@@ -254,8 +254,8 @@
     "inputs": {
       "seed": 882274830236035,
       "strength": [
-        "202",
-        0
+        "201",
+        1
       ],
       "image": [
         "15",
@@ -286,8 +286,8 @@
   "189": {
     "inputs": {
       "blend_factor": [
-        "202",
-        0
+        "201",
+        1
       ],
       "blend_mode": "multiply",
       "image1": [
@@ -356,19 +356,6 @@
     "class_type": "MathExpression|pysssss",
     "_meta": {
       "title": "数学表达式"
-    }
-  },
-  "202": {
-    "inputs": {
-      "output_type": "float",
-      "*": [
-        "201",
-        1
-      ]
-    },
-    "class_type": "easy convertAnything",
-    "_meta": {
-      "title": "转换任何"
     }
   },
   "204": {

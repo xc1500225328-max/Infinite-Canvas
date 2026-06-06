@@ -28,12 +28,6 @@
   "3": {
     "inputs": {
       "prompt": "",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "87",
         0
@@ -71,12 +65,6 @@
   "11": {
     "inputs": {
       "prompt": "将摄像机向右旋转45度",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
       "clip": [
         "87",
         0
@@ -143,7 +131,7 @@
   },
   "20": {
     "inputs": {
-      "lora_name": "qwen\\Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
+      "lora_name": "Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors",
       "strength_model": 1,
       "model": [
         "76",
@@ -202,7 +190,7 @@
   },
   "76": {
     "inputs": {
-      "lora_name": "qwen\\qwen-image-edit-2511-multiple-angles-lora.safetensors",
+      "lora_name": "qwen-image-edit-2511-multiple-angles-lora.safetensors",
       "strength_model": 1,
       "model": [
         "86",
@@ -242,7 +230,7 @@
   },
   "86": {
     "inputs": {
-      "unet_name": "qwen_image_edit_2511_fp8_e4m3fn.safetensors",
+      "unet_name": "qwen_image_edit_2511_fp8mixed.safetensors",
       "weight_dtype": "default"
     },
     "class_type": "UNETLoader",

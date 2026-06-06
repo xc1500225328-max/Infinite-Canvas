@@ -29,6 +29,10 @@ const assetLibrarySelect = document.getElementById('assetLibrarySelect');
 const assetCategorySelect = document.getElementById('assetCategorySelect');
 const assetGrid = document.getElementById('assetGrid');
 const assetDropZone = document.getElementById('assetDropZone');
+const globalOutputControls = document.getElementById('globalOutputControls');
+const globalOutputSearch = document.getElementById('globalOutputSearch');
+const globalOutputKind = document.getElementById('globalOutputKind');
+const globalOutputSource = document.getElementById('globalOutputSource');
 const workflowEmpty = document.getElementById('workflowEmpty');
 const assetImageControls = document.getElementById('assetImageControls');
 const assetDialogBackdrop = document.getElementById('assetDialogBackdrop');
@@ -86,6 +90,11 @@ let mentionSource = 'input';
 let mentionAssetCategoryId = '';
 let assetLibraryUpdatedAt = 0;
 let assetLibraryRefreshTimer = null;
+let smartGlobalOutputs = [];
+let smartGlobalOutputQuery = '';
+let smartGlobalOutputKindFilter = 'all';
+let smartGlobalOutputSourceFilter = 'all';
+let smartCompareSelection = [];
 const SMART_ASSET_LIBRARY_OPEN_KEY = 'smart_canvas_asset_library_open';
 const PROMPT_PRESETS_KEY = 'smart_canvas_prompt_presets_v1';
 const PROMPT_TEMPLATE_GROUPS_KEY = 'smart_canvas_prompt_template_groups_v1';
@@ -651,6 +660,82 @@ function toast(text){
     el.classList.add('show');
     clearTimeout(toast._timer);
     toast._timer = setTimeout(() => el.classList.remove('show'), 1800);
+}
+async function copyTextToClipboard(text){
+    const value = String(text || '');
+    if(!value) return false;
+    try {
+        if(navigator.clipboard?.writeText){
+            await navigator.clipboard.writeText(value);
+            return true;
+        }
+    } catch(_) {}
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = value;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+    } catch(_) {
+        return false;
+    }
+}
+function smartDownloadApiUrl(url, filename='', inline=false){
+    return `/api/download-output?url=${encodeURIComponent(url || '')}&name=${encodeURIComponent(filename || 'download')}${inline ? '&inline=true' : ''}`;
+}
+async function copySmartImageToClipboard(url, name='image'){
+    if(!url) return false;
+    if(isVideoUrl(url) || isAudioUrl(url)){
+        await copyTextToClipboard(url);
+        toast('已复制媒体地址');
+        return false;
+    }
+    try {
+        if(!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') throw new Error('clipboard image unsupported');
+        const response = await fetch(smartDownloadApiUrl(url, name, true));
+        if(!response.ok) throw new Error(await smartResponseErrorMessage(response, '图片读取失败'));
+        const blob = await response.blob();
+        const type = blob.type && blob.type.startsWith('image/') ? blob.type : 'image/png';
+        await navigator.clipboard.write([new ClipboardItem({[type]: blob})]);
+        toast('已复制图片');
+        return true;
+    } catch(_) {
+        await copyTextToClipboard(url);
+        toast('图片复制不可用，已复制图片地址');
+        return false;
+    }
+}
+function selectSmartCompareImage(item){
+    const url = item?.url || '';
+    if(!url || isVideoUrl(url) || isAudioUrl(url)){
+        toast('请选择图片进行对比');
+        return;
+    }
+    smartCompareSelection = [...smartCompareSelection.filter(entry => entry.url !== url), {url, name:item?.name || 'image'}].slice(-2);
+    if(smartCompareSelection.length < 2){
+        toast('已选择第 1 张对比图，再选择 1 张');
+        return;
+    }
+    const [left, right] = smartCompareSelection;
+    smartCompareSelection = [];
+    const point = lastMouseWorld || viewportCenter();
+    const firstNode = createNode(point.x, point.y, [{url:left.url, name:left.name}], {select:false});
+    const secondNode = createNode(point.x + 330, point.y, [{url:right.url, name:right.name}], {select:false});
+    connectInputNode(secondNode.id, firstNode.id);
+    firstNode.sourceNodeId = secondNode.id;
+    selectedId = firstNode.id;
+    selectedIds = [firstNode.id, secondNode.id];
+    render();
+    openImagePreview(firstNode.id, 0);
+    previewCompareOn = true;
+    previewCompareIndex = 0;
+    setTimeout(refreshComparePanel, 0);
 }
 function selectedNode(){ return nodes.find(n => n.id === selectedId) || null; }
 function clearSelection(){
@@ -3349,6 +3434,31 @@ async function loadAssetLibrary(){
         toast(tr('smart.assetLoadFail'));
     }
 }
+async function loadSmartGlobalOutputs({renderPanel=true}={}){
+    const params = new URLSearchParams();
+    if(smartGlobalOutputQuery) params.set('q', smartGlobalOutputQuery);
+    if(smartGlobalOutputKindFilter && smartGlobalOutputKindFilter !== 'all') params.set('kind', smartGlobalOutputKindFilter);
+    if(smartGlobalOutputSourceFilter && smartGlobalOutputSourceFilter !== 'all') params.set('source', smartGlobalOutputSourceFilter);
+    params.set('limit', '1000');
+    try {
+        const data = await fetch(`/api/global-outputs?${params.toString()}`).then(async r => {
+            if(!r.ok) throw new Error(await smartResponseErrorMessage(r, '全局输出加载失败'));
+            return r.json();
+        });
+        smartGlobalOutputs = Array.isArray(data.items) ? data.items : [];
+        if(renderPanel) renderAssetLibrary();
+        return data;
+    } catch(e) {
+        smartGlobalOutputs = [];
+        toast(e.message || '全局输出加载失败');
+        if(renderPanel) renderAssetLibrary();
+        return null;
+    }
+}
+function smartGlobalOutputSourceLabel(source){
+    const map = {history:'历史', canvas:'画布', disk:'磁盘'};
+    return map[source] || source || '输出';
+}
 function refreshAssetLibrarySoon(delay=120){
     clearTimeout(assetLibraryRefreshTimer);
     assetLibraryRefreshTimer = setTimeout(async () => {
@@ -3542,12 +3652,13 @@ function applyAssetLibraryState(open){
 }
 function restoreAssetLibraryState(){
     applyAssetLibraryState(localStorage.getItem(SMART_ASSET_LIBRARY_OPEN_KEY) === '1');
+    if(assetLibraryOpen) (assetTab === 'output' ? loadSmartGlobalOutputs() : loadAssetLibrary());
 }
 function toggleAssetLibrary(open=!assetLibraryOpen){
     const next = !!open;
     applyAssetLibraryState(next);
     localStorage.setItem(SMART_ASSET_LIBRARY_OPEN_KEY, next ? '1' : '0');
-    if(assetLibraryOpen) loadAssetLibrary();
+    if(assetLibraryOpen) (assetTab === 'output' ? loadSmartGlobalOutputs() : loadAssetLibrary());
     render();
 }
 function assetCategoryForMention(){
@@ -3588,11 +3699,31 @@ function renderAssetLibrary(){
     if(assetLibrarySelect){
         assetLibrarySelect.innerHTML = libs.map(lib => `<option value="${escapeHtml(lib.id)}" ${lib.id === activeAssetLibraryId ? 'selected' : ''}>${escapeHtml(lib.name || '资产库')}</option>`).join('');
     }
+    const outputMode = assetTab === 'output';
     const imageMode = assetTab === 'image';
+    if(globalOutputControls) globalOutputControls.hidden = !outputMode;
     assetImageControls.style.display = imageMode ? 'block' : 'none';
     assetDropZone.style.display = imageMode ? 'flex' : 'none';
-    assetGrid.style.display = imageMode ? 'grid' : 'none';
-    workflowEmpty.style.display = imageMode ? 'none' : 'flex';
+    assetGrid.style.display = imageMode || outputMode ? 'grid' : 'none';
+    workflowEmpty.style.display = imageMode || outputMode ? 'none' : 'flex';
+    if(outputMode){
+        const items = smartGlobalOutputs || [];
+        assetGrid.innerHTML = items.length ? items.map(item => `
+            <div class="asset-item global-output-item" draggable="true" data-output-id="${escapeHtml(item.id || '')}" data-url="${escapeHtml(item.url || '')}" data-name="${escapeHtml(item.name || 'output')}" data-kind="${escapeHtml(item.kind || 'image')}">
+                ${assetThumbHtml(item)}
+                <div class="asset-meta">
+                    <span class="asset-name" title="${escapeHtml(item.prompt || item.name || '')}">${escapeHtml(item.name || 'output')}</span>
+                    <button class="asset-mini-btn" type="button" data-global-output-copy="${escapeHtml(item.url || '')}" title="复制图片"><i data-lucide="copy"></i></button>
+                    <button class="asset-mini-btn" type="button" data-global-output-compare="${escapeHtml(item.url || '')}" title="加入对比"><i data-lucide="columns-2"></i></button>
+                    <button class="asset-mini-btn" type="button" data-global-output-save="${escapeHtml(item.url || '')}" title="${escapeHtml(tr('smart.mediaDrawerSave') || '存资产')}"><i data-lucide="bookmark-plus"></i></button>
+                </div>
+                <div class="global-output-source">${escapeHtml(smartGlobalOutputSourceLabel(item.source_type))} · ${escapeHtml(item.source_label || '')}</div>
+            </div>
+        `).join('') : `<div class="asset-empty">暂无全局输出</div>`;
+        bindGlobalOutputEvents();
+        refreshIcons();
+        return;
+    }
     if(!imageMode){ refreshIcons(); return; }
     const cats = assetCategories('image');
     if(!cats.some(cat => cat.id === activeAssetCategoryId)) activeAssetCategoryId = cats[0]?.id || '';
@@ -3784,6 +3915,47 @@ function bindAssetItemEvents(){
                 toast(err.message || tr('smart.assetAddFail'));
             }
         };
+    });
+}
+function bindGlobalOutputEvents(){
+    assetGrid.querySelectorAll('.global-output-item').forEach(el => {
+        const item = smartGlobalOutputs.find(entry => entry.id === el.dataset.outputId) || {url:el.dataset.url, name:el.dataset.name, kind:el.dataset.kind};
+        const thumb = el.querySelector('.asset-thumb');
+        thumb?.addEventListener('mouseenter', e => showAssetHoverPreview(e, item));
+        thumb?.addEventListener('mousemove', e => positionAssetHoverPreview(e));
+        thumb?.addEventListener('mouseleave', hideAssetHoverPreview);
+        el.addEventListener('dragstart', e => {
+            hideAssetHoverPreview();
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData('application/x-smart-asset', JSON.stringify({url:item.url, name:item.name || 'output', kind:item.kind || ''}));
+            e.dataTransfer.setData('text/plain', item.url || '');
+        });
+        el.addEventListener('dblclick', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const point = lastMouseWorld || viewportCenter();
+            createNode(point.x, point.y, [{url:item.url, name:item.name || 'output', kind:item.kind || 'image'}]);
+        });
+        el.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            copySmartImageToClipboard(item.url, item.name || 'output');
+        });
+        el.querySelector('[data-global-output-copy]')?.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            copySmartImageToClipboard(item.url, item.name || 'output');
+        });
+        el.querySelector('[data-global-output-compare]')?.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            selectSmartCompareImage(item);
+        });
+        el.querySelector('[data-global-output-save]')?.addEventListener('click', async e => {
+            e.preventDefault();
+            e.stopPropagation();
+            await addUrlToAssetLibrary(item.url, item.name || 'output');
+        });
     });
 }
 async function addUrlToAssetLibrary(url, name=''){
@@ -5506,6 +5678,18 @@ function bindNodeEvents(){
             item.setAttribute('draggable', 'false');
             item.addEventListener('dragstart', e => {
                 e.preventDefault();
+            });
+            item.addEventListener('contextmenu', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                const imageIndex = Number(item.dataset.imageIndex || 0);
+                const owner = nodes.find(n => n.id === id);
+                const image = imageForDisplay(owner?.images?.[imageIndex]);
+                if(!image?.url) return;
+                selectedId = id;
+                selectedIds = [];
+                selectedImage = {nodeId:id, index:imageIndex};
+                copySmartImageToClipboard(image.url, image.name || owner?.title || 'media');
             });
             item.addEventListener('mousedown', e => {
                 if(e.button !== 0 || e.target.closest('.image-delete')) return;
@@ -8714,8 +8898,27 @@ function assetMentionCandidateImages(categoryId=''){
         mentionId:`asset_${index}_${Math.random().toString(36).slice(2, 7)}`
     }));
 }
+function outputMentionCandidateImages(){
+    const seen = new Set();
+    return (smartGlobalOutputs || []).filter(item => {
+        if(!item?.url || seen.has(item.url)) return false;
+        if(!['image','video'].includes(item.kind || 'image')) return false;
+        seen.add(item.url);
+        return true;
+    }).map((item, index) => ({
+        url:item.url,
+        kind:item.kind || 'image',
+        name:item.name || `输出${index + 1}`,
+        alias:item.name || `输出${index + 1}`,
+        role:'output',
+        sourceLabel:item.source_label || '',
+        mentionId:`output_${index}_${Math.random().toString(36).slice(2, 7)}`
+    }));
+}
 function mentionCandidateImages(node, source=mentionSource){
-    return source === 'asset' ? assetMentionCandidateImages(mentionAssetCategoryId) : inputMentionCandidateImages(node);
+    if(source === 'asset') return assetMentionCandidateImages(mentionAssetCategoryId);
+    if(source === 'output') return outputMentionCandidateImages();
+    return inputMentionCandidateImages(node);
 }
 function referenceImagesFor(node){
     return defaultReferenceImagesFor(node);
@@ -8741,25 +8944,37 @@ function textBeforeCaret(){
 function renderMentionPicker(source){
     const node = selectedNode();
     const inputItems = inputMentionCandidateImages(node);
+    const outputItems = outputMentionCandidateImages();
     const assetLibs = assetLibraries();
     if(!activeAssetLibraryId || !assetLibs.some(lib => lib.id === activeAssetLibraryId)) activeAssetLibraryId = assetLibrary.active_library_id || assetLibs[0]?.id || '';
     const libraryWithMentionAssets = assetLibs.find(lib => (lib.categories || []).some(cat => (cat.type || 'image') === 'image' && (cat.items || []).some(item => item?.url)));
     const assetCats = assetCategories('image');
     const hasInput = inputItems.length > 0;
     const hasAssets = Boolean(libraryWithMentionAssets);
-    mentionSource = source || (hasInput ? 'input' : 'asset');
+    const outputsLoading = !smartGlobalOutputs.length;
+    const hasOutputs = outputItems.length > 0 || outputsLoading;
+    mentionSource = source || (hasInput ? 'input' : hasOutputs ? 'output' : 'asset');
+    if(mentionSource === 'output' && !hasOutputs && !smartGlobalOutputs.length){
+        loadSmartGlobalOutputs({renderPanel:false}).then(() => {
+            if(mentionPicker?.classList?.contains('open')) renderMentionPicker('output');
+        });
+    }
     if(mentionSource === 'asset' && hasAssets && !assetCats.some(cat => (cat.items || []).some(item => item?.url)) && libraryWithMentionAssets){
         activeAssetLibraryId = libraryWithMentionAssets.id;
         activeAssetCategoryId = '';
         mentionAssetCategoryId = '';
     }
     if(mentionSource === 'input' && !hasInput && hasAssets) mentionSource = 'asset';
+    if(mentionSource === 'input' && !hasInput && hasOutputs) mentionSource = 'output';
     if(mentionSource === 'asset' && !hasAssets && hasInput) mentionSource = 'input';
-    if(!hasInput && !hasAssets){ closeMentionPicker(); return; }
+    if(mentionSource === 'asset' && !hasAssets && hasOutputs) mentionSource = 'output';
+    if(mentionSource === 'output' && !hasOutputs && hasInput) mentionSource = 'input';
+    if(mentionSource === 'output' && !hasOutputs && hasAssets) mentionSource = 'asset';
+    if(!hasInput && !hasAssets && !hasOutputs){ closeMentionPicker(); return; }
     const nextAssetCats = assetCategories('image');
     const currentAssetCat = assetCategoryForMention();
     const assetItems = assetMentionCandidateImages(currentAssetCat?.id || '');
-    const candidates = (mentionSource === 'asset' ? assetItems : inputItems).slice(0, 36);
+    const candidates = (mentionSource === 'asset' ? assetItems : mentionSource === 'output' ? outputItems : inputItems).slice(0, 36);
     const body = candidates.length ? `<div class="mention-option-grid">${candidates.map((img, i) => `
             <button class="mention-option" type="button" data-mention-index="${i}">
                 ${mediaKindForItem(img) === 'video' ? `<video src="${escapeHtml(img.url)}" muted preload="metadata" playsinline disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"></video>` : `<img src="${escapeHtml(img.url)}" alt="">`}
@@ -8783,6 +8998,9 @@ function renderMentionPicker(source){
                 </button>
                 <button class="mention-source-tab ${mentionSource === 'asset' ? 'active' : ''}" type="button" data-mention-source="asset" title="${escapeHtml(tr('smart.mentionAssets'))}" ${hasAssets ? '' : 'disabled'}>
                     <i data-lucide="library"></i><span>${escapeHtml(tr('smart.mentionAssets'))}</span>
+                </button>
+                <button class="mention-source-tab ${mentionSource === 'output' ? 'active' : ''}" type="button" data-mention-source="output" title="全局输出" ${hasOutputs || !smartGlobalOutputs.length ? '' : 'disabled'}>
+                    <i data-lucide="images"></i><span>全局输出</span>
                 </button>
             </div>
             ${librarySelect}
@@ -11758,6 +11976,13 @@ window.addEventListener('keydown', e => {
     }
     if((e.key === 'Delete' || e.key === 'Backspace') && (selectedId || selectedIds.length) && !isEditableTarget(e.target)){
         e.preventDefault();
+        if(selectedImage.nodeId && selectedImage.index >= 0){
+            const node = nodes.find(n => n.id === selectedImage.nodeId);
+            if(node && (node.images || []).length > 1){
+                deleteImage(selectedImage.nodeId, selectedImage.index);
+                return;
+            }
+        }
         const ids = selectedIds.length ? selectedIds.slice() : [selectedId];
         pushUndo();
         ids.forEach(id => { undoSuppressed = true; deleteNode(id); undoSuppressed = false; });
@@ -11991,7 +12216,24 @@ if(promptPresetDelete) promptPresetDelete.onclick = () => {
     scheduleSave();
 };
 document.querySelectorAll('[data-asset-tab]').forEach(btn => {
-    btn.onclick = () => { assetTab = btn.dataset.assetTab; renderAssetLibrary(); };
+    btn.onclick = () => {
+        assetTab = btn.dataset.assetTab || 'image';
+        if(assetTab === 'output') loadSmartGlobalOutputs();
+        else renderAssetLibrary();
+    };
+});
+globalOutputSearch?.addEventListener('input', event => {
+    smartGlobalOutputQuery = event.target.value || '';
+    clearTimeout(globalOutputSearch._timer);
+    globalOutputSearch._timer = setTimeout(() => loadSmartGlobalOutputs(), 180);
+});
+globalOutputKind?.addEventListener('change', event => {
+    smartGlobalOutputKindFilter = event.target.value || 'all';
+    loadSmartGlobalOutputs();
+});
+globalOutputSource?.addEventListener('change', event => {
+    smartGlobalOutputSourceFilter = event.target.value || 'all';
+    loadSmartGlobalOutputs();
 });
 if(assetLibrarySelect) assetLibrarySelect.onchange = () => {
     activeAssetLibraryId = assetLibrarySelect.value || '';

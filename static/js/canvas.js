@@ -115,9 +115,15 @@ const canvasAssetCategorySelect = document.getElementById('canvasAssetCategorySe
 const canvasAssetAddCategoryBtn = document.getElementById('canvasAssetAddCategoryBtn');
 const canvasAssetDropZone = document.getElementById('canvasAssetDropZone');
 const canvasAssetGrid = document.getElementById('canvasAssetGrid');
+const canvasGlobalOutputControls = document.getElementById('canvasGlobalOutputControls');
+const canvasGlobalOutputSearch = document.getElementById('canvasGlobalOutputSearch');
+const canvasGlobalOutputKind = document.getElementById('canvasGlobalOutputKind');
+const canvasGlobalOutputSource = document.getElementById('canvasGlobalOutputSource');
 const canvasAssetHoverPreview = document.getElementById('canvasAssetHoverPreview');
 const assetManagerModal = document.getElementById('assetManagerModal');
 const assetManagerBody = document.getElementById('assetManagerBody');
+const outputCopyImageBtn = document.getElementById('outputCopyImageBtn');
+const outputComparePickBtn = document.getElementById('outputComparePickBtn');
 function revealCanvasAssetControls(){
     [canvasAssetToggle, canvasAssetPanel, assetManagerModal].forEach(el => {
         if(!el) return;
@@ -223,6 +229,12 @@ let canvasAssetLibrary = {categories:[]};
 let canvasAssetLibraryOpen = false;
 let activeCanvasAssetLibraryId = '';
 let activeCanvasAssetCategoryId = '';
+let canvasAssetPanelTab = 'assets';
+let canvasGlobalOutputs = [];
+let canvasGlobalOutputQuery = '';
+let canvasGlobalOutputKindFilter = 'all';
+let canvasGlobalOutputSourceFilter = 'all';
+let canvasCompareSelection = [];
 let assetManagerTab = 'assets';
 let managerSelectedAssetIds = new Set();
 let managerSelectedPromptIds = new Set();
@@ -642,6 +654,31 @@ async function copyTextToClipboard(text){
         ta.remove();
         return ok;
     } catch(_) {
+        return false;
+    }
+}
+function downloadApiUrl(url, filename='', inline=false){
+    return `/api/download-output?url=${encodeURIComponent(url || '')}&name=${encodeURIComponent(filename || outputDownloadName(url || '') || 'download')}${inline ? '&inline=true' : ''}`;
+}
+async function copyImageToClipboard(url, name='image'){
+    if(!url) return false;
+    if(isVideoUrl(url) || isAudioUrl(url)){
+        await copyTextToClipboard(url);
+        setStatus('已复制媒体地址');
+        return false;
+    }
+    try {
+        if(!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') throw new Error('clipboard image unsupported');
+        const res = await fetch(downloadApiUrl(url, name, true));
+        if(!res.ok) throw new Error(await responseErrorMessage(res, '图片读取失败'));
+        const blob = await res.blob();
+        const type = blob.type && blob.type.startsWith('image/') ? blob.type : 'image/png';
+        await navigator.clipboard.write([new ClipboardItem({[type]: blob})]);
+        setStatus('已复制图片');
+        return true;
+    } catch(err) {
+        await copyTextToClipboard(url);
+        setStatus('图片复制不可用，已复制图片地址');
         return false;
     }
 }
@@ -2500,6 +2537,10 @@ function addOutputNode(point){
     const p = point || defaultPoint(260, 0);
     return addNode({id:uid('out'), type:'output', x:p.x, y:p.y, images:[]});
 }
+function addCompareNode(point){
+    const p = point || defaultPoint(260, 0);
+    return addNode({id:uid('cmp'), type:'compare', x:p.x, y:p.y, w:520, h:420, comparePos:50});
+}
 function openCreateMenu(clientX, clientY){
     menuPoint = screenToWorld(clientX, clientY);
     closeLinkCreateMenu();
@@ -2525,6 +2566,7 @@ function linkCreateOptions(state){
                 {type:'rh', label:tr('canvas.rhGenerate'), icon:'workflow'},
                 {type:'ltxDirector', label:tr('canvas.ltxDirector'), icon:'film'},
                 {type:'video', label:tr('canvas.videoGenerateNode'), icon:'clapperboard'},
+                ...((['image','group','output'].includes(node.type) || CANVAS_MEDIA_OUTPUT_TYPES.includes(node.type)) ? [{type:'compare', label:'图像对比', icon:'columns-2'}] : []),
                 ...(node.type === 'output' ? [] : [{type:'llm', label:'LLM', icon:'message-square-text'}])
             ];
         }
@@ -2574,7 +2616,8 @@ function openGeneratorNodeMenu(nodeId, clientX, clientY){
             {type:'msgen', label:tr('canvas.modelscopeGenerate'), icon:'cloud-lightning'},
             {type:'comfy', label:tr('canvas.comfyGenerate'), icon:'workflow'},
             {type:'ltxDirector', label:tr('canvas.ltxDirector'), icon:'film'},
-            {type:'video', label:tr('canvas.videoGenerateNode'), icon:'clapperboard'}
+            {type:'video', label:tr('canvas.videoGenerateNode'), icon:'clapperboard'},
+            {type:'compare', label:'图像对比', icon:'columns-2'}
         ] : [])
     ];
     const buttonsHtml = (options, kind) => `<div class="node-port-menu-grid">${options.map(opt => `<button class="menu-btn" data-link-create="${escapeAttr(opt.type)}" data-link-kind="${kind}" title="${escapeAttr(opt.label)}"><i data-lucide="${escapeAttr(opt.icon)}"></i><span>${escapeHtml(opt.label.replace('生成', ''))}</span></button>`).join('')}</div>`;
@@ -2625,6 +2668,9 @@ function openImageNodeMenu(nodeId, clientX, clientY){
     imageNodeMenu.innerHTML = `
         ${canPreview ? `<button class="menu-btn" data-image-preview="${escapeAttr(nodeId)}"><i data-lucide="eye" class="w-4 h-4"></i><span>预览</span></button>` : ''}
         ${canEdit ? `<button class="menu-btn" data-image-edit="${escapeAttr(nodeId)}"><i data-lucide="pencil" class="w-4 h-4"></i><span>编辑</span></button>` : ''}
+        ${node.url ? `<button class="menu-btn" data-image-copy="${escapeAttr(nodeId)}"><i data-lucide="copy" class="w-4 h-4"></i><span>复制图片</span></button>` : ''}
+        ${node.url ? `<button class="menu-btn" data-image-download="${escapeAttr(nodeId)}"><i data-lucide="download" class="w-4 h-4"></i><span>下载当前媒体</span></button>` : ''}
+        ${node.url && kind === 'image' ? `<button class="menu-btn" data-image-compare="${escapeAttr(nodeId)}"><i data-lucide="columns-2" class="w-4 h-4"></i><span>加入对比</span></button>` : ''}
         <button class="menu-btn" data-image-replace="${escapeAttr(nodeId)}"><i data-lucide="image-plus" class="w-4 h-4"></i><span>替换</span></button>
     `;
     imageNodeMenu.style.left = `${clientX}px`;
@@ -2644,6 +2690,30 @@ function openImageNodeMenu(nodeId, clientX, clientY){
             e.stopPropagation();
             closeImageNodeMenu();
             openImageEditor(nodeId);
+        };
+    }
+    const copyBtn = imageNodeMenu.querySelector('[data-image-copy]');
+    if(copyBtn){
+        copyBtn.onclick = e => {
+            e.stopPropagation();
+            closeImageNodeMenu();
+            copyImageToClipboard(node.url, node.name || outputImageName(node.url));
+        };
+    }
+    const downloadImageBtn = imageNodeMenu.querySelector('[data-image-download]');
+    if(downloadImageBtn){
+        downloadImageBtn.onclick = e => {
+            e.stopPropagation();
+            closeImageNodeMenu();
+            downloadUrl(node.url, outputDownloadName(node.url)).catch(err => alert(err.message || '下载失败'));
+        };
+    }
+    const compareBtn = imageNodeMenu.querySelector('[data-image-compare]');
+    if(compareBtn){
+        compareBtn.onclick = e => {
+            e.stopPropagation();
+            closeImageNodeMenu();
+            selectCanvasCompareImage({url:node.url, name:node.name || outputImageName(node.url)});
         };
     }
     imageNodeMenu.querySelector('[data-image-replace]').onclick = e => {
@@ -2900,6 +2970,7 @@ function createNodeByType(type, point){
     if(type === 'comfy') return addComfyNode(point);
     if(type === 'ltxDirector') return addLTXDirectorNode(point);
     if(type === 'output') return addOutputNode(point);
+    if(type === 'compare') return addCompareNode(point);
     return null;
 }
 function menuAdd(type){
@@ -2915,6 +2986,7 @@ function menuAdd(type){
     if(type === 'comfy') addComfyNode(menuPoint);
     if(type === 'ltxDirector') addLTXDirectorNode(menuPoint);
     if(type === 'output') addOutputNode(menuPoint);
+    if(type === 'compare') addCompareNode(menuPoint);
 }
 function mediaKindForUpload(file){
     const type = String(file?.type || '').toLowerCase();
@@ -5086,7 +5158,7 @@ function restoreOutputScrolls(state){
     });
 }
 function isNodeControl(target){
-    return !!target.closest('textarea, input, select, option, button, audio, video, [contenteditable="true"], .seg, .gen-btn, .comfy-run, .input-item, .blank-image, .mode-tabs, .ms-model-tabs, .llm-provider, .llm-output, .llm-chat-log, .llm-bubble, .llm-pane-resizer, .loop-preview, .ltx-director-timeline-host, .pr-wrapper, .pr-toolbar, .pr-viewport, .pr-canvas, .pr-player-controls, .pr-prompt-area');
+    return !!target.closest('textarea, input, select, option, button, audio, video, [contenteditable="true"], .seg, .gen-btn, .comfy-run, .input-item, .blank-image, .mode-tabs, .ms-model-tabs, .llm-provider, .llm-output, .llm-chat-log, .llm-bubble, .llm-pane-resizer, .loop-preview, .compare-body, .ltx-director-timeline-host, .pr-wrapper, .pr-toolbar, .pr-viewport, .pr-canvas, .pr-player-controls, .pr-prompt-area');
 }
 function destroyLTXEditor(node){
     if(!node?._ltxEditor) return;
@@ -5094,7 +5166,7 @@ function destroyLTXEditor(node){
     node._ltxEditor = null;
 }
 function isNodeDragSurface(target){
-    return !isNodeControl(target) && !target.closest('.port, .resize-handle, .output-img-wrap');
+    return !isNodeControl(target) && !target.closest('.port, .resize-handle, .output-img-wrap, .compare-node-stage');
 }
 function renderNode(node){
     normalizeApiNodeLayout(node);
@@ -5122,7 +5194,7 @@ function renderNode(node){
         if(node.type === 'output') openOutputNodeMenu(node.id, e.clientX, e.clientY);
         else openGeneratorNodeMenu(node.id, e.clientX, e.clientY);
     };
-    const title = node.type === 'image' ? 'Image' : node.type === 'prompt' ? 'Prompt' : node.type === 'loop' ? tr('canvas.loopNode') : node.type === 'promptGroup' ? 'Prompts' : node.type === 'group' ? 'Group' : node.type === 'output' ? 'Output' : node.type === 'llm' ? 'LLM' : node.type === 'comfy' ? 'ComfyUI' : node.type === 'ltxDirector' ? tr('canvas.ltxDirector') : node.type === 'rh' ? 'RunningHub' : node.type === 'msgen' ? tr('canvas.modelscopeGenerate') : node.type === 'video' ? tr('canvas.videoGenerateNode') : tr('canvas.apiGenerate');
+    const title = node.type === 'image' ? 'Image' : node.type === 'prompt' ? 'Prompt' : node.type === 'loop' ? tr('canvas.loopNode') : node.type === 'promptGroup' ? 'Prompts' : node.type === 'group' ? 'Group' : node.type === 'output' ? 'Output' : node.type === 'compare' ? '图像对比' : node.type === 'llm' ? 'LLM' : node.type === 'comfy' ? 'ComfyUI' : node.type === 'ltxDirector' ? tr('canvas.ltxDirector') : node.type === 'rh' ? 'RunningHub' : node.type === 'msgen' ? tr('canvas.modelscopeGenerate') : node.type === 'video' ? tr('canvas.videoGenerateNode') : tr('canvas.apiGenerate');
     const displayTitle = node.type === 'image' && node.url ? nodeTitleForMedia(node) : title;
     // 失败徽章只在一键运行模式中显示，单节点失败已通过 alert 提示
     const showStatus = ['generator','msgen','comfy','ltxDirector','llm','video','rh'].includes(node.type) && node.runStatus
@@ -5255,6 +5327,7 @@ function renderNode(node){
     if(node.type === 'rh') body.appendChild(renderRhBody(node));
     if(node.type === 'comfy') body.appendChild(renderComfyBody(node));
     if(node.type === 'ltxDirector') body.appendChild(renderLTXDirectorBody(node));
+    if(node.type === 'compare') body.appendChild(renderCompareBody(node));
     if(node.type === 'output') {
         const pendingHtml = (node._pending || []).map(p =>
             renderPendingOutput(p)
@@ -5274,7 +5347,7 @@ function renderNode(node){
         if(e.button !== 0 || !isNodeDragSurface(e.target)) return;
         startNodeDrag(e, node);
     };
-    const canInput = ['generator','comfy','ltxDirector','output','llm','msgen','video','rh'].includes(node.type) || (node.type === 'loop' && (node.imageInput || node.showPrompt));
+    const canInput = ['generator','comfy','ltxDirector','output','llm','msgen','video','rh','compare'].includes(node.type) || (node.type === 'loop' && (node.imageInput || node.showPrompt));
     const canOutput = ['image','prompt','loop','group','promptGroup','generator','comfy','ltxDirector','llm','msgen','video','rh','output'].includes(node.type);
     if(canInput) el.insertAdjacentHTML('beforeend', `<div class="port in" title="${tr('canvas.connectHere')}"></div>`);
     if(canOutput) el.insertAdjacentHTML('beforeend', `<div class="port out" title="${tr('canvas.dragConnect')}"></div>`);
@@ -5409,6 +5482,7 @@ function defaultNodeSize(type){
     if(type === 'comfy') return {w:420, h:460};
     if(type === 'ltxDirector') return {w:1000, h:800};
     if(type === 'output') return {w:460, h:0};
+    if(type === 'compare') return {w:520, h:420};
     return {w:260, h:0};
 }
 function loopCount(node){
@@ -5510,6 +5584,63 @@ function loopInputImageRefs(node, ctx=loopContext){
     const currentIndex = Math.max(1, Number(ctx?.index || startBase) || startBase);
     const start = Math.max(0, currentIndex - 1);
     return allRefs.slice(start, start + batchSize);
+}
+function compareInputImageRefs(node){
+    const seen = new Set();
+    return connections
+        .filter(c => c.to === node.id)
+        .flatMap(c => imageRefsFromNode(nodes.find(n => n.id === c.from)))
+        .filter(ref => {
+            const url = ref?.url || '';
+            if(!url || seen.has(url)) return false;
+            seen.add(url);
+            return true;
+        });
+}
+function renderCompareBody(node){
+    const wrap = document.createElement('div');
+    wrap.className = 'compare-body';
+    const refs = compareInputImageRefs(node);
+    const pair = refs.slice(0, 2);
+    const pos = Math.max(0, Math.min(100, Number(node.comparePos ?? 50)));
+    if(pair.length < 2){
+        wrap.innerHTML = `
+            <div class="compare-empty">
+                <i data-lucide="columns-2" class="w-6 h-6"></i>
+                <strong>连接两张图片进行对比</strong>
+                <span>从图片、图片组、输出或生成节点拉线到这里。</span>
+            </div>
+            ${refs.length ? `<div class="compare-inputs">${refs.map((ref, i) => `<div class="compare-input-chip"><img src="${escapeAttr(ref.url)}" alt=""><span>${i + 1}</span></div>`).join('')}</div>` : ''}
+        `;
+        return wrap;
+    }
+    const left = pair[0];
+    const right = pair[1];
+    wrap.innerHTML = `
+        <div class="compare-inputs">
+            ${pair.map((ref, i) => `<div class="compare-input-chip" title="${escapeAttr(ref.name || ref.url)}"><img src="${escapeAttr(ref.url)}" alt=""><span>${i + 1}</span></div>`).join('')}
+        </div>
+        <div class="compare-node-stage" style="--compare-pos:${pos}%">
+            <img class="compare-node-img compare-node-right" src="${escapeAttr(right.url)}" alt="">
+            <div class="compare-node-left-wrap">
+                <img class="compare-node-img compare-node-left" src="${escapeAttr(left.url)}" alt="">
+            </div>
+            <div class="compare-node-divider"><i data-lucide="move-horizontal" class="w-4 h-4"></i></div>
+        </div>
+        <input class="compare-node-range" type="range" min="0" max="100" value="${pos}" aria-label="对比滑块">
+    `;
+    const range = wrap.querySelector('.compare-node-range');
+    const stage = wrap.querySelector('.compare-node-stage');
+    wrap.onmousedown = e => e.stopPropagation();
+    wrap.onwheel = e => e.stopPropagation();
+    range.oninput = e => {
+        const next = Math.max(0, Math.min(100, Number(e.target.value || 50)));
+        node.comparePos = next;
+        stage.style.setProperty('--compare-pos', `${next}%`);
+        scheduleSave();
+    };
+    range.onmousedown = e => e.stopPropagation();
+    return wrap;
 }
 function videoRefsFromNode(node){
     if(!node) return [];
@@ -5751,9 +5882,90 @@ async function loadCanvasAssetLibrary({renderPanel=true}={}){
         return null;
     }
 }
+async function loadCanvasGlobalOutputs({renderPanel=true}={}){
+    const params = new URLSearchParams();
+    if(canvasGlobalOutputQuery) params.set('q', canvasGlobalOutputQuery);
+    if(canvasGlobalOutputKindFilter && canvasGlobalOutputKindFilter !== 'all') params.set('kind', canvasGlobalOutputKindFilter);
+    if(canvasGlobalOutputSourceFilter && canvasGlobalOutputSourceFilter !== 'all') params.set('source', canvasGlobalOutputSourceFilter);
+    params.set('limit', '1000');
+    try {
+        const data = await fetch(`/api/global-outputs?${params.toString()}`).then(async r => {
+            if(!r.ok) throw new Error(await responseErrorMessage(r, '全局输出加载失败'));
+            return r.json();
+        });
+        canvasGlobalOutputs = Array.isArray(data.items) ? data.items : [];
+        if(renderPanel) renderCanvasAssetLibrary();
+        return data;
+    } catch(e) {
+        setStatus(e.message || '全局输出加载失败');
+        canvasGlobalOutputs = [];
+        if(renderPanel) renderCanvasAssetLibrary();
+        return null;
+    }
+}
+function canvasGlobalOutputSourceLabel(source){
+    const map = {history:'历史', canvas:'画布', disk:'磁盘'};
+    return map[source] || source || '输出';
+}
+function renderCanvasGlobalOutputs(){
+    if(!canvasAssetGrid) return;
+    const items = canvasGlobalOutputs || [];
+    canvasAssetGrid.innerHTML = items.length ? items.map(item => `
+        <div class="canvas-asset-item canvas-global-output-item" draggable="true" data-output-id="${escapeAttr(item.id || '')}" data-url="${escapeAttr(item.url || '')}" data-name="${escapeAttr(item.name || 'output')}" data-kind="${escapeAttr(item.kind || 'image')}">
+            ${canvasAssetThumbHtml(item)}
+            <div class="canvas-asset-meta">
+                <span class="canvas-asset-name" title="${escapeAttr(item.prompt || item.name || '')}">${escapeHtml(item.name || 'output')}</span>
+                <button class="canvas-asset-action" type="button" data-global-output-copy="${escapeAttr(item.url || '')}" title="复制图片" aria-label="复制图片"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                <button class="canvas-asset-action" type="button" data-global-output-compare="${escapeAttr(item.url || '')}" title="加入对比" aria-label="加入对比"><i data-lucide="columns-2" class="w-4 h-4"></i></button>
+                <button class="canvas-asset-action" type="button" data-global-output-save="${escapeAttr(item.url || '')}" title="存资产" aria-label="存资产"><i data-lucide="bookmark-plus" class="w-4 h-4"></i></button>
+            </div>
+            <div class="canvas-global-output-source">${escapeHtml(canvasGlobalOutputSourceLabel(item.source_type))} · ${escapeHtml(item.source_label || '')}</div>
+        </div>
+    `).join('') : `<div class="canvas-asset-empty">暂无全局输出</div>`;
+    canvasAssetGrid.querySelectorAll('.canvas-global-output-item').forEach(card => {
+        const item = items.find(entry => entry.id === card.dataset.outputId) || {url:card.dataset.url, name:card.dataset.name, kind:card.dataset.kind};
+        card.addEventListener('dragstart', event => {
+            event.dataTransfer.effectAllowed = 'copy';
+            event.dataTransfer.setData('application/x-canvas-asset', JSON.stringify({url:item.url, name:item.name || 'output', kind:item.kind || ''}));
+            event.dataTransfer.setData('text/plain', item.url || '');
+        });
+        card.addEventListener('dblclick', () => createImageCardFromUrl(item.url, defaultPoint(0, 0), item.name || 'output'));
+        card.addEventListener('contextmenu', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            copyImageToClipboard(item.url, item.name || 'output');
+        });
+        card.addEventListener('mouseenter', event => showCanvasAssetHoverPreview(event, item));
+        card.addEventListener('mousemove', positionCanvasAssetHoverPreview);
+        card.addEventListener('mouseleave', hideCanvasAssetHoverPreview);
+        card.querySelector('[data-global-output-copy]')?.addEventListener('click', event => {
+            event.preventDefault(); event.stopPropagation();
+            copyImageToClipboard(item.url, item.name || outputImageName(item.url));
+        });
+        card.querySelector('[data-global-output-compare]')?.addEventListener('click', event => {
+            event.preventDefault(); event.stopPropagation();
+            selectCanvasCompareImage(item);
+        });
+        card.querySelector('[data-global-output-save]')?.addEventListener('click', async event => {
+            event.preventDefault(); event.stopPropagation();
+            await addUrlToCanvasAssetLibrary(item.url, item.name || 'output');
+        });
+    });
+}
 function renderCanvasAssetLibrary(){
     if(!canvasAssetPanel || !canvasAssetGrid) return;
     hideCanvasAssetHoverPreview();
+    document.querySelectorAll('[data-canvas-asset-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.canvasAssetTab === canvasAssetPanelTab));
+    const outputMode = canvasAssetPanelTab === 'outputs';
+    if(canvasGlobalOutputControls) canvasGlobalOutputControls.hidden = !outputMode;
+    [canvasAssetLibrarySelect, canvasAssetCategorySelect, canvasAssetAddCategoryBtn, canvasAssetDropZone].forEach(el => {
+        if(el) el.style.display = outputMode ? 'none' : '';
+    });
+    if(outputMode){
+        renderCanvasGlobalOutputs();
+        refreshIcons();
+        return;
+    }
     const libs = canvasAssetLibraries();
     if(canvasAssetLibrarySelect){
         canvasAssetLibrarySelect.innerHTML = libs.map(lib => `<option value="${escapeAttr(lib.id)}" ${lib.id === activeCanvasAssetLibraryId ? 'selected' : ''}>${escapeHtml(lib.name || '资产库')}</option>`).join('');
@@ -5782,6 +5994,12 @@ function renderCanvasAssetLibrary(){
         });
         card.addEventListener('dblclick', () => createImageCardFromUrl(card.dataset.url, defaultPoint(0, 0), card.dataset.name || 'asset'));
         const item = items.find(entry => entry.id === card.dataset.assetId);
+        card.addEventListener('contextmenu', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            const assetItem = item || {url:card.dataset.url, name:card.dataset.name, kind:card.dataset.kind};
+            copyImageToClipboard(assetItem.url, assetItem.name || 'asset');
+        });
         card.addEventListener('mouseenter', event => showCanvasAssetHoverPreview(event, item));
         card.addEventListener('mousemove', positionCanvasAssetHoverPreview);
         card.addEventListener('mouseleave', hideCanvasAssetHoverPreview);
@@ -5812,13 +6030,13 @@ function applyCanvasAssetLibraryState(open){
 }
 function restoreCanvasAssetLibraryState(){
     applyCanvasAssetLibraryState(Boolean(canvas) && localStorage.getItem(CANVAS_ASSET_LIBRARY_OPEN_KEY) === '1');
-    if(canvasAssetLibraryOpen) loadCanvasAssetLibrary();
+    if(canvasAssetLibraryOpen) (canvasAssetPanelTab === 'outputs' ? loadCanvasGlobalOutputs() : loadCanvasAssetLibrary());
 }
 function toggleCanvasAssetLibrary(open=!canvasAssetLibraryOpen){
     const next = !!open;
     applyCanvasAssetLibraryState(Boolean(canvas) && next);
     localStorage.setItem(CANVAS_ASSET_LIBRARY_OPEN_KEY, next ? '1' : '0');
-    if(canvasAssetLibraryOpen) loadCanvasAssetLibrary();
+    if(canvasAssetLibraryOpen) (canvasAssetPanelTab === 'outputs' ? loadCanvasGlobalOutputs() : loadCanvasAssetLibrary());
 }
 async function addUrlToCanvasAssetLibrary(url, name=''){
     const cat = activeCanvasAssetCategory();
@@ -7433,7 +7651,17 @@ function renderImageInputList(list, node, imageInputs, emptyText=null){
         item.draggable = true;
         item.dataset.sourceId = src.id;
         const previewHtml = src.preview && !isMissingAssetUrl(src.preview) ? `<img src="${escapeAttr(src.preview)}">` : (src.preview ? missingAssetHtml(src.preview, true) : '<i data-lucide="image" class="w-6 h-6 text-slate-400"></i>');
-        item.innerHTML = `<span class="input-index">${i + 1}</span>${previewHtml}<span class="input-label">${escapeHtml(src.label)}</span>`;
+        item.innerHTML = `<span class="input-index">${i + 1}</span><button class="input-remove" type="button" title="移除参考图" aria-label="移除参考图"><i data-lucide="x" class="w-3 h-3"></i></button>${previewHtml}<span class="input-label">${escapeHtml(src.label)}</span>`;
+        const removeBtn = item.querySelector('.input-remove');
+        removeBtn.onclick = e => {
+            e.preventDefault();
+            e.stopPropagation();
+            removeGeneratorInputSource(node, src);
+        };
+        removeBtn.onmousedown = e => {
+            e.preventDefault();
+            e.stopPropagation();
+        };
         item.ondragstart = e => {
             e.stopPropagation();
             internalDrag = true;
@@ -7465,11 +7693,15 @@ function renderVideoImageInputs(list, node, imageInputs){
         item.innerHTML = `
             <div class="video-input-thumb">
                 <span class="input-index">${i + 1}</span>
+                <button class="input-remove" type="button" title="移除参考图" aria-label="移除参考图"><i data-lucide="x" class="w-3 h-3"></i></button>
                 ${previewHtml}
                 <span class="input-label">${escapeHtml(src.label)}</span>
             </div>
             ${frameLabel ? `<div class="video-frame-label">${frameLabel}</div>` : ''}
         `;
+        const removeBtn = item.querySelector('.input-remove');
+        removeBtn.onclick = e => { e.preventDefault(); e.stopPropagation(); removeGeneratorInputSource(node, src); };
+        removeBtn.onmousedown = e => { e.preventDefault(); e.stopPropagation(); };
         item.ondragstart = e => { e.stopPropagation(); internalDrag = true; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('application/x-canvas-input', src.id); };
         item.ondragend = () => { internalDrag = false; };
         item.ondragover = e => { e.preventDefault(); e.stopPropagation(); };
@@ -8879,6 +9111,41 @@ function orderedSources(gen, sources){
     gen.inputs = (gen.inputs || []).filter(id => sources.some(s => s.id === id));
     sources.forEach(s => { if(!gen.inputs.includes(s.id)) gen.inputs.push(s.id); });
     return gen.inputs.map(id => sources.find(s => s.id === id)).filter(Boolean);
+}
+function removeGeneratorInputSource(gen, source){
+    const sourceId = typeof source === 'string' ? source : source?.id;
+    if(!gen || !sourceId) return;
+    const beforeConnections = connections.length;
+    let changed = false;
+    pushUndo();
+    if(source?.groupId && source?.imageId){
+        const group = nodes.find(n => n.id === source.groupId);
+        if(group?.type === 'group'){
+            const beforeItems = (group.items || []).length;
+            group.items = (group.items || []).filter(id => id !== source.imageId);
+            changed = changed || group.items.length !== beforeItems;
+            const stillFeedsImages = generatorSources(gen).some(item => item.groupId === source.groupId && item.refs?.length);
+            const stillFeedsPrompts = generatorSources(gen).some(item => item.groupId === source.groupId && item.prompt);
+            if(!stillFeedsImages && !stillFeedsPrompts){
+                connections = connections.filter(c => !(c.from === source.groupId && c.to === gen.id));
+            }
+        }
+    } else {
+        const ref = Array.isArray(source?.refs) ? source.refs[0] : null;
+        const connectionSourceId = ref?.nodeId || source?.nodeId || sourceId.split(':')[0];
+        if(connectionSourceId){
+            connections = connections.filter(c => !(c.from === connectionSourceId && c.to === gen.id));
+        }
+    }
+    changed = changed || connections.length !== beforeConnections;
+    gen.inputs = (gen.inputs || []).filter(id => id !== sourceId);
+    if(changed){
+        syncGeneratorInputs();
+        render();
+        scheduleSave();
+    } else {
+        if(undoStack.length) undoStack.pop();
+    }
 }
 function reorderInput(gen, movedId, targetId){
     if(!movedId || movedId === targetId) return;
@@ -11034,16 +11301,55 @@ function createImageCardFromOutput(url, point){
     scheduleSave();
 }
 async function downloadUrl(url, filename){
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('下载失败');
-    const blob = await res.blob();
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    link.href = downloadApiUrl(url, filename, false);
     link.download = filename;
     document.body.appendChild(link);
     link.click();
     link.remove();
-    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    setStatus('正在下载当前媒体');
+}
+function compareSourceNodeIdForItem(item, basePoint, index){
+    if(item?.nodeId && nodes.some(n => n.id === item.nodeId)) return item.nodeId;
+    const x = Number(basePoint?.x || 0) - 310;
+    const y = Number(basePoint?.y || 0) + index * 180;
+    const node = {id:uid('img'), type:'image', x, y, url:item?.url || '', name:item?.name || outputImageName(item?.url || '')};
+    nodes.push(node);
+    return node.id;
+}
+function createCompareNodeFromItems(left, right){
+    if(!ensureCanvas() || !left?.url || !right?.url) return null;
+    const p = defaultPoint(160, 20);
+    pushUndo();
+    const compare = {id:uid('cmp'), type:'compare', x:p.x, y:p.y, w:520, h:420, comparePos:50};
+    nodes.push(compare);
+    [left, right].forEach((item, index) => {
+        const sourceId = compareSourceNodeIdForItem(item, compare, index);
+        if(sourceId && canConnect(sourceId, compare.id) && !connections.some(c => c.from === sourceId && c.to === compare.id)){
+            connections.push({id:uid('c'), from:sourceId, to:compare.id});
+        }
+    });
+    selected.clear();
+    selected.add(compare.id);
+    render();
+    scheduleSave();
+    setStatus('已创建图像对比节点');
+    return compare;
+}
+function selectCanvasCompareImage(item){
+    const url = item?.url || '';
+    if(!url || isVideoUrl(url) || isAudioUrl(url)){
+        setStatus('请选择图片进行对比');
+        return;
+    }
+    canvasCompareSelection = [...canvasCompareSelection.filter(entry => entry.url !== url), {...item, url, name:item?.name || outputImageName(url)}].slice(-2);
+    if(canvasCompareSelection.length < 2){
+        setStatus('已选择第 1 张对比图，再选择 1 张');
+        return;
+    }
+    const [left, right] = canvasCompareSelection;
+    canvasCompareSelection = [];
+    createCompareNodeFromItems(left, right);
 }
 function setOutputCompareMode(active){
     outputPreview.classList.toggle('compare-mode', active);
@@ -11150,6 +11456,26 @@ promptTemplatePanel?.addEventListener('click', event => {
 });
 canvasAssetToggle?.addEventListener('click', () => toggleCanvasAssetLibrary());
 canvasAssetCloseBtn?.addEventListener('click', () => toggleCanvasAssetLibrary(false));
+document.querySelectorAll('[data-canvas-asset-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        canvasAssetPanelTab = btn.dataset.canvasAssetTab || 'assets';
+        if(canvasAssetPanelTab === 'outputs') loadCanvasGlobalOutputs();
+        else renderCanvasAssetLibrary();
+    });
+});
+canvasGlobalOutputSearch?.addEventListener('input', event => {
+    canvasGlobalOutputQuery = event.target.value || '';
+    clearTimeout(canvasGlobalOutputSearch._timer);
+    canvasGlobalOutputSearch._timer = setTimeout(() => loadCanvasGlobalOutputs(), 180);
+});
+canvasGlobalOutputKind?.addEventListener('change', event => {
+    canvasGlobalOutputKindFilter = event.target.value || 'all';
+    loadCanvasGlobalOutputs();
+});
+canvasGlobalOutputSource?.addEventListener('change', event => {
+    canvasGlobalOutputSourceFilter = event.target.value || 'all';
+    loadCanvasGlobalOutputs();
+});
 canvasAssetLibrarySelect?.addEventListener('change', () => {
     activeCanvasAssetLibraryId = canvasAssetLibrarySelect.value || '';
     activeCanvasAssetCategoryId = '';
@@ -11526,7 +11852,7 @@ function initOutputCompareEvents(){
     }, {passive:false});
     window.addEventListener('touchend', () => { outputCompareDrag = false; });
 }
-function openOutputLightbox(url, out){
+function openOutputLightbox(url, out, compareOverride=''){
     if(!url) return;
     resetOutputPreviewZoom();
     currentOutputLightboxOutId = out?.id || '';
@@ -11535,7 +11861,7 @@ function openOutputLightbox(url, out){
     markOutputViewed(out, url);
     setupOutputPromptPanel(meta);
     outputResolutionText('--', meta);
-    currentOutputCompareUrl = outputCompareUrlFor(url, out);
+    currentOutputCompareUrl = compareOverride || outputCompareUrlFor(url, out);
     setOutputCompareMode(false);
     const groupDownloadItems = out?.type === 'group' ? groupImageItems(out) : [];
     if(outputDownloadAllBtn){
@@ -11543,6 +11869,20 @@ function openOutputLightbox(url, out){
         outputDownloadAllBtn.onclick = e => {
             e.stopPropagation();
             if(currentOutputLightboxOutId) downloadGroupNodeImages(currentOutputLightboxOutId);
+        };
+    }
+    if(outputCopyImageBtn){
+        outputCopyImageBtn.style.display = isVideoUrl(url) ? 'none' : 'flex';
+        outputCopyImageBtn.onclick = e => {
+            e.stopPropagation();
+            copyImageToClipboard(url, outputDownloadName(url));
+        };
+    }
+    if(outputComparePickBtn){
+        outputComparePickBtn.style.display = isVideoUrl(url) ? 'none' : 'flex';
+        outputComparePickBtn.onclick = e => {
+            e.stopPropagation();
+            selectCanvasCompareImage({url, name:outputDownloadName(url)});
         };
     }
     const videoMode = isVideoUrl(url);
@@ -11609,6 +11949,8 @@ function closeOutputLightbox(){
         outputDownloadAllBtn.style.display = 'none';
         outputDownloadAllBtn.onclick = null;
     }
+    if(outputCopyImageBtn) outputCopyImageBtn.onclick = null;
+    if(outputComparePickBtn) outputComparePickBtn.onclick = null;
     resetOutputPreviewZoom();
     currentOutputCompareUrl = '';
     currentOutputMeta = null;
@@ -11989,6 +12331,9 @@ function canConnect(fromId, toId){
         const allowImage = Boolean(to.imageInput) && ['image','group','output'].includes(from.type);
         const allowPrompt = Boolean(to.showPrompt) && ['prompt','promptGroup','loop','llm'].includes(from.type);
         return allowImage || allowPrompt;
+    }
+    if(to.type === 'compare'){
+        return ['image','group','output'].includes(from.type) || CANVAS_MEDIA_OUTPUT_TYPES.includes(from.type);
     }
     if(to.type === 'llm') return ['prompt','loop','promptGroup','llm','image','group','output'].includes(from.type);
     if(from.type === 'llm') return CANVAS_GENERATOR_TYPES.includes(to.type);

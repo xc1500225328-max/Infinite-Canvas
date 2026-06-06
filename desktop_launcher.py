@@ -38,12 +38,43 @@ desktop_theme = "light"
 desktop_logger = logging.getLogger("infinite_canvas.desktop")
 
 
+class PywebviewRecursiveNativeFilter(logging.Filter):
+    def __init__(self):
+        super().__init__()
+        self.suppressed = 0
+        self.summary_emitted = False
+
+    def filter(self, record):
+        message = record.getMessage()
+        if (
+            "AccessibilityObject.Owner.DefaultFont" in message
+            and "maximum recursion depth exceeded" in message
+        ):
+            self.suppressed += 1
+            if not self.summary_emitted:
+                self.summary_emitted = True
+                record.msg = (
+                    "Suppressed repeated pywebview native/accessibility recursion "
+                    "errors. This message is logged once to avoid log and memory churn."
+                )
+                record.args = ()
+                record.exc_info = None
+                record.levelno = logging.WARNING
+                record.levelname = "WARNING"
+                return True
+            return False
+        return True
+
+
 def configure_desktop_logging():
     try:
         os.makedirs(LOG_DIR, exist_ok=True)
         target = os.path.abspath(DESKTOP_LOG_FILE)
         formatter = logging.Formatter("%(asctime)s %(levelname)s [%(name)s] %(message)s")
-        for logger in (desktop_logger, logging.getLogger("pywebview")):
+        pywebview_logger = logging.getLogger("pywebview")
+        if not any(isinstance(item, PywebviewRecursiveNativeFilter) for item in pywebview_logger.filters):
+            pywebview_logger.addFilter(PywebviewRecursiveNativeFilter())
+        for logger in (desktop_logger, pywebview_logger):
             if any(getattr(handler, "baseFilename", "") == target for handler in logger.handlers):
                 continue
             handler = RotatingFileHandler(target, maxBytes=5 * 1024 * 1024, backupCount=5, encoding="utf-8")
@@ -170,10 +201,10 @@ def patch_native_theme_source(window):
 
 class DesktopApi:
     def __init__(self):
-        self.window = None
+        self._window = None
 
     def bind_window(self, window):
-        self.window = window
+        self._window = window
 
     def setTheme(self, theme):
         global desktop_theme
@@ -181,8 +212,8 @@ class DesktopApi:
         with desktop_theme_lock:
             desktop_theme = next_theme
         persist_desktop_theme(next_theme)
-        patch_native_theme_source(self.window)
-        apply_title_bar_theme(self.window, next_theme)
+        patch_native_theme_source(self._window)
+        apply_title_bar_theme(self._window, next_theme)
         return {"theme": next_theme}
 
 
