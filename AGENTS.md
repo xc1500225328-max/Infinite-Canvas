@@ -54,6 +54,14 @@ python main.py
 
 `run.bat` 会优先使用项目内置 `python\python.exe`，不存在时回退到系统 `python`，并自动打开 `http://127.0.0.1:3000/`。
 
+如果系统或便携 Python 依赖不完整，可以使用构建虚拟环境启动本地浏览器预览：
+
+```powershell
+.\.venv-build\Scripts\python.exe main.py
+```
+
+启动后浏览器访问 `http://127.0.0.1:3000/`。
+
 ### 桌面模式
 
 ```powershell

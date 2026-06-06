@@ -1,5 +1,35 @@
 [
     {
+        "prompt": "参数化山水城市建筑群，马岩松MAD风格，灵感来自中国水墨画的飘逸白色仿生山峰建筑，云雾缭绕在白色的波浪层板间，未来极简，航拍视角. Style direction: 马岩松山水未来派. Theme: 大师概念.",
+        "images": [
+            "/assets/output/blindbox-local_1780739664_0e0f046863.png"
+        ],
+        "videos": [],
+        "audios": [],
+        "texts": [],
+        "files": [],
+        "items": [
+            {
+                "url": "/assets/output/blindbox-local_1780739664_0e0f046863.png",
+                "kind": "image",
+                "name": "ComfyUI_temp_huzcj_00001_.png",
+                "node_id": "137",
+                "output_key": "images"
+            }
+        ],
+        "outputs": [
+            "/assets/output/blindbox-local_1780739664_0e0f046863.png"
+        ],
+        "seed": 409231538602034,
+        "timestamp": 1780739664.2256281,
+        "type": "blindbox-local",
+        "workflow_json": "Z-Image.json",
+        "task_id": 1,
+        "prompt_id": "10cfe86e-e51a-49f6-85b9-5863a48c713a",
+        "backend": "127.0.0.1:8188",
+        "params": {}
+    },
+    {
         "prompt": "高质量自拍照，20 岁左右的亚洲年轻女性，活泼开朗的表情，灿烂的笑容露出洁白的牙齿，眼睛弯成月牙状，正对着镜头比耶手势，歪着头，脸颊微微鼓起\n齐肩的黑色微卷头发，空气刘海，发梢轻轻飘动，浅棕色的自然眉形，水润的杏眼，淡淡的粉色腮红，裸粉色唇釉，清透的伪素颜妆容\n穿着白色宽松 T 恤，搭配浅蓝色牛仔背带裤，脖子上戴着简约的银色小项链，手腕上有彩色编织手绳\n背景是明亮的室内咖啡馆，阳光透过玻璃窗洒在脸上，形成柔和的光斑，背景虚化，有模糊的绿植和咖啡杯\n手持手机自拍视角，略微俯拍，自然的手部姿势，手指纤细，指甲涂着透明指甲油\n自然光，柔和的侧逆光，皮肤质感细腻通透，有轻微的磨皮效果但保留毛孔细节，色彩明亮温暖，饱和度适中\n8K 超高清，iPhone 15 Pro Max 拍摄，人像模式，f/1.8 光圈，景深效果，真实的自拍质感，胶片滤镜，轻微的颗粒感，生动自然的瞬间抓拍. Style direction: 自主构建型制. Theme: 幻核重组.",
         "images": [
             "/assets/output/online_e8a523e537.jpg"

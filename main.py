@@ -1251,7 +1251,8 @@ def public_provider(provider):
 
 LOCAL_COMFY_PROVIDER_ID = "local-comfy"
 LOCAL_COMFY_PROVIDER_NAME = "本地 ComfyUI"
-LOCAL_COMFY_IMAGE_MODELS = ["Z-Image.json"]
+LOCAL_COMFY_IMAGE_MODELS = ["Z-Image.json", "2511.json"]
+LOCAL_COMFY_EDIT_MODELS = {"2511.json"}
 
 def local_comfy_public_provider():
     return {
@@ -1278,7 +1279,19 @@ def public_api_providers():
 
 def public_generation_providers():
     providers = public_api_providers()
-    if not any(p.get("id") == LOCAL_COMFY_PROVIDER_ID for p in providers):
+    local_provider = next((p for p in providers if p.get("id") == LOCAL_COMFY_PROVIDER_ID), None)
+    if local_provider:
+        models = []
+        seen = set()
+        for model in list(local_provider.get("image_models") or []) + list(LOCAL_COMFY_IMAGE_MODELS):
+            model = str(model or "").strip()
+            if model and model not in seen:
+                seen.add(model)
+                models.append(model)
+        local_provider["image_models"] = models
+        local_provider["name"] = local_provider.get("name") or LOCAL_COMFY_PROVIDER_NAME
+        local_provider["protocol"] = local_provider.get("protocol") or LOCAL_COMFY_PROVIDER_ID
+    else:
         providers.append(local_comfy_public_provider())
     return providers
 
@@ -2653,6 +2666,41 @@ def get_best_backend(required_images: List[str] = None):
             best_backend = addr
 
     return best_backend
+
+def probe_comfy_backend(addr: str, timeout: float = 1.5) -> Dict[str, Any]:
+    base = str(addr or "").strip().rstrip("/")
+    result = {
+        "address": base,
+        "ok": False,
+        "queue": None,
+        "system_stats": False,
+        "error": "",
+    }
+    if not base:
+        result["error"] = "empty address"
+        return result
+
+    for path in ("/queue", "/system_stats"):
+        try:
+            with urllib.request.urlopen(f"http://{base}{path}", timeout=timeout) as response:
+                if response.status < 200 or response.status >= 300:
+                    result["error"] = f"{path} HTTP {response.status}"
+                    continue
+                data = json.loads(response.read() or b"{}")
+                result["ok"] = True
+                if path == "/queue":
+                    running = data.get("queue_running") or []
+                    pending = data.get("queue_pending") or []
+                    result["queue"] = {
+                        "running": len(running) if isinstance(running, list) else 0,
+                        "pending": len(pending) if isinstance(pending, list) else 0,
+                    }
+                else:
+                    result["system_stats"] = True
+                return result
+        except Exception as exc:
+            result["error"] = str(exc)
+    return result
 
 def reserve_best_backend(required_images: List[str] = None):
     backend_stats = {}
@@ -7965,13 +8013,28 @@ async def build_online_image_result(payload: OnlineImageRequest):
 
 async def build_local_comfy_image_result(payload: OnlineImageRequest):
     refs = [ref.dict() for ref in payload.reference_images if ref.url]
-    if refs:
-        raise HTTPException(status_code=400, detail="本地盲盒文生图暂不支持参考图，请清空参考图后重试")
     width, height = parse_size_pair(payload.size)
     workflow_json = (payload.model or LOCAL_COMFY_IMAGE_MODELS[0]).strip() or LOCAL_COMFY_IMAGE_MODELS[0]
     if workflow_json not in LOCAL_COMFY_IMAGE_MODELS:
         raise HTTPException(status_code=400, detail=f"本地盲盒暂不支持该工作流：{workflow_json}")
     count = max(1, min(8, int(payload.n or 1)))
+    request_params: Dict[str, Dict[str, Any]] = {}
+    if workflow_json in LOCAL_COMFY_EDIT_MODELS:
+        if not refs:
+            raise HTTPException(status_code=400, detail="本地图片编辑需要至少 1 张参考图")
+        first_ref = refs[0]
+        ref_url = str(first_ref.get("url") or "").strip()
+        ref_path = output_file_from_url(ref_url)
+        if not ref_path:
+            ref_path = local_media_file_by_basename(filename_from_media_url(ref_url, "reference.png"))
+        if not ref_path:
+            raise HTTPException(status_code=400, detail="无法找到本地参考图文件，请重新上传参考图")
+        request_params = {
+            "31": {"image": os.path.basename(ref_path)},
+            "11": {"prompt": payload.prompt or ""},
+        }
+    elif refs:
+        raise HTTPException(status_code=400, detail="本地盲盒文生图暂不支持参考图，请清空参考图后重试")
 
     async def generate_one():
         req = GenerateRequest(
@@ -7979,6 +8042,7 @@ async def build_local_comfy_image_result(payload: OnlineImageRequest):
             width=width,
             height=height,
             workflow_json=workflow_json,
+            params=request_params,
             type="blindbox-local",
             client_id=str(uuid.uuid4()),
         )
@@ -8017,7 +8081,7 @@ async def build_local_comfy_image_result(payload: OnlineImageRequest):
             "size": f"{width}x{height}",
             "quality": payload.quality,
             "n": count,
-            "reference_images": [],
+            "reference_images": refs,
             "workflow_json": workflow_json,
         },
         "raw_usage": None,
@@ -10048,7 +10112,19 @@ def generate(req: GenerateRequest):
             if need_sync:
                 image_content = None
                 image_type = "image/png"
+                local_path = local_media_file_by_basename(image_name)
+                if local_path:
+                    try:
+                        with open(local_path, "rb") as f:
+                            image_content = f.read()
+                        guessed_type = mimetypes.guess_type(local_path)[0]
+                        if guessed_type:
+                            image_type = guessed_type
+                    except Exception as e:
+                        print(f"Local media sync read failed: {e}")
                 for addr in COMFYUI_INSTANCES:
+                    if image_content:
+                        break
                     if addr == target_backend: continue
                     try:
                         src_url = f"http://{addr}/view?filename={urllib.parse.quote(image_name)}&type=input"
@@ -10620,6 +10696,17 @@ class ComfyInstancesPayload(BaseModel):
 @app.get("/api/comfyui/instances")
 def get_comfyui_instances():
     return {"instances": COMFYUI_INSTANCES}
+
+@app.get("/api/comfyui/health")
+def get_comfyui_health():
+    backends = [probe_comfy_backend(addr) for addr in COMFYUI_INSTANCES]
+    available = [item for item in backends if item.get("ok")]
+    return {
+        "ok": bool(available),
+        "instances": COMFYUI_INSTANCES,
+        "backends": backends,
+        "active": available[0]["address"] if available else "",
+    }
 
 @app.put("/api/comfyui/instances")
 def save_comfyui_instances(payload: ComfyInstancesPayload):
