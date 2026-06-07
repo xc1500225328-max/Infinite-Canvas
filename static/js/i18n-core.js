@@ -39,13 +39,19 @@
 
     function apply(root=document){
         root.querySelectorAll('[data-i18n]').forEach(el => {
-            el.textContent = t(el.dataset.i18n);
+            const key = el.dataset.i18n;
+            const value = t(key);
+            if(value !== key || !el.textContent.trim()) el.textContent = value;
         });
         root.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            el.setAttribute('placeholder', t(el.dataset.i18nPlaceholder));
+            const key = el.dataset.i18nPlaceholder;
+            const value = t(key);
+            if(value !== key || !el.getAttribute('placeholder')) el.setAttribute('placeholder', value);
         });
         root.querySelectorAll('[data-i18n-title]').forEach(el => {
-            el.setAttribute('title', t(el.dataset.i18nTitle));
+            const key = el.dataset.i18nTitle;
+            const value = t(key);
+            if(value !== key || !el.getAttribute('title')) el.setAttribute('title', value);
         });
         root.documentElement?.setAttribute('lang', lang() === 'en' ? 'en' : 'zh-CN');
         window.dispatchEvent(new CustomEvent('studio-lang-change', { detail:{ lang:lang() } }));

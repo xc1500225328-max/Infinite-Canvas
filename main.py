@@ -2327,6 +2327,13 @@ class GenerateRequest(BaseModel):
 class DeleteHistoryRequest(BaseModel):
     timestamp: float
 
+class DeleteHistoryBatchRequest(BaseModel):
+    timestamps: List[float] = []
+
+class HistoryFavoriteRequest(BaseModel):
+    timestamp: Optional[float] = None
+    url: str = ""
+
 class TokenRequest(BaseModel):
     token: str
 
@@ -4288,7 +4295,10 @@ def load_asset_library():
             lib = json.load(f)
     except Exception:
         lib = default_asset_library()
-    return normalize_asset_library(lib)
+    lib = normalize_asset_library(lib)
+    if backfill_history_favorite_metadata(lib):
+        save_asset_library(lib)
+    return lib
 
 def sort_asset_library_items(lib):
     cats = list(lib.get("categories", []))
@@ -4389,6 +4399,225 @@ def find_asset_category_with_library(lib, category_id, library_id=""):
             if cat.get("id") == category_id:
                 return library, cat
     return None, None
+
+HISTORY_FAVORITE_LIBRARY_ID = "history_favorites"
+HISTORY_FAVORITE_LIBRARY_NAME = "收藏图片"
+HISTORY_FAVORITE_CATEGORY_ID = "history_favorites_images"
+HISTORY_FAVORITE_CATEGORY_NAME = "历史收藏"
+
+def clean_history_media_url(value) -> str:
+    if isinstance(value, dict):
+        value = value.get("url") or value.get("path") or ""
+    text = str(value or "").strip()
+    if text.startswith(("/output/", "/assets/")):
+        return text.split("?", 1)[0]
+    return text
+
+def history_media_source_hash(url: str) -> str:
+    return hashlib.sha1(clean_history_media_url(url).encode("utf-8", errors="ignore")).hexdigest()
+
+def ensure_history_favorite_category(lib):
+    lib = normalize_asset_library(lib)
+    libraries = lib.setdefault("libraries", [])
+    library = next((item for item in libraries if item.get("id") == HISTORY_FAVORITE_LIBRARY_ID), None)
+    if not library:
+        library = next((item for item in libraries if item.get("name") == HISTORY_FAVORITE_LIBRARY_NAME), None)
+    if not library:
+        library = {
+            "id": HISTORY_FAVORITE_LIBRARY_ID,
+            "name": HISTORY_FAVORITE_LIBRARY_NAME,
+            "type": "asset",
+            "categories": [],
+        }
+        libraries.append(library)
+
+    categories = library.setdefault("categories", [])
+    category = next((item for item in categories if item.get("id") == HISTORY_FAVORITE_CATEGORY_ID), None)
+    if not category:
+        category = next((item for item in categories if item.get("name") == HISTORY_FAVORITE_CATEGORY_NAME and item.get("type", "image") == "image"), None)
+    if not category:
+        category = {
+            "id": HISTORY_FAVORITE_CATEGORY_ID,
+            "name": HISTORY_FAVORITE_CATEGORY_NAME,
+            "type": "image",
+            "items": [],
+        }
+        categories.append(category)
+    category["type"] = "image"
+    category.setdefault("items", [])
+    return library, category
+
+def find_history_favorite_item(lib, source_hash: str):
+    for library in lib.get("libraries", []) or []:
+        for category in library.get("categories", []) or []:
+            for item in category.get("items", []) or []:
+                if item.get("origin") == "history" and item.get("source_hash") == source_hash:
+                    return library, category, item
+    return None, None, None
+
+def find_history_record_for_favorite(timestamp, url: str):
+    clean_url = clean_history_media_url(url)
+    if not os.path.exists(HISTORY_FILE):
+        raise HTTPException(status_code=404, detail="历史记录不存在")
+    with HISTORY_LOCK:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            history = json.load(f)
+    for record in history if isinstance(history, list) else []:
+        if timestamp is not None and not history_timestamp_matches(record.get("timestamp", 0), timestamp):
+            continue
+        images = [clean_history_media_url(item) for item in (record.get("images") or [])]
+        if clean_url in images:
+            return record
+    raise HTTPException(status_code=404, detail="历史图片不存在")
+
+def history_first_text(*values, max_len: int = 0) -> str:
+    for value in values:
+        if value is None:
+            continue
+        if isinstance(value, (dict, list, tuple, set)):
+            continue
+        text = str(value).strip()
+        if text:
+            return text[:max_len] if max_len and len(text) > max_len else text
+    return ""
+
+def history_record_params(record) -> Dict[str, Any]:
+    params = record.get("params") if isinstance(record, dict) else {}
+    return params if isinstance(params, dict) else {}
+
+def image_dimensions_for_path(path: str) -> Tuple[int, int]:
+    try:
+        with Image.open(path) as img:
+            return int(img.width or 0), int(img.height or 0)
+    except Exception:
+        return 0, 0
+
+def parse_history_size(value) -> Tuple[str, int, int]:
+    text = history_first_text(value)
+    if not text:
+        return "", 0, 0
+    match = re.search(r"(\d{2,5})\s*[xX×*]\s*(\d{2,5})", text)
+    if not match:
+        return text, 0, 0
+    return text, int(match.group(1)), int(match.group(2))
+
+def history_int_value(*values) -> int:
+    for value in values:
+        try:
+            return int(float(value))
+        except (TypeError, ValueError):
+            continue
+    return 0
+
+def history_record_item_for_url(record, clean_url: str):
+    for item in record.get("items") or []:
+        if isinstance(item, dict) and clean_history_media_url(item) == clean_url:
+            return item
+    return {}
+
+def history_favorite_metadata(record, src: str, clean_url: str, source_hash: str) -> Dict[str, Any]:
+    params = history_record_params(record)
+    source_item = history_record_item_for_url(record, clean_url)
+    file_width, file_height = image_dimensions_for_path(src)
+    size_text, size_width, size_height = parse_history_size(history_first_text(
+        params.get("size"), record.get("size"),
+        params.get("resolution"), record.get("resolution"),
+        params.get("aspect_ratio"), record.get("aspect_ratio"),
+    ))
+    width = file_width or history_int_value(params.get("width"), record.get("width")) or size_width
+    height = file_height or history_int_value(params.get("height"), record.get("height")) or size_height
+    if not size_text and width and height:
+        size_text = f"{width}x{height}"
+
+    provider_id = history_first_text(
+        record.get("provider_id"), params.get("provider_id"),
+        record.get("provider"), params.get("provider"),
+    )
+    provider_name = history_first_text(record.get("provider_name"), params.get("provider_name"))
+    source_type = history_first_text(record.get("type"), params.get("type"))
+    provider_id_lower = provider_id.lower()
+    source_type_lower = source_type.lower()
+    if not provider_name and (
+        provider_id_lower == "local-comfy"
+        or "comfy" in provider_id_lower
+        or "comfy" in source_type_lower
+        or (record.get("backend") and record.get("workflow_json"))
+    ):
+        provider_name = "本地 ComfyUI"
+    source_platform = history_first_text(provider_name, provider_id, source_type)
+    model = history_first_text(
+        record.get("model"), params.get("model"),
+        record.get("workflow_json"), params.get("workflow_json"),
+        record.get("backend"),
+    )
+    workflow_json = history_first_text(record.get("workflow_json"), params.get("workflow_json"))
+    generated_at = timestamp_to_ms(record.get("timestamp"))
+
+    metadata = {
+        "origin": "history",
+        "source_url": clean_url,
+        "source_hash": source_hash,
+        "source_type": source_type,
+        "source_platform": source_platform,
+        "source_provider_id": provider_id,
+        "source_provider_name": provider_name,
+        "history_timestamp": record.get("timestamp"),
+        "generated_at": generated_at,
+        "source_created_at": generated_at,
+        "prompt": history_first_text(record.get("prompt"), max_len=2000),
+        "source_prompt": history_first_text(record.get("prompt"), max_len=2000),
+        "model": model,
+        "workflow_json": workflow_json,
+        "size": size_text,
+        "width": width,
+        "height": height,
+        "source_item_name": history_first_text(source_item.get("name")),
+        "source_task_id": history_first_text(record.get("task_id")),
+        "source_request_id": history_first_text(record.get("request_id")),
+    }
+    return {key: value for key, value in metadata.items() if value not in ("", 0, None)}
+
+def apply_history_favorite_metadata(item, record, src: str, clean_url: str, source_hash: str) -> bool:
+    before = dict(item)
+    favorited_at = item.get("favorited_at") or item.get("created_at") or now_ms()
+    item.update(history_favorite_metadata(record, src, clean_url, source_hash))
+    item["favorited_at"] = favorited_at
+    return item != before
+
+def backfill_history_favorite_metadata(lib) -> bool:
+    if not os.path.exists(HISTORY_FILE):
+        return False
+    try:
+        with HISTORY_LOCK:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                history = json.load(f)
+    except Exception:
+        return False
+    if not isinstance(history, list):
+        return False
+
+    changed = False
+    for library in lib.get("libraries", []) or []:
+        for category in library.get("categories", []) or []:
+            for item in category.get("items", []) or []:
+                if not isinstance(item, dict) or item.get("origin") != "history":
+                    continue
+                clean_url = clean_history_media_url(item.get("source_url") or "")
+                if not clean_url:
+                    continue
+                src = output_file_from_url(clean_url)
+                if not src or not os.path.isfile(src):
+                    continue
+                timestamp = item.get("history_timestamp")
+                record = next((
+                    rec for rec in history
+                    if isinstance(rec, dict)
+                    and (timestamp is None or history_timestamp_matches(rec.get("timestamp", 0), timestamp))
+                    and clean_url in [clean_history_media_url(media) for media in (rec.get("images") or [])]
+                ), None)
+                if record and apply_history_favorite_metadata(item, record, src, clean_url, item.get("source_hash") or history_media_source_hash(clean_url)):
+                    changed = True
+    return changed
 
 def builtin_prompt_templates():
     try:
@@ -8098,7 +8327,7 @@ async def build_local_comfy_image_result(payload: OnlineImageRequest):
     raw = generated[0] if generated else {}
     if not local_urls:
         raise HTTPException(status_code=502, detail="本地 ComfyUI 没有返回图片")
-    return {
+    result = {
         "prompt": payload.prompt,
         "images": local_urls,
         "timestamp": raw.get("timestamp") or time.time(),
@@ -8119,6 +8348,10 @@ async def build_local_comfy_image_result(payload: OnlineImageRequest):
         },
         "raw_usage": None,
     }
+    save_to_history(result)
+    if GLOBAL_LOOP:
+        asyncio.run_coroutine_threadsafe(manager.broadcast_new_image(result), GLOBAL_LOOP)
+    return result
 
 @app.post("/api/online-image")
 async def online_image(payload: OnlineImageRequest):
@@ -9795,46 +10028,152 @@ async def get_queue_status(client_id: str):
         position = positions[0] if positions else 0
     return {"total": total, "position": position}
 
+def history_timestamp_matches(item_ts, target_ts) -> bool:
+    try:
+        return abs(float(item_ts) - float(target_ts)) < 0.001
+    except (TypeError, ValueError):
+        return str(item_ts) == str(target_ts)
+
+def delete_history_record_files(record):
+    deleted = 0
+    failed = []
+    for img_url in record.get("images", []):
+        file_path = output_file_from_url(img_url)
+        if not file_path:
+            continue
+        try:
+            os.remove(file_path)
+            deleted += 1
+        except FileNotFoundError:
+            continue
+        except Exception as e:
+            print(f"Failed to delete file {file_path}: {e}")
+            failed.append(file_path)
+    return deleted, failed
+
+def delete_history_records_by_timestamps(timestamps):
+    requested = []
+    seen = set()
+    for value in timestamps or []:
+        key = str(value)
+        if key in seen:
+            continue
+        seen.add(key)
+        requested.append(value)
+
+    if not os.path.exists(HISTORY_FILE):
+        return {
+            "success": False,
+            "message": "History file not found",
+            "deleted": 0,
+            "file_deleted": 0,
+            "file_failed": [],
+            "missing": requested,
+            "records": []
+        }
+
+    with HISTORY_LOCK:
+        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+            history = json.load(f)
+
+        deleted_records = []
+        matched_keys = set()
+        new_history = []
+        for item in history:
+            item_ts = item.get("timestamp", 0)
+            matched_index = next((idx for idx, ts in enumerate(requested) if history_timestamp_matches(item_ts, ts)), None)
+            if matched_index is None:
+                new_history.append(item)
+            else:
+                deleted_records.append(item)
+                matched_keys.add(str(requested[matched_index]))
+
+        if deleted_records:
+            with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
+                json.dump(new_history, f, ensure_ascii=False, indent=4)
+
+    file_deleted = 0
+    file_failed = []
+    for record in deleted_records:
+        count, failed = delete_history_record_files(record)
+        file_deleted += count
+        file_failed.extend(failed)
+
+    missing = [value for value in requested if str(value) not in matched_keys]
+    return {
+        "success": bool(deleted_records),
+        "deleted": len(deleted_records),
+        "file_deleted": file_deleted,
+        "file_failed": file_failed,
+        "missing": missing,
+        "records": [item.get("timestamp") for item in deleted_records],
+    }
+
 @app.post("/api/history/delete")
 async def delete_history(req: DeleteHistoryRequest):
-    if not os.path.exists(HISTORY_FILE):
-        return {"success": False, "message": "History file not found"}
     try:
-        with HISTORY_LOCK:
-            with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
-                history = json.load(f)
-            target_record = None
-            new_history = []
-            for item in history:
-                is_match = False
-                item_ts = item.get("timestamp", 0)
-                if isinstance(req.timestamp, (int, float)) and isinstance(item_ts, (int, float)):
-                    if abs(float(item_ts) - float(req.timestamp)) < 0.001:
-                        is_match = True
-                elif str(item_ts) == str(req.timestamp):
-                    is_match = True
-                if is_match:
-                    target_record = item
-                else:
-                    new_history.append(item)
-            if target_record:
-                with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(new_history, f, ensure_ascii=False, indent=4)
-
-        if target_record:
-            for img_url in target_record.get("images", []):
-                file_path = output_file_from_url(img_url)
-                if file_path and os.path.exists(file_path):
-                    try:
-                        os.remove(file_path)
-                    except Exception as e:
-                        print(f"Failed to delete file {file_path}: {e}")
+        result = delete_history_records_by_timestamps([req.timestamp])
+        if result.get("deleted", 0) > 0:
             return {"success": True}
-        else:
-            return {"success": False, "message": "Record not found"}
+        return {"success": False, "message": result.get("message") or "Record not found"}
     except Exception as e:
         print(f"Delete history error: {e}")
         return {"success": False, "message": str(e)}
+
+@app.post("/api/history/delete-batch")
+async def delete_history_batch(req: DeleteHistoryBatchRequest):
+    try:
+        timestamps = (req.timestamps or [])[:500]
+        if not timestamps:
+            return {"success": False, "message": "No timestamps provided", "deleted": 0, "missing": []}
+        result = delete_history_records_by_timestamps(timestamps)
+        result["success"] = result.get("deleted", 0) > 0 or len(result.get("missing", [])) < len(timestamps)
+        return result
+    except Exception as e:
+        print(f"Delete history batch error: {e}")
+        return {"success": False, "message": str(e), "deleted": 0, "missing": req.timestamps or []}
+
+@app.post("/api/history/favorite")
+async def favorite_history_image(req: HistoryFavoriteRequest):
+    clean_url = clean_history_media_url(req.url)
+    if not clean_url:
+        raise HTTPException(status_code=400, detail="缺少历史图片地址")
+
+    record = find_history_record_for_favorite(req.timestamp, clean_url)
+    src = output_file_from_url(clean_url)
+    if not src or not os.path.isfile(src):
+        raise HTTPException(status_code=400, detail="只支持收藏本地历史图片")
+    if not content_type_for_path(src).startswith("image/"):
+        raise HTTPException(status_code=400, detail="只支持收藏图片文件")
+
+    source_hash = history_media_source_hash(clean_url)
+    lib = load_asset_library()
+    existing_library, existing_category, existing_item = find_history_favorite_item(lib, source_hash)
+    if existing_item:
+        if apply_history_favorite_metadata(existing_item, record, src, clean_url, source_hash):
+            save_asset_library(lib)
+        return {
+            "success": True,
+            "already_exists": True,
+            "library": lib,
+            "asset_library": existing_library,
+            "category": existing_category,
+            "item": existing_item,
+        }
+
+    asset_library, category = ensure_history_favorite_category(lib)
+    _, item = make_asset_library_item(src, filename_from_media_url(clean_url, os.path.basename(src) or "history-image.png"))
+    apply_history_favorite_metadata(item, record, src, clean_url, source_hash)
+    category.setdefault("items", []).insert(0, item)
+    save_asset_library(lib)
+    return {
+        "success": True,
+        "already_exists": False,
+        "library": lib,
+        "asset_library": asset_library,
+        "category": category,
+        "item": item,
+    }
 
 # --- ModelScope 角度控制 ---
 

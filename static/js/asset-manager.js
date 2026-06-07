@@ -35,6 +35,7 @@ let assetTreeEdit = null;
 let promptTreeEdit = null;
 let pendingTreeDelete = '';
 let marqueeState = null;
+let assetLibraryRefreshTimer = null;
 
 function refreshIcons(){ if(window.lucide) lucide.createIcons(); }
 function setStatus(text='准备就绪'){ if(statusEl) statusEl.textContent = text || '准备就绪'; }
@@ -143,6 +144,54 @@ function assetKindLabel(item){
     if(kind === 'video') return '视频';
     if(kind === 'audio') return '音频';
     return '图片';
+}
+function firstAssetText(...values){
+    for(const value of values){
+        if(value === undefined || value === null) continue;
+        if(typeof value === 'object') continue;
+        const text = String(value).trim();
+        if(text) return text;
+    }
+    return '';
+}
+function timestampToMs(value){
+    const num = Number(value || 0);
+    if(!Number.isFinite(num) || num <= 0) return 0;
+    return num < 100000000000 ? num * 1000 : num;
+}
+function formatAssetDate(value){
+    const ms = timestampToMs(value);
+    return ms ? formatDate(ms) : '';
+}
+function assetDimensionsLabel(item){
+    const size = firstAssetText(item?.size, item?.resolution, item?.dimensions);
+    if(size) return size;
+    const width = Number(item?.width || 0);
+    const height = Number(item?.height || 0);
+    if(width > 0 && height > 0) return `${Math.round(width)} x ${Math.round(height)}`;
+    return '';
+}
+function renderDetailMeta(label, value){
+    const text = firstAssetText(value);
+    if(!text) return '';
+    return `<div class="detail-meta"><span>${escapeHtml(label)}</span><strong title="${escapeAttr(text)}">${escapeHtml(text)}</strong></div>`;
+}
+function renderAssetSourceMeta(item){
+    return [
+        renderDetailMeta('尺寸', assetDimensionsLabel(item)),
+        renderDetailMeta('平台', firstAssetText(item?.source_platform, item?.source_provider_name, item?.source_provider_id)),
+        renderDetailMeta('模型', firstAssetText(item?.model, item?.workflow_json)),
+        renderDetailMeta('生成时间', firstAssetText(formatAssetDate(item?.generated_at), formatAssetDate(item?.source_created_at), formatAssetDate(item?.history_timestamp))),
+        renderDetailMeta('收藏时间', formatAssetDate(item?.favorited_at)),
+    ].join('');
+}
+function renderAssetPromptBlock(item){
+    const prompt = firstAssetText(item?.source_prompt, item?.prompt);
+    if(!prompt) return '';
+    return `<section class="detail-prompt">
+        <div class="detail-prompt-head"><span>提示词</span><strong>${escapeHtml(String(prompt).length)} 字符</strong></div>
+        <div class="detail-prompt-body">${escapeHtml(prompt)}</div>
+    </section>`;
 }
 function assetThumb(item){
     const kind = assetKind(item);
@@ -279,6 +328,25 @@ async function loadAll(){
     selectedPromptIds.clear();
     render();
     setStatus('准备就绪');
+}
+function refreshAssetLibrarySoon(delay=120){
+    clearTimeout(assetLibraryRefreshTimer);
+    assetLibraryRefreshTimer = setTimeout(async () => {
+        try {
+            const data = await apiJson('/api/asset-library');
+            assetLibrary = data.library || assetLibrary;
+            render();
+            if(activeTab === 'assets') setStatus('素材库已更新');
+        } catch(e) {
+            setStatus(e.message || '素材库刷新失败');
+        }
+    }, delay);
+}
+function handleAssetLibraryUpdatedMessage(data={}){
+    const remoteUpdatedAt = Number(data.updated_at || 0);
+    const localUpdatedAt = Number(assetLibrary.updated_at || 0);
+    if(remoteUpdatedAt && localUpdatedAt && remoteUpdatedAt <= localUpdatedAt) return;
+    refreshAssetLibrarySoon();
 }
 function render(){
     document.querySelectorAll('[data-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === activeTab));
@@ -539,7 +607,9 @@ function renderAssetDetail(item){
                     <div class="detail-meta"><span>创建时间</span><strong>${escapeHtml(formatDate(item.created_at))}</strong></div>
                     <div class="detail-meta"><span>资产库</span><strong>${escapeHtml(activeAssetLibrary()?.name || '资产库')}</strong></div>
                     <div class="detail-meta"><span>分组</span><strong>${escapeHtml(activeAssetCategory()?.name || '分组')}</strong></div>
+                    ${renderAssetSourceMeta(item)}
                 </div>
+                ${renderAssetPromptBlock(item)}
                 <div class="detail-url">${escapeHtml(item.url || '')}</div>
                 ${renderAvatarSection(item)}
             </div>
@@ -1591,5 +1661,6 @@ document.querySelectorAll('[data-tab]').forEach(btn => {
 refreshBtn?.addEventListener('click', () => loadAll().catch(err => setStatus(err.message || '加载失败')));
 window.addEventListener('message', event => {
     if(event.data?.type === 'studio-theme') window.StudioTheme?.apply?.(event.data.theme);
+    if(event.data?.type === 'asset_library_updated') handleAssetLibraryUpdatedMessage(event.data);
 });
 document.addEventListener('DOMContentLoaded', () => loadAll().catch(err => setStatus(err.message || '加载失败')));

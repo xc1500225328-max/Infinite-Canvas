@@ -1,4 +1,4 @@
-@import url('/static/vendor/css/fonts.css?v=2026.05.31');
+@import url('/static/vendor/css/fonts.css?v=2026.06.07.13');
 :root {
     --page:#f5f6f8;
     --panel:rgba(255,255,255,.94);
@@ -223,6 +223,10 @@ button { border:0; cursor:pointer; }
 .detail-meta span { display:block; color:var(--faint); font-size:9.5px; font-weight:900; margin-bottom:4px; }
 .detail-meta strong { display:block; color:var(--text); font-size:11px; line-height:1.25; font-weight:850; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .detail-url { border:1px solid var(--line); border-radius:11px; background:var(--card); padding:9px; color:var(--muted); font-size:10.5px; line-height:1.4; font-family:ui-monospace,Menlo,Consolas,monospace; overflow-wrap:anywhere; }
+.detail-prompt { border:1px solid var(--line); border-radius:12px; background:var(--card); overflow:hidden; }
+.detail-prompt-head { min-height:34px; padding:8px 10px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--muted); font-size:10.5px; font-weight:900; }
+.detail-prompt-head strong { color:var(--faint); font-size:10px; font-weight:900; }
+.detail-prompt-body { max-height:220px; overflow:auto; padding:10px; color:var(--text); font-size:12px; line-height:1.58; font-weight:520; white-space:pre-wrap; overflow-wrap:anywhere; scrollbar-width:thin; scrollbar-color:rgba(148,163,184,.42) transparent; }
 .prompt-detail-head { display:flex; flex-direction:column; gap:8px; }
 .prompt-detail-title { color:var(--text); font-size:17px; line-height:1.25; font-weight:950; overflow-wrap:anywhere; }
 .prompt-detail-scene { color:var(--muted); font-size:12px; line-height:1.5; font-weight:650; }

@@ -33,6 +33,7 @@ window.addEventListener('message', event => {
     if(event.origin && event.origin !== location.origin) return;
     if(event.data?.type === 'studio-lang') applyLanguage(event.data.lang);
     if(event.data?.type === 'canvas_updated') handleCanvasUpdatedMessage(event.data);
+    if(event.data?.type === 'asset_library_updated') handleAssetLibraryUpdatedMessage(event.data);
     if(event.data?.type === 'providers-changed' || event.data?.type === 'workflows-changed' || event.data?.type === 'comfy-instances-changed'){
         refreshCanvasConfigFromSettings();
     }
@@ -227,6 +228,7 @@ let promptTemplateGroupEditMode = false;
 let canvasPromptTemplateOverrides = {hiddenBuiltinIds:[], editedBuiltins:{}};
 let canvasAssetLibrary = {categories:[]};
 let canvasAssetLibraryOpen = false;
+let canvasAssetLibraryRefreshTimer = null;
 let activeCanvasAssetLibraryId = '';
 let activeCanvasAssetCategoryId = '';
 let canvasAssetPanelTab = 'assets';
@@ -1370,7 +1372,7 @@ async function createSmartCanvas(){
 }
 function openSmartCanvasPage(id){
     if(!id) return;
-    window.location.href = `/static/smart-canvas.html?id=${encodeURIComponent(id)}&v=2026.05.22.1`;
+    window.location.href = `/static/smart-canvas.html?id=${encodeURIComponent(id)}&v=2026.06.07.13`;
 }
 function toggleEmojiPicker(id, event){
     event?.preventDefault();
@@ -5881,6 +5883,19 @@ async function loadCanvasAssetLibrary({renderPanel=true}={}){
         setStatus('资产库加载失败');
         return null;
     }
+}
+function refreshCanvasAssetLibrarySoon(delay=120){
+    clearTimeout(canvasAssetLibraryRefreshTimer);
+    canvasAssetLibraryRefreshTimer = setTimeout(async () => {
+        await loadCanvasAssetLibrary({renderPanel:canvasAssetLibraryOpen && canvasAssetPanelTab !== 'outputs'});
+        if(assetManagerModal?.classList.contains('open')) renderAssetManager();
+    }, delay);
+}
+function handleAssetLibraryUpdatedMessage(data={}){
+    const remoteUpdatedAt = Number(data.updated_at || 0);
+    const localUpdatedAt = Number(canvasAssetLibrary.updated_at || 0);
+    if(remoteUpdatedAt && localUpdatedAt && remoteUpdatedAt <= localUpdatedAt) return;
+    refreshCanvasAssetLibrarySoon();
 }
 async function loadCanvasGlobalOutputs({renderPanel=true}={}){
     const params = new URLSearchParams();

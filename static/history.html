@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/images/logo.png" type="image/png">
+    <title>历史图片</title>
+    <script>
+        (function(){
+            try {
+                var theme = localStorage.getItem('studio_theme') || localStorage.getItem('canvas_theme') || 'light';
+                if(theme === 'dark') {
+                    document.documentElement.classList.add('studio-theme-dark');
+                    document.documentElement.classList.add('theme-dark');
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <script src="/static/vendor/js/lucide.js?v=2026.06.07.13"></script>
+    <script src="/static/js/theme.js?v=2026.06.07.13"></script>
+    <script src="/static/js/image-preview.js?v=2026.06.07.13"></script>
+    <link rel="stylesheet" href="/static/css/theme.css?v=2026.06.07.13">
+    <link rel="stylesheet" href="/static/css/history.css?v=2026.06.07.13">
+</head>
+<body>
+    <div class="history-page">
+        <header class="history-head">
+            <div>
+                <div class="history-title">历史图片</div>
+                <div class="history-sub">在线生成、本地 ComfyUI、画布节点生成的图片都会显示在这里。</div>
+            </div>
+            <div class="history-head-actions">
+                <div id="historyStatus" class="history-status">准备就绪</div>
+                <button id="refreshBtn" class="history-btn" type="button"><i data-lucide="refresh-cw"></i><span>刷新</span></button>
+            </div>
+        </header>
+
+        <section class="history-toolbar">
+            <div class="history-filter" id="historyFilter">
+                <button class="active" type="button" data-filter="all"><i data-lucide="images"></i><span>全部</span></button>
+                <button type="button" data-filter="online"><i data-lucide="globe-2"></i><span>在线</span></button>
+                <button type="button" data-filter="local"><i data-lucide="workflow"></i><span>本地</span></button>
+                <button type="button" data-filter="canvas"><i data-lucide="layout-grid"></i><span>画布</span></button>
+            </div>
+            <label class="history-search-wrap">
+                <i data-lucide="search"></i>
+                <input id="historySearch" class="history-search" type="search" placeholder="搜索提示词、模型、平台">
+            </label>
+        </section>
+
+        <main id="historyRoot" class="history-root">
+            <div class="history-empty">正在加载历史图片...</div>
+        </main>
+    </div>
+
+    <div id="historyLightbox" class="history-lightbox" hidden>
+        <button id="lightboxClose" class="lightbox-close" type="button" title="关闭"><i data-lucide="x"></i></button>
+        <div id="lightboxFrame" class="lightbox-frame">
+            <img id="lightboxImg" alt="历史图片预览">
+        </div>
+        <aside class="lightbox-info">
+            <div class="lightbox-meta" id="lightboxMeta"></div>
+            <p id="lightboxPrompt"></p>
+            <div class="lightbox-actions">
+                <button id="lightboxFavorite" class="history-btn primary" type="button"><i data-lucide="bookmark-plus"></i><span>收藏到素材库</span></button>
+                <button id="lightboxDelete" class="history-btn danger" type="button"><i data-lucide="trash-2"></i><span>删除记录</span></button>
+            </div>
+        </aside>
+    </div>
+
+    <script src="/static/js/history-bulk-manager.js?v=2026.06.07.13"></script>
+    <script src="/static/js/history.js?v=2026.06.07.13"></script>
+</body>
+</html>

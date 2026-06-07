@@ -614,7 +614,7 @@ function persistActiveSmartSettings(){
     subject.runSettings = settingsForStorage(settings);
     rememberRecentSmartSettings(settings, subject);
 }
-function backToCanvasList(){ savePromptDraftForCurrent(); window.location.href = '/static/canvas.html?v=2026.05.22.1'; }
+function backToCanvasList(){ savePromptDraftForCurrent(); window.location.href = '/static/canvas.html?v=2026.06.07.13'; }
 function promptPlainText(){
     return promptInput.innerText.replace(/\u00a0/g, ' ').trim();
 }
@@ -6464,7 +6464,7 @@ async function ensurePanoramaRenderer(){
     const canvas = document.getElementById('panoramaCanvas');
     if(!canvas) return false;
     if(!panoramaState.three){
-        panoramaState.threeLoadPromise = panoramaState.threeLoadPromise || import('/static/vendor/js/three-0.160.0.module.js?v=2026.05.30');
+        panoramaState.threeLoadPromise = panoramaState.threeLoadPromise || import('/static/vendor/js/three-0.160.0.module.js?v=2026.06.07.13');
         panoramaState.three = await panoramaState.threeLoadPromise;
     }
     const THREE = panoramaState.three;
