@@ -2591,6 +2591,10 @@ class AssetAvatarRegisterRequest(BaseModel):
 class PromptLibraryRequest(BaseModel):
     name: str = "提示词库"
 
+class PromptLibraryCategoryRequest(BaseModel):
+    library_id: str = ""
+    name: str = "新分级"
+
 class PromptLibraryItemRequest(BaseModel):
     library_id: str = ""
     item_id: str = ""
@@ -4444,7 +4448,15 @@ def defaultPromptTemplateCategories():
         {"id": "custom", "name": "自定义"},
     ]
 
-def normalize_prompt_template_categories(*category_lists):
+def is_default_prompt_template_categories(categories):
+    if not isinstance(categories, list):
+        return False
+    defaults = defaultPromptTemplateCategories()
+    if len(categories) != len(defaults):
+        return False
+    return [normalize_prompt_category_id(item.get("id") if isinstance(item, dict) else item) for item in categories] == [item["id"] for item in defaults]
+
+def normalize_prompt_template_categories(*category_lists, include_defaults=True):
     normalized = []
     seen = set()
 
@@ -4458,8 +4470,9 @@ def normalize_prompt_template_categories(*category_lists):
         name = "自定义" if cat_id == "custom" else sanitize_asset_name(category.get("name") or cat_id, cat_id)
         normalized.append({"id": cat_id, "name": name})
 
-    for category in defaultPromptTemplateCategories():
-        add_category(category)
+    if include_defaults:
+        for category in defaultPromptTemplateCategories():
+            add_category(category)
     for categories in category_lists:
         if isinstance(categories, list):
             for category in categories:
@@ -4469,44 +4482,64 @@ def normalize_prompt_template_categories(*category_lists):
 def normalize_prompt_libraries(data):
     if not isinstance(data, dict):
         data = default_prompt_libraries()
-    libraries = data.get("libraries") if isinstance(data.get("libraries"), list) else []
-    if not libraries:
-        libraries = default_prompt_libraries()["libraries"]
-    system_source = next((item for item in libraries if isinstance(item, dict) and item.get("id") == "system"), None)
-    source = system_source if isinstance(system_source, dict) else seed_system_prompt_library()
-    category_lists = [source.get("categories") if isinstance(source.get("categories"), list) else []]
-    items = []
-    seen_items = set()
+    raw_libraries = data.get("libraries") if isinstance(data.get("libraries"), list) else []
+    if not raw_libraries:
+        raw_libraries = default_prompt_libraries()["libraries"]
 
-    def append_items(raw_items):
-        if not isinstance(raw_items, list):
-            return
-        for raw_item in raw_items:
+    system_source = next((item for item in raw_libraries if isinstance(item, dict) and item.get("id") == "system"), None)
+    if not isinstance(system_source, dict):
+        system_source = seed_system_prompt_library()
+
+    libraries = []
+    seen_library_ids = set()
+    seen_item_ids = set()
+
+    def normalize_library(raw_library, is_system=False):
+        if not isinstance(raw_library, dict):
+            raw_library = {}
+        library_id = "system" if is_system else str(raw_library.get("id") or "").strip()
+        if not library_id or library_id in seen_library_ids:
+            library_id = f"lib_{uuid.uuid4().hex[:12]}"
+        seen_library_ids.add(library_id)
+
+        items = []
+        for raw_item in (raw_library.get("items") if isinstance(raw_library.get("items"), list) else []):
             if not isinstance(raw_item, dict):
                 continue
             item = normalize_prompt_library_item(raw_item)
-            item_id = item.get("id") or f"tpl_{uuid.uuid4().hex[:12]}"
-            if item_id in seen_items:
-                continue
-            seen_items.add(item_id)
+            item_id = str(item.get("id") or "").strip()
+            if not item_id or item_id in seen_item_ids:
+                item_id = f"tpl_{uuid.uuid4().hex[:12]}"
+                item["id"] = item_id
+            seen_item_ids.add(item_id)
             items.append(item)
 
-    append_items(source.get("items") if isinstance(source, dict) else [])
-    for library in libraries:
-        if not isinstance(library, dict):
+        raw_categories = raw_library.get("categories") if isinstance(raw_library.get("categories"), list) else []
+        if not is_system and is_default_prompt_template_categories(raw_categories):
+            raw_categories = []
+
+        return {
+            "id": library_id,
+            "name": sanitize_asset_name(raw_library.get("name") or ("系统提示词库" if is_system else "提示词库"), "提示词库"),
+            "type": "prompt",
+            "readonly": bool(raw_library.get("readonly", False)),
+            "categories": normalize_prompt_template_categories(
+                raw_categories,
+                include_defaults=is_system,
+            ),
+            "items": items,
+        }
+
+    libraries.append(normalize_library(system_source, True))
+    for raw_library in raw_libraries:
+        if not isinstance(raw_library, dict) or raw_library.get("id") == "system":
             continue
-        category_lists.append(library.get("categories") if isinstance(library.get("categories"), list) else [])
-        if library.get("id") != "system":
-            append_items(library.get("items") if isinstance(library.get("items"), list) else [])
-    system_library = {
-        "id": "system",
-        "name": sanitize_asset_name(source.get("name") or "系统提示词库", "系统提示词库"),
-        "type": "prompt",
-        "readonly": False,
-        "categories": normalize_prompt_template_categories(*category_lists),
-        "items": items,
-    }
-    return {"active_library_id": "system", "libraries": [system_library], "updated_at": int(data.get("updated_at") or now_ms())}
+        libraries.append(normalize_library(raw_library, False))
+
+    active = str(data.get("active_library_id") or "").strip()
+    if not any(library.get("id") == active for library in libraries):
+        active = libraries[0].get("id") if libraries else "system"
+    return {"active_library_id": active, "libraries": libraries, "updated_at": int(data.get("updated_at") or now_ms())}
 
 def load_prompt_libraries():
     if not os.path.exists(PROMPT_LIBRARY_PATH):
@@ -8981,7 +9014,19 @@ async def get_prompt_libraries():
 
 @app.post("/api/prompt-libraries")
 async def create_prompt_library(payload: PromptLibraryRequest):
-    raise HTTPException(status_code=400, detail="提示词库已合并为系统提示词库，请直接在系统提示词库中新增提示词")
+    data = load_prompt_libraries()
+    library = {
+        "id": f"lib_{uuid.uuid4().hex[:12]}",
+        "name": sanitize_asset_name(payload.name, "提示词库"),
+        "type": "prompt",
+        "readonly": False,
+        "categories": [],
+        "items": [],
+    }
+    data.setdefault("libraries", []).append(library)
+    data["active_library_id"] = library["id"]
+    data = save_prompt_libraries(data)
+    return {"library": public_prompt_libraries(data), "prompt_library": library}
 
 @app.patch("/api/prompt-libraries/{library_id}")
 async def rename_prompt_library(library_id: str, payload: PromptLibraryRequest):
@@ -8995,7 +9040,78 @@ async def rename_prompt_library(library_id: str, payload: PromptLibraryRequest):
 
 @app.delete("/api/prompt-libraries/{library_id}")
 async def delete_prompt_library(library_id: str):
-    raise HTTPException(status_code=400, detail="系统提示词库不能删除，可以删除其中的提示词")
+    if library_id == "system":
+        raise HTTPException(status_code=400, detail="系统提示词库不能删除，可以删除其中的提示词")
+    data = load_prompt_libraries()
+    libraries = data.get("libraries") or []
+    if not any(item.get("id") == library_id for item in libraries):
+        raise HTTPException(status_code=404, detail="提示词库不存在")
+    data["libraries"] = [item for item in libraries if item.get("id") != library_id]
+    if data.get("active_library_id") == library_id:
+        data["active_library_id"] = data["libraries"][0].get("id") if data["libraries"] else "system"
+    data = save_prompt_libraries(data)
+    return {"library": public_prompt_libraries(data)}
+
+@app.post("/api/prompt-libraries/categories")
+async def create_prompt_library_category(payload: PromptLibraryCategoryRequest):
+    data = load_prompt_libraries()
+    library = find_prompt_library(data, payload.library_id)
+    if not library:
+        raise HTTPException(status_code=404, detail="提示词库不存在")
+    raw_name = sanitize_asset_name(payload.name, "新分级")
+    base_id = normalize_prompt_category_id(raw_name)
+    existing = {str(item.get("id") or "") for item in (library.get("categories") or []) if isinstance(item, dict)}
+    category_id = base_id
+    while category_id in existing:
+        category_id = f"{base_id}_{uuid.uuid4().hex[:6]}"
+    category = {"id": category_id, "name": raw_name}
+    library.setdefault("categories", []).append(category)
+    data["active_library_id"] = library.get("id") or data.get("active_library_id")
+    data = save_prompt_libraries(data)
+    return {"library": public_prompt_libraries(data), "category": category}
+
+@app.patch("/api/prompt-libraries/categories/{category_id}")
+async def rename_prompt_library_category(category_id: str, payload: PromptLibraryCategoryRequest):
+    data = load_prompt_libraries()
+    library = find_prompt_library(data, payload.library_id)
+    if not library:
+        raise HTTPException(status_code=404, detail="提示词库不存在")
+    if library.get("id") == "system" or library.get("readonly"):
+        raise HTTPException(status_code=400, detail="该提示词库不能编辑分类")
+    normalized_category_id = normalize_prompt_category_id(category_id)
+    category = next((item for item in (library.get("categories") or []) if item.get("id") == normalized_category_id), None)
+    if not category:
+        raise HTTPException(status_code=404, detail="分级不存在")
+    category["name"] = sanitize_asset_name(payload.name, category.get("name") or "新分级")
+    data["active_library_id"] = library.get("id") or data.get("active_library_id")
+    data = save_prompt_libraries(data)
+    return {"library": public_prompt_libraries(data), "category": category}
+
+@app.delete("/api/prompt-libraries/categories/{category_id}")
+async def delete_prompt_library_category(category_id: str, library_id: str = ""):
+    data = load_prompt_libraries()
+    library = find_prompt_library(data, library_id)
+    if not library:
+        raise HTTPException(status_code=404, detail="提示词库不存在")
+    if library.get("id") == "system" or library.get("readonly"):
+        raise HTTPException(status_code=400, detail="该提示词库不能删除分类")
+    normalized_category_id = normalize_prompt_category_id(category_id)
+    categories = library.get("categories") or []
+    if not any(item.get("id") == normalized_category_id for item in categories):
+        raise HTTPException(status_code=404, detail="分级不存在")
+    if normalized_category_id == "custom":
+        raise HTTPException(status_code=400, detail="自定义分级不能删除")
+    library["categories"] = [item for item in categories if item.get("id") != normalized_category_id]
+    existing_category_ids = {str(item.get("id") or "") for item in library.get("categories") or []}
+    if "custom" not in existing_category_ids:
+        library.setdefault("categories", []).append({"id": "custom", "name": "自定义"})
+    for item in library.get("items") or []:
+        if item.get("category") == normalized_category_id:
+            item["category"] = "custom"
+            item["updated_at"] = now_ms()
+    data["active_library_id"] = library.get("id") or data.get("active_library_id")
+    data = save_prompt_libraries(data)
+    return {"library": public_prompt_libraries(data), "removed": 1}
 
 @app.post("/api/prompt-libraries/items")
 async def add_prompt_library_item(payload: PromptLibraryItemRequest):

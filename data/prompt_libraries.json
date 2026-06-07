@@ -1,5 +1,5 @@
 {
-  "active_library_id": "system",
+  "active_library_id": "lib_design_prompts",
   "libraries": [
     {
       "id": "system",
@@ -180,7 +180,482 @@
           "updated_at": 1780656516295
         }
       ]
+    },
+    {
+      "id": "lib_design_prompts",
+      "name": "设计类提示词库",
+      "type": "prompt",
+      "readonly": false,
+      "categories": [
+        {
+          "id": "interior_board",
+          "name": "室内展板与汇报"
+        },
+        {
+          "id": "interior_drawing_analysis",
+          "name": "室内图纸与分析"
+        },
+        {
+          "id": "interior_render_style",
+          "name": "室内渲染与风格"
+        },
+        {
+          "id": "architecture_board_concept",
+          "name": "建筑展板与概念"
+        },
+        {
+          "id": "architecture_drawing_conversion",
+          "name": "建筑图纸转换"
+        },
+        {
+          "id": "architecture_analysis_diagram",
+          "name": "建筑_景观分析图"
+        },
+        {
+          "id": "landscape_planting_season",
+          "name": "景观植物与季相"
+        },
+        {
+          "id": "rendering_scene_generation",
+          "name": "渲染改造与多方案"
+        },
+        {
+          "id": "_",
+          "name": "新分级"
+        }
+      ],
+      "items": [
+        {
+          "id": "tpl_design_001",
+          "name": "室内展板设计",
+          "category": "interior_board",
+          "scene": "",
+          "positive": "以上传的图像为基础，生成一张A0竖向尺寸的室内设计展示板，整体画面呈现现代主义风格，专业且清晰的设计表达。展板内容需同时涵盖设计成果展示与设计分析，包括彩色平面图、空间剖面图；以及与方案对应的功能分区、空间流线和轴测分析图，用于完整呈现设计逻辑。同时基于当前方案从多个视角生成高质量室内效果图，并进行真实质感与光影表现的整体优化；并为其生成合适的中文标题和文案。所有内容需自动完成排版，主效果图作为核心视觉，其余图纸与分析图合理搭配，整体版式清晰、协调，符合专业室内设计展示板的表达规范。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_002",
+          "name": "平面图生成",
+          "category": "interior_drawing_analysis",
+          "scene": "",
+          "positive": "基于上传的2D平面图，精准还原结构与软装家具，生成一张室内设计专业的3D俯视平面图。风格要求：全图采用现代简约风格。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_003",
+          "name": "剖面图",
+          "category": "interior_drawing_analysis",
+          "scene": "",
+          "positive": "基于上传的图像，生成线稿风格的剖面图，保持空间结构和软装家具不变。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_004",
+          "name": "轴测分析图",
+          "category": "interior_drawing_analysis",
+          "scene": "",
+          "positive": "基于上传的图像，生成一张展示室内空间和软装家具的轴测分析图，细致精确呈现其内部结构，并用中文注明其结构名称和功能说明，整体布局兼具专业性与视觉逻辑性，呈现出清晰、整洁的解析示意图，白色背景。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_005",
+          "name": "情绪板",
+          "category": "interior_render_style",
+          "scene": "",
+          "positive": "基于上传的室内效果图，创建一张专业级的设计情绪板。整体呈现必须是一张高质量的平铺摆拍摄影作品，采用正上方俯视视角。画面中的所有元素都应呈现为具有极高真实感和触感的物理实物样本，而非数字拼贴。背景应干净、中性。请深入分析上传效果图中的关键信息，并将其转化为以下实物进行艺术化组合：色彩与材质实物化：提取主色调和辅助色，制作成具有厚度的实体色卡块。识别图中的关键材料（例如：特定纹理的大理石、橡木地板、拉丝金属、混凝土等），并将其表现为带有真实纹理细节的小块板材、瓷砖或切片样本。将纺织品（如亚麻沙发、天鹅绒窗帘、羊毛地毯）转化为折叠或卷起的布料样本和小块地毯样本，重点突出其织物纹理和垂感。风格与元素抽象化：将图中的标志性家具风格或灯具形态，抽象转化为具有代表性的几何体模型或材质配件（例如：用一个圆形的混凝土块代表某种灯具，用一束干燥植物代表装饰风格）。构图与氛围：请运用自然柔和的光线来强调所有材料样本的凹凸纹理和质感。将这些色卡、材料板、布料和配件进行艺术化的错落排列和层次堆叠，构图要平衡且富有美感，准确捕捉并再现原室内空间的设计主题、氛围和格调。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_006",
+          "name": "软装搭配分析图",
+          "category": "interior_drawing_analysis",
+          "scene": "",
+          "positive": "基于上传的室内效果图，生成一张横向排版的专业软装材料与家具配置清单板（Mood Board）。画面不再展示三维空间透视，而是采用高端杂志风格的平面陈列布局。背景统一为干净、留白充足的米白或浅色纹理纸张。版面的左侧区域是4列垂直排列的长条形材质色块，展示了从原方案中提取的关键材质纹理（如大理石、木饰面、布艺或皮革），材质色块下方为简短的设计说明，左侧部分与其他内容用黑色竖线分隔。版面的主体区域将原图中的每一件家具和软装单品（如沙发、单椅、茶几、灯具、地毯及艺术品）进行了视觉拆解和独立抠图，它们以艺术化的方式排列，互不遮挡。每个单品周围都配有手绘设计感箭头和简约的文字标签，模拟专业高端设计指南的标注样式。顶部左侧印有类似“软装搭配指南”的标题，整体光线均匀柔和，呈现出极高分辨率的方案汇报设计美感。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_007",
+          "name": "多视图转换",
+          "category": "interior_drawing_analysis",
+          "scene": "",
+          "positive": "基于上传的图像，生成其主视角透视、正视图、侧视图、俯视图，保持其结构和细节不变。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_008",
+          "name": "多风格比选",
+          "category": "interior_render_style",
+          "scene": "",
+          "positive": "将上传图像转换为四个风格版本，同时保持所有原始硬装、软装元素在其准确位置、大致形态不变，仅更改其材质、色彩和细节以反映各个风格：新中式、法式、侘寂风、极简。保持原始构图、空间结构、墙顶地、柱子和家具布局和大小，确保每个风格都真实、符合美学并专业渲染。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_009",
+          "name": "软装搭配",
+          "category": "interior_render_style",
+          "scene": "",
+          "positive": "将图1的家具合理地放置在图2的房间中，保持房间结构不变，生成高质量室内效果图。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_010",
+          "name": "设计迁移",
+          "category": "interior_render_style",
+          "scene": "",
+          "positive": "将图1的毛坯房照片装修成[酒店餐厅]，保持画面结构逻辑和视角不变，装修风格参考图2，优化天花板吊顶装饰和窗边遮阳，输出图1比例的画幅。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_011",
+          "name": "平面图转效果图",
+          "category": "interior_render_style",
+          "scene": "",
+          "positive": "基于上传的户型平面图，生成一张[客厅]的高质量室内空间效果图。需严格遵循平面图中的空间布局与设计元素，确保房间结构、家具位置及朝向与平面布局完全一致。并自动选择最能展现空间层次与布局优势的视角，输出具有真实材质质感与空间光影表现的高质量室内效果图。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_012",
+          "name": "全案设计",
+          "category": "interior_render_style",
+          "scene": "",
+          "positive": "基于上传的室内效果图，生成同户型卧室、餐厅、卫生间三张风格统一的效果图，并将四张图以2x2的形式拼在一起。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_013",
+          "name": "效果图生成展板",
+          "category": "architecture_board_concept",
+          "scene": "",
+          "positive": "根据图像生成一个16比9的设计展板，需要将这张图作为展板的核心效果图，并增加不同角度的效果图，添加项目名称，设计说明，区位分析，现状分析，交通流线分析，功能分区分析，体块生成分析，彩色总平，建筑轴测分析，平面图，立面，剖面图，建筑鸟瞰，建筑空间节点效果图等内容，展板内文字使用中文",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_014",
+          "name": "概念方案展板",
+          "category": "architecture_board_concept",
+          "scene": "",
+          "positive": "根据图片中的对象，提取其形态特征、颜色特征、寓意特征，作为灵感生成一个展览馆的概念设计方案，不要直接套用对象的具体形态，最终以展板的形式输出，展板内包含以下3种内容：1是原始灵感图，以及对应的中文概念解释。2是设计方案的效果图，画面写实，有丰富的配景和合理的周边环境。在展板上占主导地位。3是灵感演变分析图，一步步清晰展示建筑形态的形成逻辑，采用big的分析图视觉风格。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_015",
+          "name": "鸟瞰转总平",
+          "category": "architecture_drawing_conversion",
+          "scene": "",
+          "positive": "把这张效果图转成方案的masterplan，视角垂直于地面，无标注",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_016",
+          "name": "剖面图生成",
+          "category": "architecture_drawing_conversion",
+          "scene": "",
+          "positive": "根据这张图片，生成其中建筑的完整的正剖面图技术图纸，黑白灰填色，高级，合理，不需要透视关系，不需要标注",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_017",
+          "name": "立面图生成",
+          "category": "architecture_drawing_conversion",
+          "scene": "",
+          "positive": "根据这张图片，生成建筑的正立面技术图纸，立面材质填充和建筑比例关系要符合原图，背景填充为纯白色，立面旁边增加几棵半透明树木做点缀，整体符合美学标准，高级，合理，无透视关系，无标注",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_018",
+          "name": "植物种类研究",
+          "category": "landscape_planting_season",
+          "scene": "",
+          "positive": "从上传的方案设计图中提取场景中所有树木、灌木和花卉，将它们清晰呈现为独立的渲染的元素。展示每种植被类型时保持干净的轮廓、准确的颜色、纹理和植物形态。将提取的植物按照树木、灌木、地被植物、花卉进行分组，并组织成视觉上吸引人的布局。通过柔和的自然阴影和一致的光照增强真实感，为每种植物类型添加专业中文名。同时生成一个辅助视图，展示所选植物组合如何重新应用到场地中，保持准确的比例、间距、布局逻辑和景观特征。确保最终输出整洁、可用于展示，并适合客户交付或设计开发文档使用。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_019",
+          "name": "植物季相分析",
+          "category": "landscape_planting_season",
+          "scene": "",
+          "positive": "生成这张图片中植物的季相分析图，包含植物种类，生长周期表，最佳种植时间，色彩搭配等，可以做成环形图表，把植物表现图融进去。配合一些植物icon让图面更专业、高级，使用中文标注。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_020",
+          "name": "绿建分析生成",
+          "category": "architecture_analysis_diagram",
+          "scene": "",
+          "positive": "生成图中建筑的能耗节能轴测分析图，中文标注",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_021",
+          "name": "景观分层分析",
+          "category": "architecture_analysis_diagram",
+          "scene": "",
+          "positive": "生成上传景观设计的等距轴测视图，从上至下清晰地分为四个独立图层：1是包含城市家具在内的硬质景观元素，2是景观的硬质铺装，3是软质的地被植物和水体，4是树木及大型植被。每个图层应视觉清晰、使用中文标注，并说明其功能、材料和类型。将图层排列成干净、可用于展示的组合，便于理解空间组织、材料层级及生态或设计关系，同时保持设计的原始布局和比例。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_022",
+          "name": "空间节点图",
+          "category": "architecture_analysis_diagram",
+          "scene": "",
+          "positive": "生成建筑节点空间的轴测分析图，共计6组，插画风格，中文标注",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_023",
+          "name": "爆炸图生成",
+          "category": "architecture_analysis_diagram",
+          "scene": "",
+          "positive": "将图片转换为等距轴测结构分解图。以高度还原的方式精细展示被有序拆解的楼板和外立面。整体布局需专业且符合视觉逻辑，最终形成清晰整洁的结构分解图。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_024",
+          "name": "轴测剖切生成",
+          "category": "architecture_drawing_conversion",
+          "scene": "",
+          "positive": "将图片变成等距轴测的剖切图，保持建筑剖面合理性",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_025",
+          "name": "剖视图生成",
+          "category": "architecture_drawing_conversion",
+          "scene": "",
+          "positive": "生成带透视关系的剖切图，需要保持建筑剖面合理性",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_026",
+          "name": "体量功能分析图",
+          "category": "architecture_analysis_diagram",
+          "scene": "",
+          "positive": "根据图片中的方案生成一张Sasaki风格的建筑轴测体量图，带有道路箭头，中文标注，在保持原有比例与空间组织不变的前提下，强化边界、纯色体量、阴影关系与视觉层级，使成图更加高级、专业。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_027",
+          "name": "体块分析图生成",
+          "category": "architecture_analysis_diagram",
+          "scene": "",
+          "positive": "将图片中的建筑生成一个连续的建筑体块生成分析图，展示建筑如何通过体块推敲进行造型演变的过程，包含6个步骤，BIG风格，轴测投影，简洁的信息，哑光白色模型，虚化周边环境建筑，使用红色箭头说明推演路径，高亮区域，中文描述，采用干净的白色背景。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_028",
+          "name": "白膜轴测图生成",
+          "category": "architecture_analysis_diagram",
+          "scene": "",
+          "positive": "将图片变成等距轴测Ambient Occlusion白色模型图。图片背景为白色，无标注、道路为淡灰色并散布红色风格化小人、建筑为白模填充并用黑色加粗线条描边，景观用单色极简插画风格绿色树木图标点缀",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_029",
+          "name": "植物添加",
+          "category": "landscape_planting_season",
+          "scene": "",
+          "positive": "将图片转为真实的摄影作品，优化已有植物的形态，让它们更真实自然，并在图中的软质的景观区域种植少量接骨木，之间有机布置须芒草、钓钟柳、火炬花、鼠尾草与白绣球的组团，底部增加地被植物，整体景观丰富有层次。整体氛围有明暗对比，光影如电影般富有叙事感。氛围阳光透过植物叶片显得生机勃勃。不要改变原有的景观格局。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_030",
+          "name": "四季效果图生成",
+          "category": "landscape_planting_season",
+          "scene": "",
+          "positive": "根据图片，分别生成它在春夏秋冬四个季节的效果图，展示景观植物在不同季节的效果。最后拼成一张图片返回。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_031",
+          "name": "鸟瞰渲染",
+          "category": "rendering_scene_generation",
+          "scene": "",
+          "positive": "根据图像生成一个鸟瞰实景照片。真实摄影质感，午后 3 点自然光，阳光斜射形成柔和阴影。细致刻画植物等配景，画面丰富完整，光影如电影般富有叙事感氛围",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_032",
+          "name": "手绘渲染",
+          "category": "rendering_scene_generation",
+          "scene": "",
+          "positive": "将这张手绘图片转化为一张真实摄影作品。画面需还原手绘图中建筑的大致轮廓与视角，补充必要的细节以写实主义来呈现。细致刻画植物等配景，画面丰富完整，光影如电影般富有叙事感氛围",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_033",
+          "name": "多视角渲染",
+          "category": "rendering_scene_generation",
+          "scene": "",
+          "positive": "生成一张竖向包含原图建筑多个角度效果图的图，每张图都需要细致刻画植物等配景，画面丰富完整，光影如电影般富有叙事感氛围。共包含六个视角（建筑正视图，左转45度图，右转45度图，俯视图，近景特写图，远景图）",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_034",
+          "name": "智能渲染",
+          "category": "rendering_scene_generation",
+          "scene": "",
+          "positive": "生成相机视角不变的实景照片，主体保留：严格还原线稿建筑结构。真实摄影质感，午后 3 点自然光，阳光斜射形成柔和阴影。细致刻画植物等配景，画面丰富完整，光影如电影般富有叙事感氛围。添加大约30个人物，分散在画面的中景与远景上。建筑周边布置乔木、低矮灌木围合带。远景补充 2-3 栋现代中层配景建筑，营造城市商业片区氛围，hdr。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_035",
+          "name": "平面直出鸟瞰",
+          "category": "rendering_scene_generation",
+          "scene": "",
+          "positive": "根据这张平面图生成方案的鸟瞰效果图，能看到整个设计方案的全貌和周边的环境，视角与地面的夹角45度左右，不要改变用地形状。现代建筑，现代立面造型。周边为城市建筑环境，具有真实感的质感。鸟瞰效果图内不要有红线和文字等标注信息。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_036",
+          "name": "实景改造",
+          "category": "rendering_scene_generation",
+          "scene": "",
+          "positive": "把照片内场景改造成一个景观公园，细致刻画其中的植物等配景，画面丰富完整，光影如电影般富有叙事感氛围。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_037",
+          "name": "多方案比选",
+          "category": "rendering_scene_generation",
+          "scene": "",
+          "positive": "根据这张方案图，生成规模相似的包含原始方案在内总计6个不同方案，并将它们都渲染成真实质感的效果图，图片长宽比保持不变，视角保持统一，将这些方案效果图排列在一张图片上",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_038",
+          "name": "空白场地生方案",
+          "category": "architecture_board_concept",
+          "scene": "",
+          "positive": "在图中空白区域生成一个现代的经过设计的展览馆建筑，并把图片转变成一张优质的摄影作品，细致刻画周边植物等配景，画面丰富完整，光影如电影般富有叙事感氛围。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        },
+        {
+          "id": "tpl_design_039",
+          "name": "概念方案生成",
+          "category": "architecture_board_concept",
+          "scene": "",
+          "positive": "根据图片中的对象，提取其形态特征、颜色特征、寓意特征，作为灵感生成一个展览馆的概念设计效果图，避免直接挪用对象的具体形态，需要抽象使用。画面写实，有丰富的配景和合理的周边环境。",
+          "negative": "",
+          "params": {},
+          "created_at": 1780798495661,
+          "updated_at": 1780798495661
+        }
+      ]
     }
   ],
-  "updated_at": 1780656516295
+  "updated_at": 1780803029061
 }

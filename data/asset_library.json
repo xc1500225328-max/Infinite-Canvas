@@ -1,5 +1,5 @@
 {
-  "active_library_id": "default",
+  "active_library_id": "lib_73f715ca3d64",
   "libraries": [
     {
       "id": "default",
@@ -25,27 +25,40 @@
           "items": []
         }
       ]
+    },
+    {
+      "id": "lib_73f715ca3d64",
+      "name": "新资产库",
+      "type": "asset",
+      "categories": [
+        {
+          "id": "cat_f60128d5b7b8",
+          "name": "默认分组",
+          "type": "image",
+          "items": []
+        },
+        {
+          "id": "wf_33e1ad18e794",
+          "name": "工作流",
+          "type": "workflow",
+          "items": []
+        }
+      ]
     }
   ],
   "categories": [
     {
-      "id": "characters",
-      "name": "角色",
+      "id": "cat_f60128d5b7b8",
+      "name": "默认分组",
       "type": "image",
       "items": []
     },
     {
-      "id": "scenes",
-      "name": "场景",
-      "type": "image",
-      "items": []
-    },
-    {
-      "id": "workflows",
+      "id": "wf_33e1ad18e794",
       "name": "工作流",
       "type": "workflow",
       "items": []
     }
   ],
-  "updated_at": 1780656516286
+  "updated_at": 1780796444967
 }
