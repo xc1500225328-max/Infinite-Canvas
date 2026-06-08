@@ -185,7 +185,7 @@
 .prompt-template-tabs button.active { 
     opacity: 1;
     background: var(--text-main); 
-    color: var(--bg); 
+    color: var(--bg, #ffffff); 
 }
 .prompt-template-tabs small { 
     margin-left: 6px; 
@@ -359,7 +359,7 @@
     align-items: center; 
     gap: 4px;
 }
-.prompt-template-group-tools button.primary { background: var(--text-main); color: var(--bg); border: none; }
+.prompt-template-group-tools button.primary { background: var(--text-main); color: var(--bg, #ffffff); border: none; }
 
 .prompt-template-group-list { 
     display: grid; 
@@ -430,7 +430,7 @@
 .prompt-template-preview-actions { 
     padding: 16px 24px; 
     border-top: 1px solid var(--pt-border); 
-    background: var(--bg); 
+    background: var(--bg, #ffffff); 
     display: flex; 
     gap: 12px; 
 }
@@ -456,7 +456,7 @@
 }
 .prompt-template-preview-actions button.primary { 
     background: var(--text-main); 
-    color: var(--bg); 
+    color: var(--bg, #ffffff); 
     border: none; 
 }
 .prompt-template-preview-actions button:hover { 
