@@ -65,6 +65,75 @@ body { margin:0; height:100vh; overflow:hidden; background:var(--page); color:va
 .tool-btn { height:38px; min-width:38px; padding:0 12px; border-radius:999px; display:flex; align-items:center; justify-content:center; gap:7px; color:var(--muted); background:var(--card-solid); border:1px solid var(--line); font-size:11px; font-weight:700; transition:all .2s var(--ease); pointer-events:auto; }
 .tool-btn:hover { background:var(--soft-2); color:var(--text); }
 .theme-toggle.active { background:var(--strong); color:var(--strong-text); border-color:var(--strong); }
+.tool-btn svg,
+.tool-btn i,
+.tool-btn svg *,
+.canvas-preview-mark svg,
+.canvas-preview-mark i,
+.canvas-preview-mark svg *,
+.canvas-card-edit svg,
+.canvas-card-edit i,
+.canvas-card-edit svg *,
+.canvas-delete svg,
+.canvas-delete i,
+.canvas-delete svg *,
+.prompt-template-btn svg,
+.prompt-template-btn i,
+.prompt-template-btn svg *,
+.prompt-template-panel button svg,
+.prompt-template-panel button i,
+.prompt-template-panel button svg *,
+.loop-toggle svg,
+.loop-toggle i,
+.loop-toggle svg *,
+.mode-tabs button svg,
+.mode-tabs button i,
+.mode-tabs button svg *,
+.ms-model-tabs button svg,
+.ms-model-tabs button i,
+.ms-model-tabs button svg *,
+.llm-provider button svg,
+.llm-provider button i,
+.llm-provider button svg *,
+.seg button svg,
+.seg button i,
+.seg button svg *,
+.canvas-asset-tabs button svg,
+.canvas-asset-tabs button i,
+.canvas-asset-tabs button svg *,
+.asset-manager-tabs button svg,
+.asset-manager-tabs button i,
+.asset-manager-tabs button svg *,
+.asset-manager-card-actions button svg,
+.asset-manager-card-actions button i,
+.asset-manager-card-actions button svg *,
+.image-edit-mode button svg,
+.image-edit-mode button i,
+.image-edit-mode button svg *,
+.input-remove svg,
+.input-remove i,
+.input-remove svg * {
+    color: inherit;
+    stroke: currentColor !important;
+}
+.tool-btn svg,
+.canvas-preview-mark svg,
+.canvas-card-edit svg,
+.canvas-delete svg,
+.prompt-template-btn svg,
+.prompt-template-panel button svg,
+.loop-toggle svg,
+.mode-tabs button svg,
+.ms-model-tabs button svg,
+.llm-provider button svg,
+.seg button svg,
+.canvas-asset-tabs button svg,
+.asset-manager-tabs button svg,
+.asset-manager-card-actions button svg,
+.image-edit-mode button svg,
+.input-remove svg {
+    fill: none !important;
+}
 .board { position:absolute; inset:0; cursor:grab; background-color:var(--page); background-image:radial-gradient(var(--grid) 1px, transparent 1px); background-size:24px 24px; }
 body.canvas-knife .board,
 body.canvas-knife .node,
@@ -193,16 +262,25 @@ body.canvas-selecting .node .llm-bubble { pointer-events:none !important; }
 .blank-image:hover,.blank-image.drag-over { border-color:#111827; color:#111827; background:#fff; }
 .prompt-node { width:310px; }
 .prompt-node .node-body { overflow:hidden !important; }
-.prompt-node textarea { width:100%; height:140px; min-height:72px; resize:none; overflow-y:auto; white-space:pre-wrap; overflow-wrap:break-word; scrollbar-width:thin; border:1px solid #edf2f7; border-radius:16px; outline:none; padding:12px; background:#fbfdff; font-size:13px; line-height:1.6; }
-.prompt-editor { height:100%; display:flex; flex-direction:column; gap:7px; }
-.prompt-toolbar { flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
-.prompt-template-btn { height:23px; min-width:0; padding:0 7px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; gap:4px; border:1px solid var(--line); background:var(--card-solid); color:var(--muted); font-size:9.5px; line-height:1; font-weight:820; white-space:nowrap; transition:background .16s var(--ease), border-color .16s var(--ease), color .16s var(--ease), box-shadow .16s var(--ease), transform .16s var(--ease); }
-.prompt-template-btn:hover { background:var(--soft-2); color:var(--text); border-color:var(--line-2); transform:translateY(-1px); }
-.prompt-template-btn.active { background:var(--strong); color:var(--strong-text); border-color:var(--strong); box-shadow:0 6px 14px rgba(15,23,42,.16); }
+.prompt-node textarea { width:100%; height:140px; min-height:72px; resize:none; overflow-y:auto; white-space:pre-wrap; overflow-wrap:break-word; scrollbar-width:thin; border:1px solid #edf2f7; border-radius:16px; outline:none; padding:12px 46px 12px 12px; background:#fbfdff; font-size:13px; line-height:1.6; }
+.prompt-editor { height:100%; display:flex; flex-direction:column; gap:7px; min-height:0; }
+.prompt-input-wrap { position:relative; flex:1; min-height:0; }
+.prompt-template-btn { position:absolute; top:8px; right:8px; z-index:3; width:28px; height:28px; padding:0; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--line); background:var(--card-solid); color:var(--muted); box-shadow:0 8px 18px rgba(15,23,42,.08); transition:background .16s var(--ease), border-color .16s var(--ease), color .16s var(--ease), box-shadow .16s var(--ease), transform .16s var(--ease); }
+.prompt-template-btn:hover { background:var(--soft-2); color:var(--text); border-color:var(--line-2); transform:translateY(-1px); box-shadow:0 12px 22px rgba(15,23,42,.12); }
+.prompt-template-btn.active { background:var(--strong); color:var(--strong-text); border-color:var(--strong); box-shadow:0 10px 22px rgba(15,23,42,.16); }
 .prompt-template-btn.active:hover { background:var(--strong); color:var(--strong-text); border-color:var(--strong); }
-.prompt-template-btn i,.prompt-template-btn svg { width:11.5px !important; height:11.5px !important; }
+.prompt-template-btn i,.prompt-template-btn svg { width:12px !important; height:12px !important; }
+.prompt-template-btn span { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.prompt-template-btn svg,
+.prompt-template-btn i,
+.prompt-template-btn svg * {
+    color: inherit;
+    stroke: currentColor !important;
+}
+.prompt-template-btn svg { fill: none !important; }
 .prompt-counter { flex:0 0 auto; display:flex; justify-content:flex-end; align-items:center; gap:4px; color:#94a3b8; font-size:10.5px; font-weight:800; line-height:1; user-select:none; }
 .prompt-counter.over { color:#dc2626; }
+.node.sized.prompt-node .prompt-input-wrap { flex:1; min-height:0; }
 .node.sized.prompt-node textarea { height:100%; }
 .node.sized.prompt-node textarea { flex:1; height:auto; min-height:0; }
 .prompt-template-modal { position:fixed; inset:0; z-index:90; display:block; opacity:0; visibility:hidden; pointer-events:none; background:transparent; }
@@ -216,6 +294,13 @@ body.canvas-selecting .node .llm-bubble { pointer-events:none !important; }
 .prompt-template-head button:hover { background:var(--card); border-color:var(--line); color:var(--text); }
 .prompt-template-search { height:32px; display:flex; align-items:center; gap:7px; padding:0 10px; border-radius:11px; background:var(--card); border:1px solid var(--line); color:var(--muted); }
 .prompt-template-search i,.prompt-template-search svg { width:14px !important; height:14px !important; flex:0 0 auto; }
+.prompt-template-panel button svg,
+.prompt-template-panel button i,
+.prompt-template-panel button svg * {
+    color: inherit;
+    stroke: currentColor !important;
+}
+.prompt-template-panel button svg { fill: none !important; }
 .prompt-template-search input { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font-size:11px; font-weight:650; }
 .prompt-template-library-select { width:100%; height:32px; border-radius:11px; border:1px solid var(--line); background:var(--card); color:var(--text); padding:0 10px; font-size:11px; font-weight:800; outline:none; }
 .prompt-template-cats { flex:0 0 auto; }

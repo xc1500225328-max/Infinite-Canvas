@@ -22,6 +22,7 @@
     <script src="/static/js/i18n.js?v=2026.06.07.13"></script>
     <script src="/static/js/image-preview.js?v=2026.06.07.13"></script>
     <script src="/static/js/history-bulk-manager.js?v=2026.06.07.13"></script>
+    <script src="/static/js/prompt-template-quick-entry.js?v=2026.06.08.02"></script>
     <style>
         @import url('/static/vendor/css/fonts.css?v=2026.06.07.13');
         :root { --accent:#111827; --bg:#f9fafb; --card:#fff; --easing:cubic-bezier(0.4,0,0.2,1); }
@@ -88,6 +89,10 @@
                     <div class="flex items-center gap-2 text-gray-400">
                         <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
                         <span class="text-[10px] font-black uppercase tracking-widest">Prompt</span>
+                        <button id="onlinePromptTemplateBtn" type="button" class="ml-auto">
+                            <i data-lucide="library" class="w-3.5 h-3.5"></i>
+                            <span>模板库</span>
+                        </button>
                     </div>
                     <textarea id="promptInput" rows="5" class="nano-input w-full p-6 rounded-3xl text-sm outline-none resize-none placeholder-gray-300" placeholder="输入想生成或编辑的画面..." data-i18n-placeholder="online.promptPlaceholder"></textarea>
                 </section>
@@ -227,6 +232,12 @@
         window.addEventListener('studio-lang-change', () => {
             document.title = tr('online.title');
         });
+        window.StudioPromptTemplateQuickEntry?.attach({
+            trigger:'#onlinePromptTemplateBtn',
+            input:'#promptInput',
+            inputMode:'value'
+        });
+
         let refs = {1:null,2:null,3:null};
         let refDims = {1:null,2:null,3:null};
         let provider = 'comfly';

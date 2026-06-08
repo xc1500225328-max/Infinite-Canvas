@@ -2860,7 +2860,12 @@ async function loadPromptTemplates(){
             const system = promptLibraries.find(lib => lib.id === 'system') || promptLibraries[0];
             builtinPromptTemplates = Array.isArray(system?.items) ? system.items.filter(t => t?.id && t?.positive) : [];
         }
-        if(!promptLibraries.some(lib => lib.id === activePromptLibraryId)) activePromptLibraryId = promptLibraries[0]?.id || 'system';
+        const preferredLibraryId = data.library?.active_library_id || activePromptLibraryId;
+        if(promptLibraries.some(lib => lib.id === preferredLibraryId)) {
+            activePromptLibraryId = preferredLibraryId;
+        } else if(!promptLibraries.some(lib => lib.id === activePromptLibraryId)) {
+            activePromptLibraryId = promptLibraries[0]?.id || 'system';
+        }
         renderPromptLibrarySelect();
     } catch(e) {
         builtinPromptTemplates = [];
@@ -2873,6 +2878,58 @@ function activePromptLibrary(){
 function renderPromptLibrarySelect(){
     if(!promptTemplateLibrarySelect) return;
     promptTemplateLibrarySelect.innerHTML = promptLibraries.map(lib => `<option value="${escapeAttr(lib.id)}" ${lib.id === activePromptLibraryId ? 'selected' : ''}>${escapeHtml(lib.name || '提示词库')}</option>`).join('');
+}
+function promptTemplateBuiltinCategoryLabel(category){
+    const builtin = {
+        view:tr('smart.tplCatView'),
+        storyboard:tr('smart.tplCatStoryboard'),
+        character:tr('smart.tplCatCharacter'),
+        product:tr('smart.tplCatProduct'),
+        lighting:tr('smart.tplCatLighting'),
+        mine:tr('smart.tplCatMine'),
+        custom:tr('smart.tplCatMine')
+    };
+    return builtin[category] || '';
+}
+function promptTemplateCategoriesForLibrary(library=activePromptLibrary()){
+    if((library?.id || 'system') === 'system'){
+        return promptTemplateGroups.map(group => ({
+            id:group.id,
+            name:promptTemplateBuiltinCategoryLabel(group.id) || group.name || group.id
+        }));
+    }
+    return (Array.isArray(library?.categories) ? library.categories : [])
+        .filter(category => category?.id)
+        .map(category => ({
+            id:String(category.id),
+            name:String(category.name || category.id)
+        }));
+}
+function promptTemplateDefaultCategory(library=activePromptLibrary(), preferred=''){
+    const categories = promptTemplateCategoriesForLibrary(library);
+    const preferredId = String(preferred || '').trim();
+    if(preferredId && categories.some(category => category.id === preferredId)) return preferredId;
+    const fallbackIds = (library?.id || 'system') === 'system'
+        ? ['mine', 'custom']
+        : ['custom', 'mine'];
+    for(const fallbackId of fallbackIds){
+        if(categories.some(category => category.id === fallbackId)) return fallbackId;
+    }
+    return categories[0]?.id || ((library?.id || 'system') === 'system' ? 'mine' : 'custom');
+}
+function normalizePromptTemplatePanelState(library=activePromptLibrary()){
+    const categories = promptTemplateCategoriesForLibrary(library);
+    if(promptTemplateCategory !== 'all' && !categories.some(category => category.id === promptTemplateCategory)) {
+        promptTemplateCategory = 'all';
+    }
+    if((library?.id || 'system') !== 'system' && promptTemplateGroupEditMode) {
+        promptTemplateGroupEditMode = false;
+    }
+    const itemIds = new Set(promptTemplateItems().map(item => item.id));
+    if(promptTemplateSelectedId && !itemIds.has(promptTemplateSelectedId)) {
+        promptTemplateSelectedId = '';
+    }
+    return categories;
 }
 function promptTemplateItems(){
     const activeLibrary = activePromptLibrary();
@@ -2931,15 +2988,13 @@ function promptTemplateSearchText(template){
 }
 function promptTemplateCategoryLabel(category){
     if(category === 'all') return tr('smart.tplAll');
-    const builtin = {
-        view:tr('smart.tplCatView'),
-        storyboard:tr('smart.tplCatStoryboard'),
-        character:tr('smart.tplCatCharacter'),
-        product:tr('smart.tplCatProduct'),
-        lighting:tr('smart.tplCatLighting'),
-        mine:tr('smart.tplCatMine')
-    };
-    return builtin[category] || promptTemplateGroups.find(g => g.id === category)?.name || category;
+    const inCurrentLibrary = promptTemplateCategoriesForLibrary(activePromptLibrary()).find(item => item.id === category);
+    if(inCurrentLibrary?.name) return inCurrentLibrary.name;
+    for(const library of promptLibraries){
+        const matched = (Array.isArray(library?.categories) ? library.categories : []).find(item => item?.id === category);
+        if(matched?.name) return matched.name;
+    }
+    return promptTemplateBuiltinCategoryLabel(category) || category;
 }
 function promptTemplateSelectedItem(){
     return promptTemplateItems().find(item => item.id === promptTemplateSelectedId) || promptTemplateItems()[0] || null;
@@ -3065,9 +3120,12 @@ function renderPromptTemplatePanel(options={}){
     const scrollSnapshot = options.preserveScroll === false ? null : promptTemplateScrollSnapshot();
     const query = String(promptTemplateSearch?.value || '').trim().toLowerCase();
     const allTemplates = promptTemplateItems();
-    const categories = [{id:'all', name:tr('smart.tplAll')}, ...promptTemplateGroups.map(group => ({...group, name:promptTemplateCategoryLabel(group.id)}))];
+    const activeLibrary = activePromptLibrary();
+    const libraryCategories = normalizePromptTemplatePanelState(activeLibrary);
+    const categories = [{id:'all', name:tr('smart.tplAll')}, ...libraryCategories];
     const groupCounts = allTemplates.reduce((map, item) => {
-        map[item.category || 'mine'] = (map[item.category || 'mine'] || 0) + 1;
+        const category = item.category || promptTemplateDefaultCategory(activeLibrary);
+        map[category] = (map[category] || 0) + 1;
         return map;
     }, {all:allTemplates.length});
     promptTemplateCats.innerHTML = promptTemplateGroupEditMode ? `
@@ -3083,10 +3141,10 @@ function renderPromptTemplatePanel(options={}){
                 </div>
             </div>
             <div class="prompt-template-group-list">
-                ${promptTemplateGroups.map(group => `
+                ${libraryCategories.map(group => `
                     <div class="prompt-template-group-row ${['view','storyboard','character','product','lighting','mine'].includes(group.id) ? '' : 'has-delete'}">
                         <button type="button" class="group-name ${group.id === promptTemplateCategory ? 'active' : ''}" data-template-cat="${escapeHtml(group.id)}">
-                            <span>${escapeHtml(promptTemplateCategoryLabel(group.id))}</span>
+                            <span>${escapeHtml(group.name)}</span>
                             <small>${groupCounts[group.id] || 0}</small>
                         </button>
                         <button type="button" class="group-tool" data-template-cat-edit="${escapeHtml(group.id)}" title="${escapeAttr(tr('smart.tplRename'))}"><i data-lucide="pencil"></i></button>
@@ -3105,7 +3163,7 @@ function renderPromptTemplatePanel(options={}){
                     </button>
                 `).join('')}
             </div>
-            <button type="button" class="prompt-template-manage-groups" data-template-group-edit><i data-lucide="settings-2"></i><span>${escapeHtml(tr('smart.tplManageGroups'))}</span></button>
+            ${activeLibrary.id === 'system' ? `<button type="button" class="prompt-template-manage-groups" data-template-group-edit><i data-lucide="settings-2"></i><span>${escapeHtml(tr('smart.tplManageGroups'))}</span></button>` : ''}
         </div>
     `;
     const items = allTemplates.filter(item => {
@@ -3120,7 +3178,6 @@ function renderPromptTemplatePanel(options={}){
         : (selected ? currentPromptPreset(selected.sourceId) : null);
     const target = promptTemplatePanel.dataset.target || 'node';
     const node = nodes.find(n => n.id === promptTemplatePanel.dataset.nodeId);
-    const activeLibrary = activePromptLibrary();
     const canEditCurrentLibrary = activeLibrary.id !== 'system' && !activeLibrary.readonly;
     const editMode = Boolean(promptTemplateEditing && selectedPreset);
     promptTemplateBody.innerHTML = `
@@ -3158,7 +3215,7 @@ function renderPromptTemplatePanel(options={}){
                     <input data-template-edit-name value="${escapeAttr(selectedPreset.name || '')}" placeholder="${escapeAttr(tr('smart.tplName'))}">
                     <label>${escapeHtml(tr('smart.tplGroup'))}</label>
                     <select data-template-edit-category>
-                        ${promptTemplateGroups.map(group => `<option value="${escapeAttr(group.id)}" ${group.id === (selectedPreset.category || selected?.category || 'mine') ? 'selected' : ''}>${escapeHtml(promptTemplateCategoryLabel(group.id))}</option>`).join('')}
+                        ${libraryCategories.map(group => `<option value="${escapeAttr(group.id)}" ${group.id === (selectedPreset.category || selected?.category || 'mine') ? 'selected' : ''}>${escapeHtml(group.name)}</option>`).join('')}
                     </select>
                     <label>${escapeHtml(tr('smart.tplContent'))}</label>
                     <textarea data-template-edit-text placeholder="${escapeAttr(tr('smart.tplContent'))}">${escapeHtml(selectedPreset.text || '')}</textarea>
@@ -3256,11 +3313,12 @@ async function saveCurrentPromptAsTemplate(){
         ? promptPlainText()
         : String(nodes.find(n => n.id === promptTemplatePanel?.dataset.nodeId)?.text || '').trim();
     if(!text){ toast(tr('smart.promptPresetEmpty')); return; }
+    const category = promptTemplateDefaultCategory(library, promptTemplateCategory === 'all' ? '' : promptTemplateCategory);
     try {
         const data = await fetch('/api/prompt-libraries/items', {
             method:'POST',
             headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({library_id:library.id, name:defaultPromptPresetName(text), category:promptTemplateCategory === 'all' ? 'mine' : promptTemplateCategory, positive:text, scene:'我的提示词预设'})
+            body:JSON.stringify({library_id:library.id, name:defaultPromptPresetName(text), category, positive:text, scene:'我的提示词预设'})
         }).then(async r => {
             if(!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || '保存失败');
             return r.json();
@@ -3278,7 +3336,7 @@ async function saveCurrentPromptAsTemplate(){
 async function createBlankPromptTemplate(){
     const library = activePromptLibrary();
     if(library.id === 'system' || library.readonly){ toast('请选择可编辑的提示词库'); return; }
-    const category = promptTemplateCategory && promptTemplateCategory !== 'all' ? promptTemplateCategory : 'mine';
+    const category = promptTemplateDefaultCategory(library, promptTemplateCategory === 'all' ? '' : promptTemplateCategory);
     try {
         const data = await fetch('/api/prompt-libraries/items', {
             method:'POST',
@@ -3303,7 +3361,7 @@ async function savePromptTemplateEdit(){
     if(!item) return;
     const name = promptTemplatePanel.querySelector('[data-template-edit-name]')?.value?.trim() || '';
     const text = promptTemplatePanel.querySelector('[data-template-edit-text]')?.value?.trim() || '';
-    const category = promptTemplatePanel.querySelector('[data-template-edit-category]')?.value || 'mine';
+    const category = promptTemplatePanel.querySelector('[data-template-edit-category]')?.value || promptTemplateDefaultCategory(activePromptLibrary(), item.category || '');
     if(!name || !text){ toast(tr('smart.tplRequired')); return; }
     if(item.remote){
         try {
@@ -4875,9 +4933,11 @@ function promptNodeBodyHtml(node){
             ${node.llmSystemEnabled ? `<textarea class="prompt-node-control prompt-llm-system" placeholder="${escapeHtml(tr('smart.promptLlmSystemPlaceholder'))}">${escapeHtml(systemPrompt || 'You are a helpful prompt assistant.')}</textarea>` : ''}
         </div>` : '';
     return `<div class="prompt-node-card">
-        <textarea class="prompt-node-text prompt-node-control" ${readonly} placeholder="${escapeHtml(tr('smart.promptPlaceholderNode'))}">${escapeHtml(node.text || '')}</textarea>
+        <div class="prompt-node-input-wrap">
+            <textarea class="prompt-node-text prompt-node-control" ${readonly} placeholder="${escapeHtml(tr('smart.promptPlaceholderNode'))}">${escapeHtml(node.text || '')}</textarea>
+            <button class="prompt-node-icon-btn prompt-node-control prompt-preset-edit ${templateActive ? 'active' : ''}" type="button" title="${escapeAttr(tr('smart.promptTemplateLibrary'))}" aria-label="${escapeAttr(tr('smart.promptTemplateLibrary'))}"><i data-lucide="library"></i><span>${escapeHtml(tr('smart.promptTemplateLibrary'))}</span></button>
+        </div>
         <div class="prompt-node-tools">
-            <button class="prompt-node-pill prompt-node-control prompt-preset-edit ${templateActive ? 'active' : ''}" type="button"><i data-lucide="library"></i><span>模板库</span></button>
             <button class="prompt-node-pill prompt-llm-toggle ${node.llmEnabled ? 'active' : ''}" type="button"><i data-lucide="sparkles"></i><span>LLM</span></button>
         </div>
         ${node.llmEnabled ? inputThumbs : ''}
@@ -12144,6 +12204,7 @@ if(promptTemplateLibrarySelect) promptTemplateLibrarySelect.onchange = () => {
     activePromptLibraryId = promptTemplateLibrarySelect.value || 'system';
     promptTemplateSelectedId = '';
     promptTemplateEditing = false;
+    promptTemplateCategory = 'all';
     renderPromptTemplatePanel({preserveScroll:false});
 };
 if(composerTemplateBtn) composerTemplateBtn.onclick = event => {

@@ -226,6 +226,17 @@
       ],
       "items": [
         {
+          "id": "tpl_441c276d426d",
+          "name": "新模板",
+          "category": "interior_board",
+          "scene": "",
+          "positive": "新提示词",
+          "negative": "",
+          "params": {},
+          "created_at": 1780917387012,
+          "updated_at": 1780917387012
+        },
+        {
           "id": "tpl_design_001",
           "name": "室内展板设计",
           "category": "interior_board",
@@ -655,7 +666,43 @@
           "updated_at": 1780798495661
         }
       ]
+    },
+    {
+      "id": "lib_33aa5c3588b2",
+      "name": "测试",
+      "type": "prompt",
+      "readonly": false,
+      "categories": [
+        {
+          "id": "1",
+          "name": "1"
+        }
+      ],
+      "items": [
+        {
+          "id": "tpl_c00edfe87e11",
+          "name": "新模板",
+          "category": "1",
+          "scene": "",
+          "positive": "新提示词",
+          "negative": "",
+          "params": {},
+          "created_at": 1780917241652,
+          "updated_at": 1780917241652
+        },
+        {
+          "id": "tpl_7b8adf603f97",
+          "name": "测试模板保存",
+          "category": "1",
+          "scene": "",
+          "positive": "测试模板保存",
+          "negative": "",
+          "params": {},
+          "created_at": 1780916165682,
+          "updated_at": 1780916165682
+        }
+      ]
     }
   ],
-  "updated_at": 1780908910469
+  "updated_at": 1780917387012
 }

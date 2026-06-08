@@ -48,6 +48,47 @@ button { border:0; cursor:pointer; }
 .asset-tabs button:hover { color:var(--text); background:var(--soft); }
 .asset-tabs button.active { background:var(--strong); color:var(--strong-text); }
 .asset-tabs svg,.asset-btn svg,.asset-icon-btn svg,.asset-row-icon svg,.detail-empty svg { width:14px; height:14px; }
+.asset-tabs button svg,
+.asset-tabs button i,
+.asset-tabs button svg *,
+.asset-btn svg,
+.asset-btn i,
+.asset-btn svg *,
+.asset-icon-btn svg,
+.asset-icon-btn i,
+.asset-icon-btn svg *,
+.nav-row svg,
+.nav-row i,
+.nav-row svg *,
+.tree-row svg,
+.tree-row i,
+.tree-row svg *,
+.tree-action-bar button svg,
+.tree-action-bar button i,
+.tree-action-bar button svg *,
+.tree-inline-edit button svg,
+.tree-inline-edit button i,
+.tree-inline-edit button svg *,
+.asset-card-actions button svg,
+.asset-card-actions button i,
+.asset-card-actions button svg *,
+.prompt-row-actions button svg,
+.prompt-row-actions button i,
+.prompt-row-actions button svg * {
+    color: inherit;
+    stroke: currentColor !important;
+}
+.asset-tabs button svg,
+.asset-btn svg,
+.asset-icon-btn svg,
+.nav-row svg,
+.tree-row svg,
+.tree-action-bar button svg,
+.tree-inline-edit button svg,
+.asset-card-actions button svg,
+.prompt-row-actions button svg {
+    fill: none !important;
+}
 .asset-manager-root { min-height:0; flex:1; display:grid; grid-template-columns:282px minmax(420px, 1fr) 360px; gap:12px; }
 .asset-panel { min-height:0; border:1px solid rgba(148,163,184,.2); border-radius:16px; background:var(--panel); box-shadow:0 10px 28px var(--shadow); backdrop-filter:blur(18px); overflow:hidden; }
 .asset-nav { display:flex; flex-direction:column; }

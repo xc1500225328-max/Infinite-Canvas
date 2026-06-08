@@ -26,6 +26,99 @@ button { border:0; cursor:pointer; }
 .smart-shortcut-toggle { right:232px; }
 .smart-log-toggle:hover,.smart-shortcut-toggle:hover { transform:translateY(-1px); border-color:var(--text); }
 .smart-log-toggle i,.smart-log-toggle svg,.smart-shortcut-toggle i,.smart-shortcut-toggle svg { width:16px; height:16px; }
+.smart-back svg,
+.smart-back i,
+.smart-back svg *,
+.smart-log-toggle svg,
+.smart-log-toggle i,
+.smart-log-toggle svg *,
+.smart-shortcut-toggle svg,
+.smart-shortcut-toggle i,
+.smart-shortcut-toggle svg *,
+.prompt-node-icon-btn svg,
+.prompt-node-icon-btn i,
+.prompt-node-icon-btn svg *,
+.prompt-node-pill svg,
+.prompt-node-pill i,
+.prompt-node-pill svg *,
+.loop-smart-toggle svg,
+.loop-smart-toggle i,
+.loop-smart-toggle svg *,
+.loop-smart-add-prompt svg,
+.loop-smart-add-prompt i,
+.loop-smart-add-prompt svg *,
+.compare-toggle svg,
+.compare-toggle i,
+.compare-toggle svg *,
+.kind-toggle button svg,
+.kind-toggle button i,
+.kind-toggle button svg *,
+.image-mode-toggle button svg,
+.image-mode-toggle button i,
+.image-mode-toggle button svg *,
+.composer-template-btn svg,
+.composer-template-btn i,
+.composer-template-btn svg *,
+.mention-source-tab svg,
+.mention-source-tab i,
+.mention-source-tab svg *,
+.prompt-template-panel button svg,
+.prompt-template-panel button i,
+.prompt-template-panel button svg *,
+.dynamic-params .setting-check svg,
+.dynamic-params .setting-check i,
+.dynamic-params .setting-check svg *,
+.dynamic-params .trusted-src-pill svg,
+.dynamic-params .trusted-src-pill i,
+.dynamic-params .trusted-src-pill svg *,
+.dice-btn svg,
+.dice-btn i,
+.dice-btn svg *,
+.seg-row button svg,
+.seg-row button i,
+.seg-row button svg *,
+.provider-tab svg,
+.provider-tab i,
+.provider-tab svg *,
+.asset-toggle svg,
+.asset-toggle i,
+.asset-toggle svg *,
+.asset-tab svg,
+.asset-tab i,
+.asset-tab svg *,
+.asset-mini-btn svg,
+.asset-mini-btn i,
+.asset-mini-btn svg *,
+.image-edit-mode button svg,
+.image-edit-mode button i,
+.image-edit-mode button svg * {
+    color: inherit;
+    stroke: currentColor !important;
+}
+.smart-back svg,
+.smart-log-toggle svg,
+.smart-shortcut-toggle svg,
+.prompt-node-icon-btn svg,
+.prompt-node-pill svg,
+.loop-smart-toggle svg,
+.loop-smart-add-prompt svg,
+.compare-toggle svg,
+.kind-toggle button svg,
+.image-mode-toggle button svg,
+.composer-template-btn svg,
+.mention-source-tab svg,
+.prompt-template-panel button svg,
+.dynamic-params .setting-check svg,
+.dynamic-params .trusted-src-pill svg,
+.dice-btn svg,
+.seg-row button svg,
+.provider-tab svg,
+.asset-toggle svg,
+.asset-tab svg,
+.asset-mini-btn svg,
+.image-edit-mode button svg {
+    fill: none !important;
+}
 .image-node { position:absolute; width:260px; min-height:178px; border-radius:16px; background:transparent; border:0; box-shadow:none; overflow:visible; user-select:none; cursor:move; }
 body.smart-node-drag * { user-select:none !important; }
 body.smart-node-drag .image-node textarea,
@@ -73,7 +166,8 @@ body.smart-node-drag .image-wrap:hover .image-resolution-badge { opacity:0 !impo
 .image-node.prompt-smart-node.selected, .image-node.loop-smart-node.selected { box-shadow:0 0 0 1px var(--strong), 0 14px 36px var(--shadow); }
 .prompt-smart-node .node-body, .loop-smart-node .node-body { align-items:stretch; justify-content:stretch; padding:0; height:100%; min-height:0; }
 .prompt-node-card { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; gap:8px; }
-.prompt-node-text { flex:1; min-height:72px; width:100%; resize:none; overflow:auto; white-space:pre-wrap; overflow-wrap:break-word; border:1px solid rgba(148,163,184,.32); border-radius:13px; background:rgba(255,255,255,.74); color:var(--text); outline:none; padding:10px; font-size:11.2px; line-height:1.45; scrollbar-width:thin; scrollbar-color:rgba(148,163,184,.45) transparent; box-shadow:inset 0 1px 0 rgba(255,255,255,.55); }
+.prompt-node-input-wrap { position:relative; flex:1; min-height:0; }
+.prompt-node-text { flex:1; min-height:72px; width:100%; resize:none; overflow:auto; white-space:pre-wrap; overflow-wrap:break-word; border:1px solid rgba(148,163,184,.32); border-radius:13px; background:rgba(255,255,255,.74); color:var(--text); outline:none; padding:10px 42px 10px 10px; font-size:11.2px; line-height:1.45; scrollbar-width:thin; scrollbar-color:rgba(148,163,184,.45) transparent; box-shadow:inset 0 1px 0 rgba(255,255,255,.55); }
 .theme-dark .prompt-node-text { background:rgba(15,23,42,.42); border-color:rgba(148,163,184,.24); box-shadow:none; }
 .prompt-node-text::-webkit-scrollbar, .prompt-node-llm textarea::-webkit-scrollbar { width:7px; height:7px; }
 .prompt-node-text::-webkit-scrollbar-track, .prompt-node-llm textarea::-webkit-scrollbar-track { background:transparent; }
@@ -82,6 +176,20 @@ body.smart-node-drag .image-wrap:hover .image-resolution-badge { opacity:0 !impo
 .prompt-node-text::-webkit-scrollbar-corner, .prompt-node-llm textarea::-webkit-scrollbar-corner { background:transparent; }
 .prompt-node-text:focus { border-color:var(--strong); background:var(--card); }
 .prompt-node-text[readonly] { cursor:default; color:var(--muted); }
+.prompt-node-icon-btn { position:absolute; top:8px; right:8px; z-index:3; width:26px; height:26px; border-radius:9px; border:1px solid rgba(148,163,184,.34); background:rgba(255,255,255,.88); color:var(--muted); display:inline-flex; align-items:center; justify-content:center; box-shadow:0 8px 18px rgba(15,23,42,.08); transition:background .14s ease, color .14s ease, border-color .14s ease, transform .14s ease, box-shadow .14s ease; }
+.theme-dark .prompt-node-icon-btn { background:rgba(15,23,42,.82); border-color:rgba(148,163,184,.26); }
+.prompt-node-icon-btn:hover, .prompt-node-icon-btn:focus-visible { background:var(--card); color:var(--text); border-color:var(--text); transform:translateY(-1px); box-shadow:0 12px 22px rgba(15,23,42,.12); }
+.prompt-node-icon-btn.active { background:var(--strong); color:var(--strong-text); border-color:var(--strong); box-shadow:0 10px 22px rgba(15,23,42,.16); }
+.prompt-node-icon-btn.active:hover, .prompt-node-icon-btn.active:focus-visible { background:var(--strong); color:var(--strong-text); border-color:var(--strong); }
+.prompt-node-icon-btn i,.prompt-node-icon-btn svg { width:12px; height:12px; }
+.prompt-node-icon-btn span { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.prompt-node-icon-btn svg,
+.prompt-node-icon-btn i,
+.prompt-node-icon-btn svg * {
+    color: inherit;
+    stroke: currentColor !important;
+}
+.prompt-node-icon-btn svg { fill: none !important; }
 .prompt-node-tools { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
 .prompt-node-pill { height:24px; padding:0 8px; border-radius:9px; border:1px solid rgba(148,163,184,.34); background:rgba(255,255,255,.62); color:var(--muted); display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:650; }
 .theme-dark .prompt-node-pill { background:rgba(15,23,42,.42); border-color:rgba(148,163,184,.26); }
@@ -539,6 +647,13 @@ video.node-img { object-fit:cover; background:#0f172a; }
 .prompt-template-head button:hover { background:var(--card); border-color:var(--line); color:var(--text); }
 .prompt-template-search { height:32px; display:flex; align-items:center; gap:7px; padding:0 10px; border-radius:11px; background:var(--card); border:1px solid var(--line); color:var(--muted); }
 .prompt-template-search i,.prompt-template-search svg { width:14px !important; height:14px !important; flex:0 0 auto; }
+.prompt-template-panel button svg,
+.prompt-template-panel button i,
+.prompt-template-panel button svg * {
+    color: inherit;
+    stroke: currentColor !important;
+}
+.prompt-template-panel button svg { fill: none !important; }
 .prompt-template-search input { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font-size:11px; font-weight:650; }
 .prompt-template-library-select { width:100%; height:32px; border-radius:11px; border:1px solid var(--line); background:var(--card); color:var(--text); padding:0 10px; font-size:11px; font-weight:800; outline:none; }
 .prompt-template-cats { flex:0 0 auto; }

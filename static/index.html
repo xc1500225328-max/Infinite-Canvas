@@ -1498,6 +1498,14 @@
                     </svg>
                     <span id="update-now-text" class="update-now-text" data-i18n="update.oneClick">一键更新</span>
                 </button>
+                <button id="debug-open-btn" class="side-pill" onclick="openCurrentPageInNewTab()" type="button" title="在新标签页打开当前页面（用于调试）">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                    <span class="side-pill-text">调试模式</span>
+                </button>
                 <div id="project-version-badge" class="project-version-badge" title="当前版本">v-</div>
             </div>
 
@@ -1755,6 +1763,21 @@
                 } catch(e) {}
             }
             resetStudioRootScroll();
+        }
+
+        function openCurrentPageInNewTab() {
+            const activeFrame = document.querySelector('iframe.active');
+            if (activeFrame && activeFrame.dataset.src) {
+                const url = activeFrame.dataset.src;
+                window.open(url, '_blank');
+            } else {
+                // 备用方案：使用 localStorage 中的当前页面
+                const currentPageId = localStorage.getItem(ACTIVE_PAGE_KEY) || DEFAULT_PAGE_ID;
+                const frame = document.getElementById('frame-' + currentPageId);
+                if (frame && frame.dataset.src) {
+                    window.open(frame.dataset.src, '_blank');
+                }
+            }
         }
 
         function repairNavFallbackText() {

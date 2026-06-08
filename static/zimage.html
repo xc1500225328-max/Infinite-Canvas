@@ -23,6 +23,7 @@
     <script src="/static/js/i18n.js?v=2026.06.07.13"></script>
     <script src="/static/js/image-preview.js?v=2026.06.07.13"></script>
     <script src="/static/js/history-bulk-manager.js?v=2026.06.07.13"></script>
+    <script src="/static/js/prompt-template-quick-entry.js?v=2026.06.08.02"></script>
     <style>
         :root {
             --bg-base: #f8f8f8;
@@ -325,10 +326,16 @@
                     <div class="flex justify-between items-center mb-6">
                         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" data-i18n="studio.unifiedConsole">Unified Art
                             Console</span>
-                        <div id="statusDot" class="flex items-center gap-2">
+                        <div class="flex items-center gap-3">
+                            <button id="zimagePromptTemplateBtn" type="button">
+                                <i data-lucide="library" class="w-3.5 h-3.5"></i>
+                                <span>模板库</span>
+                            </button>
+                            <div id="statusDot" class="flex items-center gap-2">
                             <span id="statusText" class="text-[9px] font-bold text-gray-500 uppercase" data-i18n="studio.ready">System
                                 Ready</span>
                             <div id="dotColor" class="w-1.5 h-1.5 bg-black rounded-full"></div>
+                            </div>
                         </div>
                     </div>
                     <textarea id="prompt" rows="2"
@@ -438,6 +445,12 @@
             if(event.data?.type === 'studio-lang') applyLanguage(event.data.lang);
         });
         window.addEventListener('studio-lang-change', () => { document.title = tr('nav.textToImage'); });
+
+        window.StudioPromptTemplateQuickEntry?.attach({
+            trigger:'#zimagePromptTemplateBtn',
+            input:'#prompt',
+            inputMode:'value'
+        });
 
         function generateUUID() {
             if (typeof crypto !== 'undefined' && crypto.randomUUID) {

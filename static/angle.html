@@ -23,6 +23,7 @@
     <script src="/static/js/i18n.js?v=2026.06.07.13"></script>
     <script src="/static/js/image-preview.js?v=2026.06.07.13"></script>
     <script src="/static/js/history-bulk-manager.js?v=2026.06.07.13"></script>
+    <script src="/static/js/prompt-template-quick-entry.js?v=2026.06.08.02"></script>
     <script type="importmap">
         {
             "imports": {
@@ -369,6 +370,10 @@
                         <div class="flex items-center gap-2 text-gray-800 ml-1">
                             <i data-lucide="text-quote" class="w-3 h-3"></i>
                             <span class="text-[10px] font-bold uppercase tracking-widest">Prompt</span>
+                            <button id="anglePromptTemplateBtn" type="button" class="ml-auto">
+                                <i data-lucide="library" class="w-3.5 h-3.5"></i>
+                                <span>模板库</span>
+                            </button>
                         </div>
                         <textarea id="promptInput"
                             class="nano-input w-full flex-1 p-5 text-sm outline-none resize-none placeholder-gray-300"
@@ -743,6 +748,12 @@
         });
         window.addEventListener('studio-lang-change', () => { document.title = tr('nav.angle'); });
         
+        window.StudioPromptTemplateQuickEntry?.attach({
+            trigger:'#anglePromptTemplateBtn',
+            input:'#promptInput',
+            inputMode:'value'
+        });
+
         // --- Engine Switcher Logic (UI Only) ---
         let currentEngine = 'local';
         const ENGINE_MODE_KEY = 'angle_engine_mode';

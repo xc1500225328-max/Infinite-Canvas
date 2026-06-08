@@ -1706,6 +1706,19 @@ html.studio-theme-dark body .api-link-btn:hover {
 .add-btn svg {
     opacity:.9;
 }
+.add-btn svg,
+.add-btn i,
+.add-btn svg *,
+.api-link-btn svg,
+.api-link-btn i,
+.api-link-btn svg * {
+    color: inherit;
+    stroke: currentColor !important;
+}
+.add-btn svg,
+.api-link-btn svg {
+    fill: none !important;
+}
 
 .recommend-api-body {
     grid-template-columns:1fr;

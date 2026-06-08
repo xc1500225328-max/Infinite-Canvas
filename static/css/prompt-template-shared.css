@@ -1,0 +1,495 @@
+/* Shared Prompt Template Library Styles - Theme Aware & Polished */
+
+.prompt-template-panel { 
+    position: fixed; 
+    right: 20px; 
+    top: 20px; 
+    bottom: 20px; 
+    z-index: 2000; 
+    width: 640px; 
+    max-width: calc(100vw - 40px); 
+    display: flex; 
+    flex-direction: column; 
+    gap: 16px; 
+    padding: 24px; 
+    border-radius: 28px; 
+    background: var(--bg, #ffffff); 
+    border: 1px solid var(--pt-border, rgba(0,0,0,0.08)); 
+    box-shadow: 0 30px 90px rgba(0,0,0,0.15); 
+    backdrop-filter: blur(30px); 
+    transform: translateX(30px); 
+    opacity: 0; 
+    visibility: hidden; 
+    pointer-events: none; 
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: var(--text-main, #111827);
+}
+
+.prompt-template-panel button {
+    font-family: inherit;
+    transition: all 0.2s;
+}
+.prompt-template-panel.open { 
+    opacity: 1; 
+    visibility: visible; 
+    transform: translateX(0); 
+    pointer-events: auto; 
+}
+.prompt-template-panel button span {
+    display: inline-block;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+}
+.prompt-template-panel svg, .prompt-template-panel i {
+    flex: 0 0 auto;
+}
+.prompt-template-panel button svg,
+.prompt-template-panel button i,
+.prompt-template-panel button svg * {
+    color: inherit;
+    stroke: currentColor !important;
+}
+.prompt-template-panel button svg {
+    fill: none !important;
+}
+
+/* Theme adaptation */
+.theme-dark .prompt-template-panel,
+.studio-theme-dark .prompt-template-panel {
+    background: #111216;
+    border-color: rgba(255,255,255,0.1);
+    box-shadow: 0 30px 90px rgba(0,0,0,0.5);
+    --pt-border: rgba(255,255,255,0.1);
+    --pt-item-bg: #1a1b20;
+    --pt-item-hover: #25262b;
+}
+
+:root {
+    --pt-border: rgba(0,0,0,0.06);
+    --pt-item-bg: #f8fafc;
+    --pt-item-hover: #f1f5f9;
+}
+
+.prompt-template-head { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+}
+.prompt-template-head strong { 
+    font-size: 18px; 
+    font-weight: 800; 
+    letter-spacing: -0.02em;
+}
+.prompt-template-head button { 
+    width: 36px; 
+    height: 36px; 
+    border-radius: 12px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    background: var(--pt-item-bg); 
+    color: var(--text-main); 
+    border: none; 
+    cursor: pointer; 
+    transition: all 0.2s;
+}
+.prompt-template-head button svg, .prompt-template-head button i {
+    width: 18px !important;
+    height: 18px !important;
+}
+.prompt-template-head button:hover { 
+    background: #ef4444; 
+    color: #fff; 
+}
+
+.prompt-template-toolbar { 
+    display: grid; 
+    grid-template-columns: 180px 1fr; 
+    gap: 12px; 
+}
+.prompt-template-library-select { 
+    height: 42px; 
+    border-radius: 14px; 
+    border: 1px solid var(--pt-border); 
+    background: var(--card, #fff); 
+    color: var(--text-main); 
+    padding: 0 14px; 
+    font-size: 13px; 
+    font-weight: 700; 
+    outline: none; 
+    cursor: pointer;
+}
+.prompt-template-search { 
+    height: 42px; 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    padding: 0 14px; 
+    border-radius: 14px; 
+    background: var(--card, #fff); 
+    border: 1px solid var(--pt-border); 
+}
+.prompt-template-search i, .prompt-template-search svg { 
+    width: 16px !important; 
+    height: 16px !important; 
+    opacity: 0.4;
+}
+.prompt-template-search input { 
+    flex: 1; 
+    min-width: 0; 
+    border: 0; 
+    outline: 0; 
+    background: transparent; 
+    color: var(--text-main); 
+    font-size: 13px; 
+    font-weight: 600; 
+}
+
+.prompt-template-cats { 
+    margin: 4px 0; 
+}
+.prompt-template-nav { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+}
+.prompt-template-tabs { 
+    flex: 1; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    overflow: auto; 
+    scrollbar-width: none; 
+    padding: 2px 0;
+}
+.prompt-template-tabs::-webkit-scrollbar { display: none; }
+.prompt-template-tabs button { 
+    height: 34px; 
+    padding: 0 16px; 
+    border-radius: 12px; 
+    border: 1px solid transparent; 
+    background: var(--pt-item-bg); 
+    color: var(--text-main); 
+    font-size: 12px; 
+    font-weight: 700; 
+    white-space: nowrap; 
+    cursor: pointer; 
+    transition: all 0.2s;
+    opacity: 0.7;
+}
+.prompt-template-tabs button:hover { 
+    opacity: 1;
+    background: var(--pt-item-hover);
+}
+.prompt-template-tabs button.active { 
+    opacity: 1;
+    background: var(--text-main); 
+    color: var(--bg); 
+}
+.prompt-template-tabs small { 
+    margin-left: 6px; 
+    opacity: 0.5; 
+    font-size: 10px; 
+}
+
+.prompt-template-manage-groups { 
+    width: 34px; 
+    height: 34px; 
+    border-radius: 12px; 
+    border: 1px solid var(--pt-border); 
+    background: var(--card); 
+    color: var(--text-main); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.prompt-template-manage-groups:hover {
+    border-color: var(--text-main);
+}
+
+.prompt-template-body { 
+    flex: 1; 
+    min-height: 0; 
+    display: grid; 
+    grid-template-columns: 240px 1fr; 
+    gap: 20px; 
+}
+
+.prompt-template-list { 
+    overflow: auto; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    padding-right: 6px; 
+}
+.prompt-template-list::-webkit-scrollbar { width: 4px; }
+.prompt-template-list::-webkit-scrollbar-thumb { background: var(--pt-border); border-radius: 10px; }
+
+.prompt-template-list-tools { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px; 
+    margin-bottom: 6px;
+}
+.prompt-template-list-tools button { 
+    height: 36px; 
+    border-radius: 12px; 
+    border: 1px solid var(--pt-border); 
+    background: var(--card); 
+    color: var(--text-main); 
+    font-size: 12px; 
+    font-weight: 700; 
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.prompt-template-list-tools button svg, .prompt-template-list-tools button i {
+    width: 14px !important;
+    height: 14px !important;
+}
+.prompt-template-list-tools button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+.prompt-template-list-tools button:hover:not(:disabled) { 
+    border-color: var(--text-main); 
+    transform: translateY(-1px);
+}
+
+.prompt-template-card { 
+    padding: 14px; 
+    border-radius: 18px; 
+    border: 1px solid var(--pt-border); 
+    background: var(--pt-item-bg); 
+    cursor: pointer; 
+    text-align: left; 
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.prompt-template-card:hover { 
+    border-color: var(--text-main); 
+    background: var(--pt-item-hover);
+}
+.prompt-template-card.active { 
+    border-color: var(--text-main); 
+    background: var(--card); 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+    transform: scale(1.02);
+}
+.prompt-template-card-name { 
+    display: block; 
+    color: var(--text-main); 
+    font-size: 13px; 
+    font-weight: 800; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+}
+.prompt-template-card-cat { 
+    display: block; 
+    color: var(--pt-muted); 
+    font-size: 11px; 
+    font-weight: 600; 
+}
+
+.prompt-template-preview { 
+    display: flex; 
+    flex-direction: column; 
+    border-radius: 20px; 
+    border: 1px solid var(--pt-border); 
+    background: var(--pt-item-bg); 
+    overflow: hidden; 
+}
+.prompt-template-preview-content { 
+    flex: 1; 
+    overflow: auto; 
+    padding: 24px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+}
+.prompt-template-preview-head { 
+    display: flex; 
+    align-items: flex-start; 
+    justify-content: space-between; 
+    gap: 16px;
+}
+.prompt-template-preview-title { 
+    color: var(--text-main); 
+    font-size: 20px; 
+    font-weight: 900; 
+    line-height: 1.2; 
+    letter-spacing: -0.02em;
+}
+.prompt-template-group-panel { 
+    border: 1px solid var(--pt-border); 
+    border-radius: 20px; 
+    background: var(--pt-item-bg); 
+    padding: 16px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+}
+.prompt-template-group-title { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+}
+.prompt-template-group-title strong { font-size: 14px; font-weight: 800; }
+.prompt-template-group-tools { display: flex; gap: 8px; }
+.prompt-template-group-tools button { 
+    height: 30px; 
+    padding: 0 12px; 
+    border-radius: 10px; 
+    border: 1px solid var(--pt-border); 
+    background: var(--card); 
+    color: var(--text-main); 
+    font-size: 11px; 
+    font-weight: 700; 
+    display: flex; 
+    align-items: center; 
+    gap: 4px;
+}
+.prompt-template-group-tools button.primary { background: var(--text-main); color: var(--bg); border: none; }
+
+.prompt-template-group-list { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 8px; 
+}
+.prompt-template-group-row { 
+    display: flex; 
+    align-items: center; 
+    gap: 6px; 
+    background: var(--card); 
+    padding: 6px 10px; 
+    border-radius: 12px; 
+    border: 1px solid var(--pt-border);
+}
+.prompt-template-group-row .group-name { 
+    flex: 1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    font-size: 12px; 
+    font-weight: 700; 
+    min-width: 0;
+}
+.prompt-template-group-row .group-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prompt-template-group-row .group-name small { opacity: 0.5; font-size: 10px; margin-left: 4px; }
+.prompt-template-group-row .group-tools { display: flex; gap: 4px; }
+.prompt-template-group-row .group-tool { 
+    width: 24px; 
+    height: 24px; 
+    border-radius: 6px; 
+    border: none; 
+    background: var(--pt-item-bg); 
+    color: var(--pt-muted); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    cursor: pointer;
+}
+.prompt-template-group-row .group-tool:hover { background: var(--pt-item-hover); color: var(--text-main); }
+.prompt-template-group-row .group-tool.danger:hover { background: #ef4444; color: #fff; }
+.prompt-template-group-row i, .prompt-template-group-row svg { width: 12px !important; }
+
+.prompt-template-section label { 
+    display: block; 
+    color: var(--pt-muted); 
+    font-size: 11px; 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    margin-bottom: 8px; 
+    letter-spacing: 0.08em; 
+}
+.prompt-template-section pre { 
+    margin: 0; 
+    white-space: pre-wrap; 
+    word-break: break-word; 
+    font-family: inherit; 
+    font-size: 14px; 
+    color: var(--text-main); 
+    line-height: 1.7; 
+    font-weight: 500;
+    padding: 16px;
+    background: var(--card);
+    border-radius: 16px;
+    border: 1px solid var(--pt-border);
+}
+
+.prompt-template-preview-actions { 
+    padding: 16px 24px; 
+    border-top: 1px solid var(--pt-border); 
+    background: var(--bg); 
+    display: flex; 
+    gap: 12px; 
+}
+.prompt-template-preview-actions button { 
+    height: 44px; 
+    flex: 1; 
+    border-radius: 14px; 
+    border: 1px solid var(--pt-border); 
+    background: var(--card); 
+    color: var(--text-main); 
+    font-size: 14px; 
+    font-weight: 800; 
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.prompt-template-preview-actions button svg, .prompt-template-preview-actions button i {
+    width: 18px !important;
+    height: 18px !important;
+}
+.prompt-template-preview-actions button.primary { 
+    background: var(--text-main); 
+    color: var(--bg); 
+    border: none; 
+}
+.prompt-template-preview-actions button:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.prompt-template-preview-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--pt-muted);
+    opacity: 0.6;
+}
+.prompt-template-preview-empty i, .prompt-template-preview-empty svg {
+    width: 48px !important;
+    height: 48px !important;
+}
+
+@media (max-width: 768px) {
+    .prompt-template-panel { 
+        left: 10px; 
+        right: 10px; 
+        top: 10px; 
+        bottom: 10px; 
+        width: auto; 
+        max-width: none; 
+        padding: 20px; 
+    }
+    .prompt-template-toolbar { grid-template-columns: 1fr; }
+    .prompt-template-body { grid-template-columns: 1fr; }
+    .prompt-template-list { max-height: 200px; }
+}
