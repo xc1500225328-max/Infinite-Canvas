@@ -706,10 +706,13 @@ function renderPromptTreeActionBar(kind, readonly=false){
             <button type="button" class="danger ${pendingTreeDelete === deleteKey ? 'detail-confirm' : ''}" data-prompt-lib-delete ${locked ? 'disabled' : ''}><i data-lucide="trash-2"></i><span>${pendingTreeDelete === deleteKey ? '确认删除' : '删除库'}</span></button>
         </div>`;
     }
+    const isCustomCategory = activePromptCategory === 'custom';
+    const categoryDeleteDisabled = locked || isCustomCategory;
+    const deleteButtonText = isCustomCategory ? '不能删除' : (pendingTreeDelete === deleteKey ? '确认删除' : '删除');
     return `<div class="tree-action-bar child-actions">
         <button type="button" data-prompt-cat-new ${locked ? 'disabled' : ''}><i data-lucide="folder-plus"></i><span>新分级</span></button>
         <button type="button" data-prompt-cat-rename ${locked ? 'disabled' : ''}><i data-lucide="pencil"></i><span>重命名</span></button>
-        <button type="button" class="danger ${pendingTreeDelete === deleteKey ? 'detail-confirm' : ''}" data-prompt-cat-delete ${locked ? 'disabled' : ''}><i data-lucide="trash-2"></i><span>${pendingTreeDelete === deleteKey ? '确认删除' : '删除'}</span></button>
+        <button type="button" class="danger ${pendingTreeDelete === deleteKey ? 'detail-confirm' : ''}" data-prompt-cat-delete ${categoryDeleteDisabled ? 'disabled' : ''} title="${isCustomCategory ? '自定义分级是默认分类，不能删除' : ''}"><i data-lucide="trash-2"></i><span>${deleteButtonText}</span></button>
     </div>`;
 }
 function renderPromptTreeInlineEdit(kind){
@@ -1452,6 +1455,10 @@ async function deletePromptCategory(){
     const lib = activePromptLibrary();
     const category = activePromptCategory;
     if(!lib || lib.id === 'system' || lib.readonly || !category) return;
+    if(category === 'custom'){
+        setStatus('自定义分级是默认分类，不能删除');
+        return;
+    }
     const key = `prompt-cat:${category}`;
     if(pendingTreeDelete !== key){
         pendingTreeDelete = key;
@@ -1460,14 +1467,21 @@ async function deletePromptCategory(){
         setStatus('再次点击确认删除分级');
         return;
     }
-    const data = await apiJson(`/api/prompt-libraries/categories/${encodeURIComponent(category)}?library_id=${encodeURIComponent(lib.id)}`, {method:'DELETE'});
-    promptLibrary = data.library || promptLibrary;
-    activePromptLibraryId = lib.id;
-    activePromptCategory = 'custom';
-    selectedPromptId = '';
-    selectedPromptIds.clear();
-    pendingTreeDelete = '';
-    render();
+    try {
+        const data = await apiJson(`/api/prompt-libraries/categories/${encodeURIComponent(category)}?library_id=${encodeURIComponent(lib.id)}`, {method:'DELETE'});
+        promptLibrary = data.library || promptLibrary;
+        activePromptLibraryId = lib.id;
+        activePromptCategory = 'custom';
+        selectedPromptId = '';
+        selectedPromptIds.clear();
+        pendingTreeDelete = '';
+        render();
+        setStatus('分级已删除，该分级下的提示词已移动到自定义分级');
+    } catch (err) {
+        setStatus(err.message || '删除失败');
+        pendingTreeDelete = '';
+        render();
+    }
 }
 async function createPromptItem(){
     const lib = activePromptLibrary();

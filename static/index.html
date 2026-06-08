@@ -161,15 +161,12 @@
             align-items: center;
             border-right: 1px solid var(--border);
             padding: 40px 0;
-            transition: width 0.5s var(--fluid-ease) 0.5s, background 0.3s, border-color 0.3s;
+            transition: width 0.5s var(--fluid-ease), background 0.3s, border-color 0.3s;
             z-index: 50;
             overflow: hidden;
         }
 
-        .sidebar:hover {
-            width: 220px;
-            transition-delay: 0s;
-        }
+
 
         /* 首次加载时与 iframe 的 0.5s 淡入同步播放，避免侧栏"焊死"在原地造成视觉断层 */
         @keyframes sidebar-enter {
@@ -194,13 +191,7 @@
             cursor: pointer;
             flex-shrink: 0;
             /* 仅保留 hover 真正会用到的属性过渡，避免 transition: all 因首屏属性补齐被意外触发 */
-            transition: transform 0.6s var(--fluid-ease) 0.5s, border-radius 0.6s var(--fluid-ease) 0.5s, border-color 0.3s, background-color .18s, box-shadow .2s;
-        }
-
-        .sidebar:hover .logo-ring {
-            transform: rotate(90deg);
-            border-radius: 50%;
-            transition-delay: 0s;
+            transition: transform 0.6s var(--fluid-ease), border-radius 0.6s var(--fluid-ease), border-color 0.3s, background-color .18s, box-shadow .2s;
         }
 
         .logo-ring:hover,
@@ -240,16 +231,11 @@
             justify-content: flex-start;
             border-radius: 18px;
             cursor: pointer;
-            /* 只对 width 做带延迟的过渡（侧栏悬停展开效果）；background/color 不参与过渡，避免 active 切换时底色"流动" */
-            transition: width 0.3s var(--fluid-ease) 0.5s;
+            /* 只对 width 做过渡（侧栏固定展开效果）；background/color 不参与过渡，避免 active 切换时底色"流动" */
+            transition: width 0.3s var(--fluid-ease);
             color: var(--muted);
             overflow: hidden;
             padding-left: 14px;
-        }
-
-        .sidebar:hover .nav-item {
-            width: 190px;
-            transition-delay: 0s;
         }
 
         .nav-item:hover {
@@ -274,12 +260,7 @@
             font-weight: 600;
             font-size: 14px;
             white-space: nowrap;
-            transition: opacity 0.3s 0.5s;
-        }
-
-        .sidebar:hover .nav-text {
-            opacity: 1;
-            transition-delay: 0.1s;
+            transition: opacity 0.3s;
         }
 
         .nav-fold-toggle {
@@ -297,12 +278,7 @@
             justify-content: flex-start;
             cursor: pointer;
             overflow: hidden;
-            transition: width 0.3s var(--fluid-ease) 0.5s, background-color 0.2s, color 0.2s, border-color 0.2s;
-        }
-
-        .sidebar:hover .nav-fold-toggle {
-            width: 190px;
-            transition-delay: 0s;
+            transition: width 0.3s var(--fluid-ease), background-color 0.2s, color 0.2s, border-color 0.2s;
         }
 
         .nav-fold-toggle:hover {
@@ -495,16 +471,11 @@
             justify-content: center;
             cursor: pointer;
             /* 只过渡 hover/激活会改的属性，避免 all 触发延迟 */
-            transition: width 0.3s var(--fluid-ease) 0.5s, gap 0.3s var(--fluid-ease) 0.5s, background-color 0.2s, color 0.2s, border-color 0.2s;
+            transition: width 0.3s var(--fluid-ease), gap 0.3s var(--fluid-ease), background-color 0.2s, color 0.2s, border-color 0.2s;
             flex-shrink: 0;
             overflow:hidden;
-            gap:8px;
+            gap:0px;
             position:relative;
-        }
-
-        .sidebar:hover .side-pill {
-            width: 170px;
-            transition-delay: 0s;
         }
 
         .side-pill:hover {
@@ -568,16 +539,8 @@
             letter-spacing:.02em;
             white-space:nowrap;
             overflow:hidden;
-            transition: opacity 0.3s 0.5s, max-width 0.3s var(--fluid-ease) 0.5s;
+            transition: opacity 0.3s, max-width 0.3s var(--fluid-ease);
         }
-        .sidebar:hover .side-pill-text {
-            opacity:1;
-            max-width:120px;
-            transition-delay:.15s;
-        }
-        /* 折叠态去除 gap，避免图标被推偏 */
-        .side-pill { gap:0; }
-        .sidebar:hover .side-pill { gap:8px; }
 
         .project-version-badge {
             width:44px;
@@ -595,17 +558,11 @@
             line-height:1;
             white-space:nowrap;
             overflow:hidden;
-            transition:width 0.3s var(--fluid-ease) 0.5s, color .2s, border-color .2s, background-color .2s;
+            transition:width 0.3s var(--fluid-ease), color .2s, border-color .2s, background-color .2s;
         }
 
-        .sidebar:hover .project-version-badge {
-            width:170px;
-            transition-delay:0s;
-        }
-
+        .project-version-compact { display:inline; }
         .project-version-full { display:none; }
-        .sidebar:hover .project-version-compact { display:none; }
-        .sidebar:hover .project-version-full { display:inline; }
 
         .update-now-btn {
             display:none;
@@ -618,31 +575,26 @@
             color:#16a34a;
             align-items:center;
             justify-content:center;
-            gap:5px;
+            gap:0px;
             font-size:9px;
             font-weight:900;
             overflow:hidden;
-            transition:width 0.3s var(--fluid-ease) 0.5s, background-color .2s, color .2s, border-color .2s;
+            transition:width 0.3s var(--fluid-ease), background-color .2s, color .2s, border-color .2s;
         }
         .update-now-btn.show { display:flex; }
-        .sidebar:hover .update-now-btn { width:170px; transition-delay:0s; }
         .update-now-btn:hover { background:#16a34a; color:#fff; border-color:#16a34a; }
         .update-now-btn[disabled] { opacity:.7; cursor:wait; }
         .update-now-btn svg { display:none; width:14px; height:14px; flex:0 0 auto; }
-        .sidebar:hover .update-now-btn svg { display:block; }
         .update-now-text {
             opacity:1;
             max-width:42px;
             white-space:nowrap;
             overflow:hidden;
-            transition: opacity 0.3s 0.5s, max-width 0.3s var(--fluid-ease) 0.5s;
+            transition: opacity 0.3s, max-width 0.3s var(--fluid-ease);
         }
         .update-action-prefix { display:none; }
+        .update-version-compact { display:inline; }
         .update-version-full { display:none; }
-        .sidebar:hover .update-version-compact { display:none; }
-        .sidebar:hover .update-version-full { display:inline; }
-        .sidebar:hover .update-action-prefix { display:inline; }
-        .sidebar:hover .update-now-text { max-width:130px; transition-delay:.15s; }
         .update-now-btn.show + .project-version-badge { display:none; }
         html.theme-dark .update-now-btn,
         body.theme-dark .update-now-btn {
@@ -1197,12 +1149,10 @@
 
         .sidebar.is-pinned {
             width: 220px;
-            transition-delay: 0s;
         }
         .sidebar.is-pinned .logo-ring {
             transform: rotate(90deg);
             border-radius: 50%;
-            transition-delay: 0s;
             background: var(--nav-hover-bg);
             color: var(--text);
             box-shadow: 0 0 0 4px rgba(148, 163, 184, .10);
@@ -1219,26 +1169,21 @@
         .sidebar.is-pinned .nav-item,
         .sidebar.is-pinned .nav-fold-toggle {
             width: 190px;
-            transition-delay: 0s;
         }
         .sidebar.is-pinned .nav-text {
             opacity: 1;
-            transition-delay: 0.1s;
         }
         .sidebar.is-pinned .side-pill {
             width: 170px;
             gap: 8px;
-            transition-delay: 0s;
         }
         .sidebar.is-pinned .side-pill-text {
             opacity: 1;
             max-width: 120px;
-            transition-delay: .15s;
         }
         .sidebar.is-pinned .project-version-badge,
         .sidebar.is-pinned .update-now-btn {
             width: 170px;
-            transition-delay: 0s;
         }
         .sidebar.is-pinned .project-version-compact,
         .sidebar.is-pinned .update-version-compact {
@@ -1254,53 +1199,9 @@
         }
         .sidebar.is-pinned .update-now-text {
             max-width: 130px;
-            transition-delay: .15s;
         }
 
-        .sidebar.is-collapsing:hover {
-            width: 80px;
-        }
-        .sidebar.is-collapsing:hover .logo-ring {
-            transform: none;
-            border-radius: 12px;
-            background: transparent;
-        }
-        .sidebar.is-collapsing:hover .nav-item,
-        .sidebar.is-collapsing:hover .nav-fold-toggle {
-            width: 48px;
-        }
-        .sidebar.is-collapsing:hover .nav-text {
-            opacity: 0;
-        }
-        .sidebar.is-collapsing:hover .side-pill {
-            width: 44px;
-            gap: 0;
-        }
-        .sidebar.is-collapsing:hover .side-pill-text {
-            opacity: 0;
-            max-width: 0;
-        }
-        .sidebar.is-collapsing:hover .project-version-badge {
-            width: 44px;
-        }
-        .sidebar.is-collapsing:hover .project-version-compact,
-        .sidebar.is-collapsing:hover .update-version-compact {
-            display: inline;
-        }
-        .sidebar.is-collapsing:hover .project-version-full,
-        .sidebar.is-collapsing:hover .update-version-full,
-        .sidebar.is-collapsing:hover .update-action-prefix {
-            display: none;
-        }
-        .sidebar.is-collapsing:hover .update-now-btn {
-            width: 56px;
-        }
-        .sidebar.is-collapsing:hover .update-now-btn svg {
-            display: none;
-        }
-        .sidebar.is-collapsing:hover .update-now-text {
-            max-width: 42px;
-        }
+
 
         /* Desktop polish */
         :root {
