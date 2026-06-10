@@ -1,4 +1,4 @@
-const params = new URLSearchParams(location.search);
+﻿const params = new URLSearchParams(location.search);
 const canvasId = params.get('id') || '';
 const shell = document.getElementById('shell');
 const world = document.getElementById('world');
@@ -277,7 +277,7 @@ let settings = {
     apiKind:'image',
     provider_id:'',
     model:'',
-    ratio:'square',
+    ratio:'source',
     resolution:'1k',
     customRatio:'',
     customRatioWidth:'',
@@ -304,7 +304,7 @@ let settings = {
     videoTempShLinks:[],
     msgenModel:'zimage',
     msCustomModel:'',
-    msRatio:'square',
+    msRatio:'source',
     msResolution:'1k',
     msCustomRatio:'',
     msCustomRatioWidth:'',
@@ -422,7 +422,7 @@ function rememberRecentSmartSettings(source=settings, node=null){
     sanitizeSmartApiSelection(clean);
     if(clean.outpaintResolutionLocked === true && clean.resolution === 'custom'){
         clean.resolution = '1k';
-        clean.ratio = clean.ratio || 'square';
+        clean.ratio = clean.ratio || 'source';
         clean.customWidth = '';
         clean.customHeight = '';
         clean.customSize = '';
@@ -565,7 +565,7 @@ function stripOutpaintDisplaySettings(settingsObj, node=null){
     const matchesOutpaintSize = size && clean.resolution === 'custom' && String(clean.customSize || '') === `${size.width}x${size.height}`;
     if(matchesOutpaintSize){
         clean.resolution = '1k';
-        clean.ratio = clean.ratio || 'square';
+        clean.ratio = clean.ratio || 'source';
         clean.customWidth = '';
         clean.customHeight = '';
         clean.customSize = '';
@@ -573,7 +573,7 @@ function stripOutpaintDisplaySettings(settingsObj, node=null){
     const matchesMsOutpaintSize = size && clean.msResolution === 'custom' && String(clean.msCustomSize || '') === `${size.width}x${size.height}`;
     if(matchesMsOutpaintSize){
         clean.msResolution = '1k';
-        clean.msRatio = clean.msRatio || 'square';
+        clean.msRatio = clean.msRatio || 'source';
         clean.msCustomWidth = '';
         clean.msCustomHeight = '';
         clean.msCustomSize = '';
@@ -614,7 +614,7 @@ function persistActiveSmartSettings(){
     subject.runSettings = settingsForStorage(settings);
     rememberRecentSmartSettings(settings, subject);
 }
-function backToCanvasList(){ savePromptDraftForCurrent(); window.location.href = '/static/canvas.html?v=2026.06.07.13'; }
+function backToCanvasList(){ savePromptDraftForCurrent(); window.location.href = '/static/canvas.html?v=2026.06.10.1'; }
 function promptPlainText(){
     return promptInput.innerText.replace(/\u00a0/g, ' ').trim();
 }
@@ -1772,7 +1772,7 @@ function renderSizeControls(prefix='', includeSource=false){
             ${['1k','2k','4k','custom'].map(v => optionHtml(v, v === 'custom' ? (tr('canvas.custom') || '自定义') : v.toUpperCase(), settings[resKey] || '1k')).join('')}
         </select>
         <select data-param="${ratioKey}" ${settings[resKey] === 'custom' ? 'disabled' : ''}>
-            ${ratios.map(([v,l]) => `<option value="${escapeHtml(v)}" ${v === (settings[ratioKey] || 'square') ? 'selected' : ''}>${escapeHtml(l)}</option>`).join('')}
+            ${ratios.map(([v,l]) => `<option value="${escapeHtml(v)}" ${v === (settings[ratioKey] || 'source') ? 'selected' : ''}>${escapeHtml(l)}</option>`).join('')}
         </select>`;
 }
 function ratioLabel(prefix=''){
@@ -1780,7 +1780,7 @@ function ratioLabel(prefix=''){
     const customKey = prefix ? `${prefix}CustomRatio` : 'customRatio';
     const sourceLabel = sourceImageRatioLabel(prefix) || tr('smart.imageRatio');
     const map = {square:'1:1', portrait:'2:3', landscape:'3:2', portrait43:'3:4', landscape43:'4:3', story:'9:16', wide:'16:9', ultrawide:'21:9', ultratall:'9:21', source:sourceLabel, custom:settings[customKey] || tr('smart.custom')};
-    return map[settings[ratioKey] || 'square'] || '1:1';
+    return map[settings[ratioKey] || 'source'] || '1:1';
 }
 function gcdInt(a, b){
     a = Math.abs(Math.round(Number(a) || 0));
@@ -1917,7 +1917,7 @@ function renderRatioControl(prefix='', includeSource=false){
         <div class="smart-popover">
             <div class="smart-popover-title">${escapeHtml(tr('smart.ratio'))}</div>
             <div class="ratio-grid">
-                ${ratios.map(([value, label]) => `<button type="button" class="ratio-option ${value === (settings[ratioKey] || 'square') ? 'active' : ''}" data-smart-param="${ratioKey}" data-smart-value="${escapeHtml(value)}"><span class="ratio-icon ${ratioIconClass(value)}"></span><span>${escapeHtml(label)}</span></button>`).join('')}
+                ${ratios.map(([value, label]) => `<button type="button" class="ratio-option ${value === (settings[ratioKey] || 'source') ? 'active' : ''}" data-smart-param="${ratioKey}" data-smart-value="${escapeHtml(value)}"><span class="ratio-icon ${ratioIconClass(value)}"></span><span>${escapeHtml(label)}</span></button>`).join('')}
             </div>
         </div>
     </div>`;
@@ -2555,12 +2555,12 @@ function setDynamicSetting(key, value){
     if(key === 'comfyMode') applyRecentSmartSettingsForCurrentMode();
     if(key === 'resolution'){
         if(settings.resolution === 'custom') settings.ratio = '';
-        else if(!settings.ratio) settings.ratio = 'square';
+        else if(!settings.ratio) settings.ratio = 'source';
     }
     if(key === 'ratio') applySourceRatioToSettings('');
     if(key === 'msResolution'){
         if(settings.msResolution === 'custom') settings.msRatio = '';
-        else if(!settings.msRatio) settings.msRatio = 'square';
+        else if(!settings.msRatio) settings.msRatio = 'source';
     }
     if(key === 'msRatio') applySourceRatioToSettings('ms');
     if(key === 'customRatioWidth' || key === 'customRatioHeight') settings.customRatio = settings.customRatioWidth && settings.customRatioHeight ? `${settings.customRatioWidth}:${settings.customRatioHeight}` : '';
@@ -6524,7 +6524,7 @@ async function ensurePanoramaRenderer(){
     const canvas = document.getElementById('panoramaCanvas');
     if(!canvas) return false;
     if(!panoramaState.three){
-        panoramaState.threeLoadPromise = panoramaState.threeLoadPromise || import('/static/vendor/js/three-0.160.0.module.js?v=2026.06.07.13');
+        panoramaState.threeLoadPromise = panoramaState.threeLoadPromise || import('/static/vendor/js/three-0.160.0.module.js?v=2026.06.10.1');
         panoramaState.three = await panoramaState.threeLoadPromise;
     }
     const THREE = panoramaState.three;
@@ -8407,7 +8407,7 @@ async function handleSmartImageDropPayload(payload, targetId='', opts={}){
     }
 }
 function sizeForRun(sourceSettings=settings){
-    return apiImageSize(sourceSettings.ratio || 'square', sourceSettings.resolution || '1k', sourceSettings.customRatio || '', sourceSettings.customSize || '') || '1024x1024';
+    return apiImageSize(sourceSettings.ratio || 'source', sourceSettings.resolution || '1k', sourceSettings.customRatio || '', sourceSettings.customSize || '') || '1024x1024';
 }
 function expectedOutputSize(){
     if(settings.engine === 'comfy'){
@@ -8420,7 +8420,7 @@ function expectedOutputSize(){
     }
     if(settings.engine === 'runninghub') return {w:1024, h:1024};
     const sizeStr = settings.engine === 'modelscope'
-        ? apiImageSize(settings.msRatio || 'square', settings.msResolution || '1k', settings.msCustomRatio || '', settings.msCustomSize || '')
+        ? apiImageSize(settings.msRatio || 'source', settings.msResolution || '1k', settings.msCustomRatio || '', settings.msCustomSize || '')
         : sizeForRun();
     const parsed = parseSizeValue(sizeStr);
     if(parsed){
@@ -8434,7 +8434,7 @@ function explicitRequestOutputSizeForPending(){
         if(parsed) return {w:Number(parsed.width) || 1024, h:Number(parsed.height) || 1024};
     }
     if(settings.engine === 'modelscope'){
-        const sizeStr = apiImageSize(settings.msRatio || 'square', settings.msResolution || '1k', settings.msCustomRatio || '', settings.msCustomSize || '');
+        const sizeStr = apiImageSize(settings.msRatio || 'source', settings.msResolution || '1k', settings.msCustomRatio || '', settings.msCustomSize || '');
         const parsed = parseSizeValue(sizeStr);
         if(parsed) return {w:Number(parsed.width) || 1024, h:Number(parsed.height) || 1024};
     }
@@ -10993,7 +10993,7 @@ async function runModelscopeGeneration(prompt, refs, runSettings=settings){
     const modelKey = runSettings.msgenModel || 'zimage';
     const msModel = MS_GEN_MODELS[modelKey] || MS_GEN_MODELS.zimage;
     if(msModel.supportsImage && !refs.length) throw new Error(tr('smart.errMsNeedRefs'));
-    const size = apiImageSize(runSettings.msRatio || 'square', runSettings.msResolution || '1k', runSettings.msCustomRatio || '', runSettings.msCustomSize || '');
+    const size = apiImageSize(runSettings.msRatio || 'source', runSettings.msResolution || '1k', runSettings.msCustomRatio || '', runSettings.msCustomSize || '');
     const parsed = parseSizeValue(size);
     const width = Number(parsed?.width) || 1024;
     const height = Number(parsed?.height) || 1024;
@@ -12702,3 +12702,4 @@ window.onload = async () => {
     syncApiKindToggleVisibility();
     render();
 };
+

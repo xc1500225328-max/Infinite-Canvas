@@ -1,4 +1,4 @@
-@import url('/static/vendor/css/fonts.css?v=2026.06.07.13');
+﻿@import url('/static/vendor/css/fonts.css?v=2026.06.10.1');
 :root {
     --page:#f5f6f8;
     --panel:rgba(255,255,255,.94);
@@ -137,3 +137,4 @@ button { border:0; cursor:pointer; }
     .history-lightbox { grid-template-columns:1fr; grid-template-rows:minmax(0, 1fr) auto; padding:14px; }
     .lightbox-info { align-self:auto; max-height:38vh; }
 }
+

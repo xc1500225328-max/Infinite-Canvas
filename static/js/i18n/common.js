@@ -29,6 +29,8 @@
         "nav.gpt": { zh: "GPT 对话", en: "GPT Chat" },
         "nav.canvas": { zh: "无限画布", en: "Infinite Canvas" },
         "nav.history": { zh: "历史图片", en: "History" },
-        "nav.assetManager": { zh: "素材库", en: "Assets" }
+        "nav.assetManager": { zh: "素材库", en: "Assets" },
+        "online.customRatio": { zh: "自定义比例", en: "Custom Ratio" },
+        "online.fitRatio": { zh: "适配比例", en: "Fit Ratio" }
     });
 })();

@@ -1,4 +1,4 @@
-@import url('/static/vendor/css/fonts.css?v=2026.06.07.13');
+﻿@import url('/static/vendor/css/fonts.css?v=2026.06.10.1');
 :root {
     --page:#f5f6f8;
     --panel:rgba(255,255,255,.94);
@@ -313,3 +313,4 @@ button { border:0; cursor:pointer; }
     .asset-search-wrap { width:100%; }
     .asset-grid { grid-template-columns:repeat(auto-fill, minmax(132px, 1fr)); }
 }
+

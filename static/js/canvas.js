@@ -1,4 +1,4 @@
-function refreshIcons(){ if(window.lucide) lucide.createIcons(); }
+﻿function refreshIcons(){ if(window.lucide) lucide.createIcons(); }
 refreshIcons();
 function tr(key){ return window.StudioI18n ? StudioI18n.t(key) : key; }
 function trf(key, values={}){
@@ -1372,7 +1372,7 @@ async function createSmartCanvas(){
 }
 function openSmartCanvasPage(id){
     if(!id) return;
-    window.location.href = `/static/smart-canvas.html?id=${encodeURIComponent(id)}&v=2026.06.07.13`;
+    window.location.href = `/static/smart-canvas.html?id=${encodeURIComponent(id)}&v=2026.06.10.1`;
 }
 function toggleEmojiPicker(id, event){
     event?.preventDefault();
@@ -1927,7 +1927,7 @@ function addLLMNode(point){
 function addGeneratorNode(point){
     const p = point || defaultPoint(120, 0);
     const providerId = imageApiProviders()[0]?.id || '';
-    return addNode({id:uid('gen'), type:'generator', x:p.x, y:p.y, apiProvider:providerId, model:allImageModels(providerId)[0] || '', ratio:'square', resolution:'1k', customRatio:'', customSize:'', customRatioWidth:'', customRatioHeight:'', customWidth:'', customHeight:'', inputs:[]});
+    return addNode({id:uid('gen'), type:'generator', x:p.x, y:p.y, apiProvider:providerId, model:allImageModels(providerId)[0] || '', ratio:'source', resolution:'1k', customRatio:'', customSize:'', customRatioWidth:'', customRatioHeight:'', customWidth:'', customHeight:'', inputs:[]});
 }
 function addMsGenNode(point){
     const p = point || defaultPoint(140, 0);
@@ -7488,7 +7488,7 @@ function renderGeneratorBody(node){
         if(node.resolution === 'custom') {
             node.ratio = '';
         } else if(!node.ratio) {
-            node.ratio = 'square';
+            node.ratio = 'source';
             node.customSize = '';
             node.customWidth = '';
             node.customHeight = '';
@@ -13033,3 +13033,4 @@ window.onload = async () => {
     await loadCanvasList(false);
     setCanvasMode(false);
 };
+
