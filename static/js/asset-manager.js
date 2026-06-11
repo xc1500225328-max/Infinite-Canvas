@@ -3,6 +3,8 @@ const statusEl = document.getElementById('assetStatus');
 const refreshBtn = document.getElementById('refreshBtn');
 const uploadInput = document.getElementById('assetUploadInput');
 
+const promptImportInput = document.getElementById('promptImportInput');
+
 let activeTab = 'assets';
 let assetLibrary = {libraries:[], categories:[]};
 let promptLibrary = {libraries:[]};
@@ -36,6 +38,11 @@ let promptTreeEdit = null;
 let pendingTreeDelete = '';
 let marqueeState = null;
 let assetLibraryRefreshTimer = null;
+let draggingPromptCategory = null;
+let draggingPromptLibrary = null;
+
+// Track collapsed state of libraries
+let collapsedLibraries = new Set();
 
 function refreshIcons(){ if(window.lucide) lucide.createIcons(); }
 function setStatus(text='准备就绪'){ if(statusEl) statusEl.textContent = text || '准备就绪'; }
@@ -436,40 +443,69 @@ function renderAssetClipboardBar(){
 }
 function renderAssetTreeBranch(lib){
     const isActiveLib = lib.id === activeAssetLibraryId;
+    const isCollapsed = collapsedLibraries.has(`asset-${lib.id}`);
     const cats = (lib.categories || []).filter(cat => (cat.type || 'image') === 'image');
     const showLibActions = isActiveLib && assetTreeFocus === 'library';
     return `<div class="tree-branch ${isActiveLib ? 'expanded' : ''}">
-        <button class="tree-row tree-parent ${isActiveLib ? 'contains-active' : ''} ${showLibActions ? 'active' : ''}" type="button" data-asset-lib="${escapeAttr(lib.id)}">
-            <span class="tree-row-icon"><i data-lucide="${isActiveLib ? 'folder-open' : 'folder'}"></i></span>
-            <span class="tree-row-name">${escapeHtml(lib.name || '资产库')}</span>
-            <span class="tree-row-count">${assetCountForLibrary(lib)}</span>
-        </button>
-        ${showLibActions ? renderAssetTreeActionBar('library') : ''}
-        <div class="tree-children">
-            ${cats.length ? cats.map(cat => `<button class="tree-row tree-child ${isActiveLib && cat.id === activeAssetCategoryId && assetTreeFocus === 'category' ? 'active' : ''}" type="button" data-asset-cat="${escapeAttr(cat.id)}" data-asset-cat-lib="${escapeAttr(lib.id)}">
-                <span class="tree-elbow"></span>
-                <span class="tree-row-icon"><i data-lucide="image"></i></span>
-                <span class="tree-row-name">${escapeHtml(cat.name || '分组')}</span>
-                <span class="tree-row-count">${(cat.items || []).length}</span>
-            </button>${isActiveLib && cat.id === activeAssetCategoryId && assetTreeFocus === 'category' ? renderAssetTreeActionBar('category') : ''}`).join('') : '<div class="tree-empty">暂无分组</div>'}
+        <div class="tree-row tree-parent ${isActiveLib ? 'contains-active' : ''} ${showLibActions ? 'active' : ''}">
+            <button class="tree-row-main-btn" type="button" data-asset-lib="${escapeAttr(lib.id)}">
+                <span class="tree-row-icon"><i data-lucide="${isActiveLib ? 'folder-open' : 'folder'}"></i></span>
+                <span class="tree-row-name">${escapeHtml(lib.name || '资产库')}</span>
+                <span class="tree-row-count">${assetCountForLibrary(lib)}</span>
+            </button>
+            ${renderAssetTreeActionMenu('library', false, lib.id)}
+            <button class="tree-row-toggle" type="button" data-toggle-lib="asset-${escapeAttr(lib.id)}">
+                <i data-lucide="${isCollapsed ? 'chevron-down' : 'chevron-up'}"></i>
+            </button>
         </div>
+        ${showLibActions ? renderAssetTreeInlineEdit('library') : ''}
+        ${!isCollapsed ? `
+        <div class="tree-children">
+            ${cats.length ? cats.map(cat => {
+                const isActiveCat = isActiveLib && cat.id === activeAssetCategoryId && assetTreeFocus === 'category';
+                return `
+                <div class="tree-row tree-child ${isActiveCat ? 'active' : ''}" data-asset-cat-lib="${escapeAttr(lib.id)}">
+                    <button class="tree-row-main-btn" type="button" data-asset-cat="${escapeAttr(cat.id)}" data-asset-cat-lib="${escapeAttr(lib.id)}">
+                        <span class="tree-elbow"></span>
+                        <span class="tree-row-icon"><i data-lucide="image"></i></span>
+                        <span class="tree-row-name">${escapeHtml(cat.name || '分组')}</span>
+                        <span class="tree-row-count">${(cat.items || []).length}</span>
+                    </button>
+                    ${renderAssetTreeActionMenu('category', false, lib.id, cat.id)}
+                </div>${isActiveCat ? renderAssetTreeInlineEdit('category') : ''}`;
+            }).join('') : '<div class="tree-empty">暂无分组</div>'}
+        </div>
+        ` : ''}
     </div>`;
 }
-function renderAssetTreeActionBar(kind){
-    const editHtml = renderAssetTreeInlineEdit(kind);
-    if(editHtml) return editHtml;
-    const deleteKey = kind === 'library' ? `asset-lib:${activeAssetLibraryId}` : `asset-cat:${activeAssetCategoryId}`;
-    if(kind === 'library'){
-        return `<div class="tree-action-bar library-actions">
-            <button type="button" data-asset-cat-new><i data-lucide="folder-plus"></i><span>新分组</span></button>
-            <button type="button" data-asset-lib-rename><i data-lucide="pencil"></i><span>重命名</span></button>
-            <button type="button" class="danger ${pendingTreeDelete === deleteKey ? 'detail-confirm' : ''}" data-asset-lib-delete><i data-lucide="trash-2"></i><span>${pendingTreeDelete === deleteKey ? '确认删除' : '删除库'}</span></button>
-        </div>`;
-    }
-    return `<div class="tree-action-bar child-actions">
+function renderAssetTreeActionMenu(kind, readonly=false, libId='', catId=''){
+    if (readonly) return '';
+    const isLibrary = kind === 'library';
+    const isLibActive = activeAssetLibraryId === libId;
+    const isCatActive = isLibActive && activeAssetCategoryId === catId;
+    
+    // Only show menu if the current row is the active target to prevent deleting wrong items
+    // If we want to allow actions on non-active rows, we'd need to pass the IDs via dataset
+    if (isLibrary && !isLibActive) return '';
+    if (!isLibrary && !isCatActive) return '';
+
+    const deleteKey = isLibrary ? `asset-lib:${activeAssetLibraryId}` : `asset-cat:${activeAssetCategoryId}`;
+    
+    const actions = isLibrary ? `
+        <button type="button" data-asset-cat-new><i data-lucide="folder-plus"></i><span>新分组</span></button>
+        <button type="button" data-asset-lib-rename><i data-lucide="pencil"></i><span>重命名</span></button>
+        <button type="button" class="danger ${pendingTreeDelete === deleteKey ? 'detail-confirm' : ''}" data-asset-lib-delete><i data-lucide="trash-2"></i><span>${pendingTreeDelete === deleteKey ? '确认删除' : '删除库'}</span></button>
+    ` : `
         <button type="button" data-asset-cat-new><i data-lucide="folder-plus"></i><span>新分组</span></button>
         <button type="button" data-asset-cat-rename><i data-lucide="pencil"></i><span>重命名</span></button>
         <button type="button" class="danger ${pendingTreeDelete === deleteKey ? 'detail-confirm' : ''}" data-asset-cat-delete><i data-lucide="trash-2"></i><span>${pendingTreeDelete === deleteKey ? '确认删除' : '删除'}</span></button>
+    `;
+
+    return `<div class="tree-action-menu-btn" tabindex="0">
+        <i data-lucide="more-horizontal"></i>
+        <div class="tree-action-menu">
+            ${actions}
+        </div>
     </div>`;
 }
 function renderAssetTreeInlineEdit(kind){
@@ -649,6 +685,8 @@ function renderPromptManager(){
                 </div>
                 <div class="asset-tools">
                     <label class="asset-search-wrap"><i data-lucide="search"></i><input id="promptSearch" class="asset-search" type="search" value="${escapeAttr(promptQuery)}" placeholder="搜索名称、说明或正文"></label>
+                    <button class="asset-btn" type="button" data-prompt-import title="导入提示词库"><i data-lucide="upload"></i><span>导入</span></button>
+                    <button class="asset-btn" type="button" data-prompt-export title="导出所有提示词库"><i data-lucide="download"></i><span>全部导出</span></button>
                     <button class="asset-btn primary" type="button" data-prompt-new ${readonly ? 'disabled' : ''}><i data-lucide="file-plus-2"></i><span>新增</span></button>
                     <button class="asset-btn ${promptManageMode ? 'primary' : ''}" type="button" data-prompt-manage><i data-lucide="list-checks"></i><span>${promptManageMode ? '完成管理' : '批量管理'}</span></button>
                 </div>
@@ -672,47 +710,78 @@ function renderPromptManager(){
 }
 function renderPromptTreeBranch(lib){
     const isActiveLib = lib.id === activePromptLibraryId;
+    const isCollapsed = collapsedLibraries.has(`prompt-${lib.id}`);
     const cats = promptCategoriesForLibrary(lib);
     const libId = escapeAttr(lib.id);
     const readonly = Boolean(lib.readonly);
     const showLibActions = isActiveLib && promptTreeFocus === 'library';
     return `<div class="tree-branch ${isActiveLib ? 'expanded' : ''}">
-        <button class="tree-row tree-parent ${isActiveLib ? 'contains-active' : ''} ${showLibActions ? 'active' : ''}" type="button" data-prompt-lib="${libId}">
-            <span class="tree-row-icon"><i data-lucide="${lib.id === 'system' ? 'sparkles' : 'book-open'}"></i></span>
-            <span class="tree-row-name">${escapeHtml(lib.name || '提示词库')}</span>
-            <span class="tree-row-count">${(lib.items || []).length}</span>
-        </button>
-        ${showLibActions ? renderPromptTreeActionBar('library', readonly) : ''}
-        <div class="tree-children">
-            ${cats.length ? cats.map(cat => `<button class="tree-row tree-child ${isActiveLib && cat.id === activePromptCategory && promptTreeFocus === 'category' ? 'active' : ''}" type="button" data-prompt-cat="${escapeAttr(cat.id)}" data-prompt-cat-lib="${libId}">
-                <span class="tree-elbow"></span>
-                <span class="tree-row-icon"><i data-lucide="tag"></i></span>
-                <span class="tree-row-name">${escapeHtml(cat.name || promptCategoryLabel(cat.id))}</span>
-                <span class="tree-row-count">${promptCountForCategory(cat.id, lib)}</span>
-            </button>${isActiveLib && cat.id === activePromptCategory && promptTreeFocus === 'category' ? renderPromptTreeActionBar('category', readonly) : ''}`).join('') : '<div class="tree-empty">暂无分级</div>'}
+        <div class="tree-row tree-parent ${isActiveLib ? 'contains-active' : ''} ${showLibActions ? 'active' : ''}" data-drop-lib-id="${libId}">
+            <button class="tree-row-main-btn" type="button" data-prompt-lib="${libId}">
+                <span class="tree-row-icon"><i data-lucide="${lib.id === 'system' ? 'sparkles' : 'book-open'}"></i></span>
+                <span class="tree-row-name">${escapeHtml(lib.name || '提示词库')}</span>
+                <span class="tree-row-count">${(lib.items || []).length}</span>
+            </button>
+            ${renderPromptTreeActionMenu('library', readonly, lib.id)}
+            <button class="tree-row-toggle" type="button" data-toggle-lib="prompt-${libId}">
+                <i data-lucide="${isCollapsed ? 'chevron-down' : 'chevron-up'}"></i>
+            </button>
         </div>
+        ${showLibActions ? renderPromptTreeInlineEdit('library') : ''}
+        ${!isCollapsed ? `
+        <div class="tree-children">
+            ${cats.length ? cats.map(cat => {
+                const isActiveCat = isActiveLib && cat.id === activePromptCategory && promptTreeFocus === 'category';
+                return `<div class="tree-row tree-child ${isActiveCat ? 'active' : ''}" data-prompt-cat-lib="${libId}" draggable="${!readonly && cat.id !== 'custom'}" data-drag-cat-id="${escapeAttr(cat.id)}" data-drag-lib-id="${libId}">
+                    <button class="tree-row-main-btn" type="button" data-prompt-cat="${escapeAttr(cat.id)}" data-prompt-cat-lib="${libId}">
+                        <span class="tree-elbow"></span>
+                        <span class="tree-row-icon"><i data-lucide="tag"></i></span>
+                        <span class="tree-row-name">${escapeHtml(cat.name || promptCategoryLabel(cat.id))}</span>
+                        <span class="tree-row-count">${promptCountForCategory(cat.id, lib)}</span>
+                    </button>
+                    ${renderPromptTreeActionMenu('category', readonly, lib.id, cat.id)}
+                </div>${isActiveCat ? renderPromptTreeInlineEdit('category') : ''}`;
+            }).join('') : '<div class="tree-empty">暂无分级</div>'}
+        </div>
+        ` : ''}
     </div>`;
 }
-function renderPromptTreeActionBar(kind, readonly=false){
-    const editHtml = renderPromptTreeInlineEdit(kind);
-    if(editHtml) return editHtml;
+function renderPromptTreeActionMenu(kind, readonly=false, libId='', catId=''){
     const lib = activePromptLibrary();
     const locked = readonly || lib?.id === 'system';
-    const deleteKey = kind === 'library' ? `prompt-lib:${activePromptLibraryId}` : `prompt-cat:${activePromptCategory}`;
-    if(kind === 'library'){
-        return `<div class="tree-action-bar library-actions">
+    
+    const isLibrary = kind === 'library';
+    const isLibActive = activePromptLibraryId === libId;
+    const isCatActive = isLibActive && activePromptCategory === catId;
+    
+    if (isLibrary && !isLibActive) return '';
+    if (!isLibrary && !isCatActive) return '';
+
+    const deleteKey = isLibrary ? `prompt-lib:${activePromptLibraryId}` : `prompt-cat:${activePromptCategory}`;
+    
+    let actions = '';
+    if(isLibrary){
+        actions = `
             <button type="button" data-prompt-cat-new ${locked ? 'disabled' : ''}><i data-lucide="folder-plus"></i><span>新分级</span></button>
             <button type="button" data-prompt-lib-rename ${locked ? 'disabled' : ''}><i data-lucide="pencil"></i><span>重命名</span></button>
             <button type="button" class="danger ${pendingTreeDelete === deleteKey ? 'detail-confirm' : ''}" data-prompt-lib-delete ${locked ? 'disabled' : ''}><i data-lucide="trash-2"></i><span>${pendingTreeDelete === deleteKey ? '确认删除' : '删除库'}</span></button>
-        </div>`;
+        `;
+    } else {
+        const isCustomCategory = activePromptCategory === 'custom';
+        const categoryDeleteDisabled = locked || isCustomCategory;
+        const deleteButtonText = isCustomCategory ? '不能删除' : (pendingTreeDelete === deleteKey ? '确认删除' : '删除');
+        actions = `
+            <button type="button" data-prompt-cat-new ${locked ? 'disabled' : ''}><i data-lucide="folder-plus"></i><span>新分级</span></button>
+            <button type="button" data-prompt-cat-rename ${locked ? 'disabled' : ''}><i data-lucide="pencil"></i><span>重命名</span></button>
+            <button type="button" class="danger ${pendingTreeDelete === deleteKey ? 'detail-confirm' : ''}" data-prompt-cat-delete ${categoryDeleteDisabled ? 'disabled' : ''} title="${isCustomCategory ? '自定义分级是默认分类，不能删除' : ''}"><i data-lucide="trash-2"></i><span>${deleteButtonText}</span></button>
+        `;
     }
-    const isCustomCategory = activePromptCategory === 'custom';
-    const categoryDeleteDisabled = locked || isCustomCategory;
-    const deleteButtonText = isCustomCategory ? '不能删除' : (pendingTreeDelete === deleteKey ? '确认删除' : '删除');
-    return `<div class="tree-action-bar child-actions">
-        <button type="button" data-prompt-cat-new ${locked ? 'disabled' : ''}><i data-lucide="folder-plus"></i><span>新分级</span></button>
-        <button type="button" data-prompt-cat-rename ${locked ? 'disabled' : ''}><i data-lucide="pencil"></i><span>重命名</span></button>
-        <button type="button" class="danger ${pendingTreeDelete === deleteKey ? 'detail-confirm' : ''}" data-prompt-cat-delete ${categoryDeleteDisabled ? 'disabled' : ''} title="${isCustomCategory ? '自定义分级是默认分类，不能删除' : ''}"><i data-lucide="trash-2"></i><span>${deleteButtonText}</span></button>
+
+    return `<div class="tree-action-menu-btn" tabindex="0">
+        <i data-lucide="more-horizontal"></i>
+        <div class="tree-action-menu">
+            ${actions}
+        </div>
     </div>`;
 }
 function renderPromptTreeInlineEdit(kind){
@@ -826,6 +895,41 @@ async function uploadFiles(files){
     render();
     setStatus(`已上传 ${items.length} 个素材`);
 }
+// ==================== 提示词导入导出 ====================
+if (promptImportInput) {
+    promptImportInput.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            
+            if (data.type !== 'prompt_libraries') {
+                throw new Error('无效的提示词库文件格式');
+            }
+            
+            const mode = confirm('点击"确定"将合并导入的数据（保留现有数据），点击"取消"将覆盖当前数据（系统库除外）。') ? 'merge' : 'overwrite';
+            
+            setStatus('正在导入...');
+            const res = await apiJson('/api/prompt-libraries/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data, mode })
+            });
+            
+            promptLibrary = res.library || promptLibrary;
+            render();
+            setStatus(`成功导入 ${res.imported} 个提示词库`);
+        } catch (err) {
+            alert('导入失败: ' + err.message);
+            setStatus('导入失败');
+        } finally {
+            promptImportInput.value = '';
+        }
+    });
+}
+
 async function handleClick(event){
     const target = event.target;
     const tabBtn = target.closest?.('[data-tab]');
@@ -913,6 +1017,36 @@ async function handleClick(event){
     if(assetLib){ activeAssetLibraryId = assetLib.dataset.assetLib || ''; assetTreeFocus = 'library'; activeAssetCategoryId = assetCategories()[0]?.id || ''; selectedAssetId = ''; selectedAssetIds.clear(); render(); return; }
     const assetCat = target.closest?.('[data-asset-cat]');
     if(assetCat){ activeAssetLibraryId = assetCat.dataset.assetCatLib || activeAssetLibraryId; activeAssetCategoryId = assetCat.dataset.assetCat || ''; assetTreeFocus = 'category'; selectedAssetId = ''; selectedAssetIds.clear(); render(); return; }
+    
+    const promptLib = target.closest?.('[data-prompt-lib]');
+    if(promptLib){ activePromptLibraryId = promptLib.dataset.promptLib || ''; promptTreeFocus = 'library'; activePromptCategory = 'all'; selectedPromptId = ''; promptCreateMode = false; promptEditMode = false; selectedPromptIds.clear(); render(); return; }
+    
+    if(target.closest?.('[data-prompt-export]')){
+        const url = `/api/prompt-libraries/export`;
+        window.open(url, '_blank');
+        return;
+    }
+    if(target.closest?.('[data-prompt-import]')){
+        const input = document.getElementById('promptImportInput');
+        if(input) input.click();
+        return;
+    }
+    
+    const promptCat = target.closest?.('[data-prompt-cat]');
+    if(promptCat){ activePromptLibraryId = promptCat.dataset.promptCatLib || activePromptLibraryId; activePromptCategory = promptCat.dataset.promptCat || 'all'; promptTreeFocus = 'category'; selectedPromptId = ''; promptCreateMode = false; promptEditMode = false; selectedPromptIds.clear(); render(); return; }
+    
+    const toggleLibBtn = target.closest?.('[data-toggle-lib]');
+    if (toggleLibBtn) {
+        const toggleId = toggleLibBtn.dataset.toggleLib;
+        if (collapsedLibraries.has(toggleId)) {
+            collapsedLibraries.delete(toggleId);
+        } else {
+            collapsedLibraries.add(toggleId);
+        }
+        render();
+        return;
+    }
+    
     const assetCard = target.closest?.('[data-asset-card]');
     if(assetCard){ selectedAssetId = assetCard.dataset.assetCard || ''; assetEditMode = false; pendingDeleteAssetId = ''; render(); return; }
 
@@ -982,10 +1116,6 @@ async function handleClick(event){
         if(promptLibDeleteBtn.dataset.libId) activePromptLibraryId = promptLibDeleteBtn.dataset.libId;
         await deletePromptLibrary(); return;
     }
-    const promptLib = target.closest?.('[data-prompt-lib]');
-    if(promptLib){ activePromptLibraryId = promptLib.dataset.promptLib || ''; activePromptCategory = 'all'; promptTreeFocus = 'library'; selectedPromptId = ''; promptCreateMode = false; promptEditMode = false; selectedPromptIds.clear(); render(); return; }
-    const promptCat = target.closest?.('[data-prompt-cat]');
-    if(promptCat){ activePromptLibraryId = promptCat.dataset.promptCatLib || activePromptLibraryId; activePromptCategory = promptCat.dataset.promptCat || 'all'; promptTreeFocus = 'category'; selectedPromptId = ''; promptCreateMode = false; promptEditMode = false; selectedPromptIds.clear(); render(); return; }
     const promptRow = target.closest?.('[data-prompt-row]');
     if(promptRow){ selectedPromptId = promptRow.dataset.promptRow || ''; promptEditMode = false; promptCreateMode = false; pendingDeletePromptId = ''; render(); return; }
 }
@@ -1483,6 +1613,31 @@ async function deletePromptCategory(){
         render();
     }
 }
+async function movePromptCategory(sourceLibId, catId, targetLibId){
+    if(!sourceLibId || !catId || !targetLibId) return;
+    if(sourceLibId === targetLibId) return;
+    try {
+        setStatus('正在移动分组...');
+        const data = await apiJson('/api/prompt-libraries/categories/move', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                source_library_id: sourceLibId,
+                target_library_id: targetLibId,
+                category_id: catId
+            })
+        });
+        promptLibrary = data.library || promptLibrary;
+        if (activePromptLibraryId === sourceLibId && activePromptCategory === catId) {
+            activePromptCategory = 'all';
+        }
+        render();
+        setStatus(`已移动分组及其包含的 ${data.moved || 0} 个提示词`);
+    } catch (err) {
+        setStatus(err.message || '移动失败');
+        render();
+    }
+}
 async function createPromptItem(){
     const lib = activePromptLibrary();
     if(!lib) return;
@@ -1643,21 +1798,76 @@ root.addEventListener('change', event => {
         render();
     }
 });
+root.addEventListener('dragstart', event => {
+    const dragCat = event.target.closest?.('[data-drag-cat-id]');
+    if (dragCat) {
+        draggingPromptCategory = dragCat.dataset.dragCatId;
+        draggingPromptLibrary = dragCat.dataset.dragLibId;
+        if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+            // Need some data to satisfy standard DND
+            event.dataTransfer.setData('text/plain', draggingPromptCategory);
+        }
+    }
+});
+root.addEventListener('dragend', event => {
+    draggingPromptCategory = null;
+    draggingPromptLibrary = null;
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+});
 root.addEventListener('dragover', event => {
     const drop = event.target.closest?.('#assetDrop');
-    if(!drop) return;
-    event.preventDefault();
-    drop.classList.add('drag-over');
+    if(drop) {
+        event.preventDefault();
+        drop.classList.add('drag-over');
+        return;
+    }
+    
+    // Check if dragging prompt category
+    if (draggingPromptCategory) {
+        const dropLib = event.target.closest?.('[data-drop-lib-id]');
+        if (dropLib) {
+            const dropLibId = dropLib.dataset.dropLibId;
+            if (dropLibId && dropLibId !== draggingPromptLibrary) {
+                event.preventDefault(); // allow drop
+                event.dataTransfer.dropEffect = 'move';
+                dropLib.classList.add('drag-over');
+                event.stopPropagation();
+            }
+        }
+    }
 });
 root.addEventListener('dragleave', event => {
     event.target.closest?.('#assetDrop')?.classList.remove('drag-over');
+    
+    // We only want to remove drag-over if we are actually leaving the element
+    // because dragleave is fired when entering child elements
+    const dropLib = event.target.closest?.('[data-drop-lib-id]');
+    if (dropLib) {
+        // If the relatedTarget is still inside dropLib, we haven't really left
+        if (!dropLib.contains(event.relatedTarget)) {
+            dropLib.classList.remove('drag-over');
+        }
+    }
 });
 root.addEventListener('drop', event => {
     const drop = event.target.closest?.('#assetDrop');
-    if(!drop) return;
-    event.preventDefault();
-    drop.classList.remove('drag-over');
-    uploadFiles(event.dataTransfer.files).catch(err => setStatus(err.message || '上传失败'));
+    if(drop) {
+        event.preventDefault();
+        drop.classList.remove('drag-over');
+        uploadFiles(event.dataTransfer.files).catch(err => setStatus(err.message || '上传失败'));
+        return;
+    }
+    const dropLib = event.target.closest?.('[data-drop-lib-id]');
+    if (dropLib && draggingPromptCategory && draggingPromptLibrary) {
+        event.preventDefault();
+        event.stopPropagation();
+        dropLib.classList.remove('drag-over');
+        const targetLibId = dropLib.dataset.dropLibId;
+        if (targetLibId && targetLibId !== draggingPromptLibrary) {
+            movePromptCategory(draggingPromptLibrary, draggingPromptCategory, targetLibId);
+        }
+    }
 });
 uploadInput?.addEventListener('change', event => {
     const files = event.target.files;

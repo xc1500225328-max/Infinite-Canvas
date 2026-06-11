@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -29,9 +29,9 @@
                 <div class="asset-sub">按库、分组、内容和预览管理素材与提示词。</div>
             </div>
             <div class="asset-head-actions">
-                <div id="assetStatus" class="asset-status">准备就绪</div>
-                <button id="refreshBtn" class="asset-btn" type="button"><i data-lucide="refresh-cw"></i><span>刷新</span></button>
-            </div>
+            <div id="assetStatus" class="asset-status">准备就绪</div>
+            <button id="refreshBtn" class="asset-btn" type="button"><i data-lucide="refresh-cw"></i><span>刷新</span></button>
+        </div>
         </header>
 
         <div class="asset-tabs">
@@ -43,7 +43,8 @@
     </div>
 
     <input id="assetUploadInput" type="file" accept="image/*,video/*,audio/*" multiple hidden>
-    <script src="/static/js/asset-manager.js?v=2026.06.10.1"></script>
+    <input id="promptImportInput" type="file" accept=".json" hidden>
+    <script src="/static/js/asset-manager.js?v=2026.06.11.1"></script>
 </body>
 </html>
 

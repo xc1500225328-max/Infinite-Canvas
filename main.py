@@ -2602,6 +2602,11 @@ class PromptLibraryCategoryRequest(BaseModel):
     library_id: str = ""
     name: str = "新分级"
 
+class PromptCategoryMoveRequest(BaseModel):
+    source_library_id: str
+    target_library_id: str
+    category_id: str
+
 class PromptLibraryItemRequest(BaseModel):
     library_id: str = ""
     item_id: str = ""
@@ -7649,6 +7654,101 @@ async def ai_models():
 async def api_providers():
     return {"providers": public_api_providers()}
 
+@app.get("/api/providers/export")
+async def export_providers():
+    providers = load_api_providers()
+    
+    # 准备导出数据，不含密钥
+    export_data = {
+        "version": "1.0",
+        "type": "api_providers",
+        "exported_at": now_ms(),
+        "providers": []
+    }
+    
+    for provider in providers:
+        export_provider = {
+            "id": provider.get("id"),
+            "name": provider.get("name"),
+            "base_url": provider.get("base_url"),
+            "protocol": provider.get("protocol"),
+            "enabled": provider.get("enabled", True),
+            "primary": provider.get("primary", False),
+            "image_models": provider.get("image_models", []),
+            "chat_models": provider.get("chat_models", []),
+            "video_models": provider.get("video_models", []),
+            "ms_loras": provider.get("ms_loras", []),
+            "rh_apps": provider.get("rh_apps", []),
+            "rh_workflows": provider.get("rh_workflows", []),
+            "has_key": False  # 标记需要重新输入密钥
+        }
+        export_data["providers"].append(export_provider)
+    
+    # 返回JSON文件下载
+    import json
+    from fastapi.responses import Response
+    json_str = json.dumps(export_data, ensure_ascii=False, indent=2)
+    filename = f"api_providers_export_{int(now_ms()/1000)}.json"
+    return Response(
+        content=json_str,
+        media_type="application/json",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@app.post("/api/providers/import")
+async def import_providers(payload: dict):
+    import_data = payload.get("data", {})
+    mode = payload.get("mode", "merge")  # merge or overwrite
+    
+    if not import_data or import_data.get("type") != "api_providers":
+        raise HTTPException(status_code=400, detail="无效的API平台数据格式")
+    
+    imported_providers = import_data.get("providers", [])
+    if not imported_providers:
+        raise HTTPException(status_code=400, detail="没有可导入的API平台")
+    
+    existing_providers = load_api_providers()
+    
+    if mode == "overwrite":
+        # 覆盖模式：清空现有平台
+        existing_providers = []
+    
+    # 处理导入的平台
+    for imported_prov in imported_providers:
+        # 检查是否已存在
+        existing_index = None
+        for idx, prov in enumerate(existing_providers):
+            if prov.get("id") == imported_prov.get("id"):
+                existing_index = idx
+                break
+        
+        # 确保有必要的字段
+        imported_prov.setdefault("id", f"prov_{uuid.uuid4().hex[:8]}")
+        imported_prov.setdefault("name", "导入的API平台")
+        imported_prov.setdefault("base_url", "")
+        imported_prov.setdefault("protocol", "openai")
+        imported_prov.setdefault("enabled", True)
+        imported_prov.setdefault("primary", False)
+        imported_prov.setdefault("image_models", [])
+        imported_prov.setdefault("chat_models", [])
+        imported_prov.setdefault("video_models", [])
+        imported_prov.setdefault("ms_loras", [])
+        imported_prov.setdefault("rh_apps", [])
+        imported_prov.setdefault("rh_workflows", [])
+        
+        if existing_index is not None and mode == "merge":
+            # 合并模式：更新现有平台
+            existing_providers[existing_index].update(imported_prov)
+        else:
+            # 添加新平台
+            existing_providers.append(imported_prov)
+    
+    if not existing_providers:
+        raise HTTPException(status_code=400, detail="导入后至少需要保留一个API平台")
+    
+    save_api_providers(existing_providers)
+    return {"providers": [public_provider(p) for p in existing_providers], "imported": len(imported_providers)}
+
 @app.put("/api/providers")
 async def save_providers(payload: List[ApiProviderPayload]):
     providers = []
@@ -9320,6 +9420,63 @@ async def rename_prompt_library_category(category_id: str, payload: PromptLibrar
     data = save_prompt_libraries(data)
     return {"library": public_prompt_libraries(data), "category": category}
 
+@app.post("/api/prompt-libraries/categories/move")
+async def move_prompt_library_category(payload: PromptCategoryMoveRequest):
+    data = load_prompt_libraries()
+    source_lib = find_prompt_library(data, payload.source_library_id)
+    target_lib = find_prompt_library(data, payload.target_library_id)
+    if not source_lib or not target_lib:
+        raise HTTPException(status_code=404, detail="提示词库不存在")
+    if source_lib.get("id") == "system" or source_lib.get("readonly"):
+        raise HTTPException(status_code=400, detail="源提示词库不可编辑")
+    if target_lib.get("id") == "system" or target_lib.get("readonly"):
+        raise HTTPException(status_code=400, detail="目标提示词库不可编辑")
+    if source_lib.get("id") == target_lib.get("id"):
+        raise HTTPException(status_code=400, detail="源和目标提示词库不能相同")
+    
+    normalized_category_id = normalize_prompt_category_id(payload.category_id)
+    if normalized_category_id == "custom":
+        raise HTTPException(status_code=400, detail="自定义分级不能移动")
+        
+    source_categories = source_lib.get("categories") or []
+    category_to_move = next((item for item in source_categories if item.get("id") == normalized_category_id), None)
+    if not category_to_move:
+        raise HTTPException(status_code=404, detail="源分级不存在")
+        
+    # Remove from source
+    source_lib["categories"] = [item for item in source_categories if item.get("id") != normalized_category_id]
+    
+    # Ensure custom exists in source if we just emptied it
+    existing_source_category_ids = {str(item.get("id") or "") for item in source_lib.get("categories") or []}
+    if "custom" not in existing_source_category_ids:
+        source_lib.setdefault("categories", []).append({"id": "custom", "name": "自定义"})
+        
+    # Handle target category collision
+    target_categories = target_lib.get("categories") or []
+    target_category_ids = {str(item.get("id") or "") for item in target_categories}
+    
+    new_category_id = normalized_category_id
+    if new_category_id in target_category_ids:
+        new_category_id = f"{new_category_id}_{uuid.uuid4().hex[:6]}"
+    
+    category_to_move["id"] = new_category_id
+    target_lib.setdefault("categories", []).append(category_to_move)
+    
+    # Move items
+    source_items = source_lib.get("items") or []
+    items_to_move = [item for item in source_items if item.get("category") == normalized_category_id]
+    
+    source_lib["items"] = [item for item in source_items if item.get("category") != normalized_category_id]
+    
+    for item in items_to_move:
+        item["category"] = new_category_id
+        item["updated_at"] = now_ms()
+        target_lib.setdefault("items", []).insert(0, item)
+        
+    data["active_library_id"] = target_lib.get("id")
+    data = save_prompt_libraries(data)
+    return {"library": public_prompt_libraries(data), "moved": len(items_to_move)}
+
 @app.delete("/api/prompt-libraries/categories/{category_id}")
 async def delete_prompt_library_category(category_id: str, library_id: str = ""):
     data = load_prompt_libraries()
@@ -9425,6 +9582,108 @@ async def batch_delete_prompt_library_items(payload: PromptLibraryBatchDeleteReq
         library["items"] = keep
     data = save_prompt_libraries(data)
     return {"library": public_prompt_libraries(data), "removed": removed}
+
+@app.get("/api/prompt-libraries/export")
+async def export_prompt_libraries(library_id: str = ""):
+    data = load_prompt_libraries()
+    libraries = data.get("libraries", [])
+    
+    if library_id:
+        libraries = [lib for lib in libraries if lib.get("id") == library_id]
+        if not libraries:
+            raise HTTPException(status_code=404, detail="提示词库不存在")
+    
+    # 准备导出数据，只保留必要的字段
+    export_data = {
+        "version": "1.0",
+        "type": "prompt_libraries",
+        "exported_at": now_ms(),
+        "libraries": []
+    }
+    
+    for lib in libraries:
+        export_lib = {
+            "id": lib.get("id"),
+            "name": lib.get("name"),
+            "type": lib.get("type", "prompt"),
+            "readonly": lib.get("readonly", False),
+            "categories": lib.get("categories", []),
+            "items": lib.get("items", [])
+        }
+        export_data["libraries"].append(export_lib)
+    
+    # 返回JSON文件下载
+    import json
+    from fastapi.responses import JSONResponse
+    from fastapi.responses import Response
+    json_str = json.dumps(export_data, ensure_ascii=False, indent=2)
+    filename = f"prompt_libraries_export_{int(now_ms()/1000)}.json"
+    return Response(
+        content=json_str,
+        media_type="application/json",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@app.post("/api/prompt-libraries/import")
+async def import_prompt_libraries(payload: dict):
+    import_data = payload.get("data", {})
+    mode = payload.get("mode", "merge")  # merge or overwrite
+    
+    if not import_data or import_data.get("type") != "prompt_libraries":
+        raise HTTPException(status_code=400, detail="无效的提示词库数据格式")
+    
+    imported_libraries = import_data.get("libraries", [])
+    if not imported_libraries:
+        raise HTTPException(status_code=400, detail="没有可导入的提示词库")
+    
+    data = load_prompt_libraries()
+    existing_libraries = data.get("libraries", [])
+    
+    if mode == "overwrite":
+        # 覆盖模式：保留系统库，替换其他库
+        system_libs = [lib for lib in existing_libraries if lib.get("id") == "system"]
+        data["libraries"] = system_libs
+        existing_libraries = data["libraries"]
+    
+    # 处理导入的库
+    for imported_lib in imported_libraries:
+        if imported_lib.get("id") == "system":
+            continue  # 跳过系统库
+        
+        # 检查是否已存在
+        existing_index = None
+        for idx, lib in enumerate(existing_libraries):
+            if lib.get("id") == imported_lib.get("id"):
+                existing_index = idx
+                break
+        
+        # 确保有必要的字段
+        imported_lib.setdefault("id", f"lib_{uuid.uuid4().hex[:12]}")
+        imported_lib.setdefault("name", "导入的提示词库")
+        imported_lib.setdefault("type", "prompt")
+        imported_lib.setdefault("readonly", False)
+        imported_lib.setdefault("categories", [])
+        imported_lib.setdefault("items", [])
+        
+        # 为导入的条目确保有ID
+        for item in imported_lib.get("items", []):
+            if not item.get("id"):
+                item["id"] = f"tpl_{uuid.uuid4().hex[:12]}"
+            if not item.get("created_at"):
+                item["created_at"] = now_ms()
+            if not item.get("updated_at"):
+                item["updated_at"] = now_ms()
+        
+        if existing_index is not None and mode == "merge":
+            # 合并模式：更新现有库
+            existing_libraries[existing_index].update(imported_lib)
+        else:
+            # 添加新库
+            existing_libraries.append(imported_lib)
+    
+    data["libraries"] = existing_libraries
+    data = save_prompt_libraries(data)
+    return {"library": public_prompt_libraries(data), "imported": len(imported_libraries)}
 
 @app.post("/api/asset-library/libraries")
 async def create_asset_library(payload: AssetLibraryRequest):

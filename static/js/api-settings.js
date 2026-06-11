@@ -2517,6 +2517,74 @@ async function fetchModels(){
 // 每个模型只归一类（根据用户已配置 或 关键字猜测）；勾选 = 纳入该分类
 let pickerState = { category: {}, selected: {} };
 let pickerVisibleIds = [];
+// ==================== 导入导出功能 ====================
+async function exportProviders() {
+    try {
+        const url = `/api/providers/export`;
+        window.open(url, '_blank');
+    } catch (err) {
+        alert(trf('api.exportFailed', { error: err.message }));
+    }
+}
+
+async function importProviders() {
+    const input = document.getElementById('providersImportInput');
+    if (!input) return;
+    
+    input.onchange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            
+            if (data.type !== 'api_providers') {
+                throw new Error('无效的API平台配置格式');
+            }
+            
+            const mode = confirm('点击"确定"将合并导入的数据（保留现有数据），点击"取消"将覆盖当前数据。') ? 'merge' : 'overwrite';
+            
+            setStatus('正在导入...');
+            const res = await fetch('/api/providers/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data, mode })
+            });
+            
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.detail || '导入失败');
+            }
+            
+            const result = await res.json();
+            providers = result.providers || providers;
+            
+            if (providers.length > 0) {
+                selectedId = providers[0].id;
+            }
+            
+            renderProviders();
+            renderEditor();
+            setStatus(`成功导入 ${result.imported} 个平台配置，请注意重新输入API Key`);
+            broadcastStudioApiChange();
+            
+            // 提示用户需要重新输入Key
+            setTimeout(() => {
+                alert('API平台配置导入成功。\n注意：出于安全考虑，导出的文件不包含API Key，请为导入的平台重新填写Key。');
+            }, 500);
+            
+        } catch (err) {
+            alert('导入失败: ' + err.message);
+            setStatus('导入失败');
+        } finally {
+            input.value = '';
+        }
+    };
+    
+    input.click();
+}
+
 function openModelPicker(){
     const item = provider();
     if(!item || !lastFetchedAll.length){ alert('没有拉取到模型'); return; }
