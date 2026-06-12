@@ -40,6 +40,11 @@ html.studio-theme-dark body .provider-card.provider-card-banner.active { box-sha
 .provider-card-banner .runninghub-icon { height:18px; max-width:132px; }
 .provider-card-banner .volcengine-icon { height:22px; max-width:132px; }
 .provider-card-banner .ms-icon-dark { display:none; }
+.provider-card-banner .grsai-logo-wrap { min-width:78px; justify-content:center; }
+.grsai-wordmark { display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:8px; background:#0f172a; color:#fff; font-size:13px; font-weight:950; letter-spacing:.08em; line-height:1; }
+body.studio-theme-dark .grsai-wordmark,
+html.studio-theme-dark body .grsai-wordmark { background:#f8fafc; color:#0f172a; }
+
 body.studio-theme-dark .provider-card-banner .ms-icon-light,
 html.studio-theme-dark body .provider-card-banner .ms-icon-light { display:none; }
 body.studio-theme-dark .provider-card-banner .ms-icon-dark,

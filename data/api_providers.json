@@ -1646,5 +1646,58 @@
     "rh_workflows": [],
     "volcengine_project_name": "default",
     "volcengine_region": "cn-beijing"
+  },
+  {
+    "id": "custom-api",
+    "name": "GRSAI",
+    "base_url": "https://grsai.dakka.com.cn/v1",
+    "protocol": "openai",
+    "image_generation_endpoint": "",
+    "image_edit_endpoint": "",
+    "enabled": true,
+    "primary": false,
+    "image_models": [
+      "gpt-image-2",
+      "nano-banana-pro"
+    ],
+    "chat_models": [],
+    "video_models": [],
+    "ms_loras": [],
+    "ms_defaults_version": 0,
+    "rh_apps": [],
+    "rh_workflows": [],
+    "volcengine_project_name": "",
+    "volcengine_region": ""
+  },
+  {
+    "id": "grsai",
+    "name": "GRSAI",
+    "base_url": "https://grsai.dakka.com.cn",
+    "protocol": "grsai",
+    "image_generation_endpoint": "",
+    "image_edit_endpoint": "",
+    "enabled": true,
+    "primary": false,
+    "image_models": [
+      "nano-banana",
+      "nano-banana-fast",
+      "nano-banana-2",
+      "nano-banana-2-cl",
+      "nano-banana-2-4k-cl",
+      "nano-banana-pro",
+      "nano-banana-pro-cl",
+      "nano-banana-pro-vip",
+      "nano-banana-pro-4k-vip",
+      "gpt-image-2",
+      "gpt-image-2-vip"
+    ],
+    "chat_models": [],
+    "video_models": [],
+    "ms_loras": [],
+    "ms_defaults_version": 0,
+    "rh_apps": [],
+    "rh_workflows": [],
+    "volcengine_project_name": "",
+    "volcengine_region": ""
   }
 ]

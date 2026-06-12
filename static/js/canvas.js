@@ -1372,7 +1372,7 @@ async function createSmartCanvas(){
 }
 function openSmartCanvasPage(id){
     if(!id) return;
-    window.location.href = `/static/smart-canvas.html?id=${encodeURIComponent(id)}&v=2026.06.11.1`;
+    window.location.href = `/static/smart-canvas.html?id=${encodeURIComponent(id)}&v=2026.06.12.3`;
 }
 function toggleEmojiPicker(id, event){
     event?.preventDefault();
@@ -10988,10 +10988,12 @@ function addGenerationLog({run, outputs=[], runMs=0, error=''}) {
 function renderCanvasLog(){
     const logs = canvas?.logs || [];
     logList.innerHTML = logs.length ? logs.map(log => {
-        const thumbs = (log.outputs || []).slice(0, 8).map(url => {
+        const thumbs = (log.outputs || []).slice(0, 8).map(item => {
+            const url = outputUrlValue(item);
+            if(!url) return '';
             const safe = escapeAttr(url);
             if(isMissingAssetUrl(url)) return `<div class="missing-asset compact" data-url="${safe}"><i data-lucide="image-off" class="w-4 h-4"></i></div>`;
-            return isVideoUrl(url) ? `<video src="${safe}" data-url="${safe}" muted playsinline disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"></video>` : `<img src="${safe}" data-url="${safe}" alt="output">`;
+            return mediaKindForOutputItem(item) === 'video' ? `<video src="${safe}" data-url="${safe}" muted playsinline disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback"></video>` : `<img src="${safe}" data-url="${safe}" alt="output">`;
         }).join('');
         const date = new Date(log.createdAt || Date.now()).toLocaleString(window.StudioI18n?.lang() === 'en' ? 'en-US' : 'zh-CN');
         const req = log.request || {};
@@ -11047,7 +11049,12 @@ function renderCanvasLog(){
 }
 function openCanvasLog(){
     if(!ensureCanvas()) return;
-    renderCanvasLog();
+    try {
+        renderCanvasLog();
+    } catch(err) {
+        console.error('render canvas log failed', err);
+        logList.innerHTML = `<div class="log-empty">${langIsEn() ? 'Log render failed' : '日志渲染失败'}</div>`;
+    }
     logModal.classList.add('open');
 }
 function closeCanvasLog(){
@@ -11291,6 +11298,9 @@ function appendOutputImages(out, images, compareRef, metas=[], layout=null){
         const item = {url:outputUrlValue(url), viewed:false, runMs:meta.runMs || 0, run:meta.run || null};
         if(source.name) item.name = source.name;
         if(source.kind || source.mediaKind) item.kind = source.kind || source.mediaKind;
+        ['width','height','requested_width','requested_height','requested_size'].forEach(key => {
+            if(source[key]) item[key] = source[key];
+        });
         if(meta.kind) item.kind = meta.kind;
         if(meta.grid) item.grid = meta.grid;
         return item;
@@ -11298,7 +11308,8 @@ function appendOutputImages(out, images, compareRef, metas=[], layout=null){
     if(compareRef?.url){
         out.imageComparisons = out.imageComparisons || {};
         list.forEach(url => {
-            out.imageComparisons[url] = {url:compareRef.url, name:compareRef.name || 'input image'};
+            const outputUrl = outputUrlValue(url);
+            if(outputUrl) out.imageComparisons[outputUrl] = {url:compareRef.url, name:compareRef.name || 'input image'};
         });
     }
 }
@@ -11431,6 +11442,8 @@ function setOutputCompareMode(active){
 }
 function outputResolutionText(text, meta=null){
     const parts = [text || '--'];
+    const requested = meta?.requested_size || (meta?.requested_width && meta?.requested_height ? `${meta.requested_width} x ${meta.requested_height}` : '');
+    if(requested && requested !== (text || '')) parts.push(`<span>请求 ${escapeHtml(requested)}</span>`);
     if(meta?.runMs) parts.push(`<span>${formatRunDuration(meta.runMs)}</span>`);
     outputResolution.innerHTML = parts.join('<span style="opacity:.38">|</span>');
 }
@@ -13033,4 +13046,3 @@ window.onload = async () => {
     await loadCanvasList(false);
     setCanvasMode(false);
 };
-

@@ -1,5 +1,442 @@
 [
     {
+        "prompt": "一张令人惊叹的城市鸟瞰",
+        "images": [
+            {
+                "url": "/assets/output/online_d2dd6f7f70.png",
+                "kind": "image",
+                "width": 1344,
+                "height": 768,
+                "requested_width": 2048,
+                "requested_height": 1152,
+                "requested_size": "2048x1152"
+            }
+        ],
+        "timestamp": 1781260860.9518197,
+        "type": "online",
+        "model": "nano-banana",
+        "provider_id": "grsai",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": "13-0314a8d0-5320-4a5b-85d5-38deeade03c6",
+        "params": {
+            "provider_id": "grsai",
+            "model": "nano-banana",
+            "size": "2048x1152",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": null
+    },
+    {
+        "prompt": "一张令人惊叹的城市鸟瞰",
+        "images": [
+            {
+                "url": "/assets/output/online_21be6c2aac.png",
+                "kind": "image",
+                "width": 1344,
+                "height": 768,
+                "requested_width": 2048,
+                "requested_height": 1152,
+                "requested_size": "2048x1152"
+            }
+        ],
+        "timestamp": 1781260657.165006,
+        "type": "online",
+        "model": "nano-banana",
+        "provider_id": "grsai",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": "1-73ea36cd-f315-4d79-b9e0-844a22aa60fd",
+        "params": {
+            "provider_id": "grsai",
+            "model": "nano-banana",
+            "size": "2048x1152",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": []
+        },
+        "raw_usage": null
+    },
+    {
+        "prompt": "超写实真实室内照片，8K 超清分辨率，专业室内摄影，照片级真实感，无 AI 生成痕迹，超高细节还原，电影级柔和色调，高动态范围，光影自然细腻，真实材质质感表现。现代简约奶油风客厅，低饱和柔和色调，舒适治愈的居家氛围。白色哑光墙面搭配白色平顶天花板，暖棕色实木地板通铺，木材纹理清晰自然；客厅中央铺设一块浅灰编织纹理的大面积地毯，编织肌理与毛圈细节清晰可见。左侧摆放一张米白色直排布艺大沙发，布艺面料的细腻纹理、褶皱与柔软质感真实还原，搭配浅灰色抱枕，蓬松自然；沙发前是一张原木色圆形矮茶几，天然木材的温润肌理与清晰木纹真实呈现，茶几上摆放着书籍与咖啡杯，细节精致；前景有一把白色伊姆斯风格摇椅，光滑塑料椅身与金属支架的细腻反光质感真实；靠窗位置设有一把浅灰色单人扶手椅，布艺质感柔和细腻。墙面左侧安装透明悬浮置物架，玻璃的通透质感真实，整齐摆放书籍，书页细节清晰；天花板悬挂一盏黑色多头球形玻璃吊灯，金属灯架与柔光玻璃灯罩的质感还原到位；搭配一盏白色简约落地灯，灯光柔和温暖；背景设有弧形白色墙面，柔化空间线条；阳台区域叠放白色洗烘套装，家电的金属与塑料材质质感真实；窗户装有横向百叶窗，百叶窗的光影在墙面与地面形成柔和条纹，搭配半透明白色纱帘，光线自然通透，无过度曝光与死黑区域。整体线条干净利落，光影过渡自然，画面清爽整洁，真实还原布料、木材、金属、玻璃等不同材质的质感，无多余杂物，呈现出简约高级的居家氛围。",
+        "images": [
+            {
+                "url": "/assets/output/online_09ab2db8dc.png",
+                "kind": "image",
+                "width": 1792,
+                "height": 2400,
+                "requested_width": 1536,
+                "requested_height": 2048,
+                "requested_size": "1536x2048"
+            }
+        ],
+        "timestamp": 1781259550.100941,
+        "type": "online",
+        "model": "nano-banana-pro",
+        "provider_id": "grsai",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": "13-487399e7-82bf-44e2-86f3-45b46bce3095",
+        "params": {
+            "provider_id": "grsai",
+            "model": "nano-banana-pro",
+            "size": "1536x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_9d4d3453c827.jpg",
+                    "name": "07e8577c1077de7a83ffe0a01f8094c0.jpg",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": null
+    },
+    {
+        "prompt": "超写实真实室内照片，8K 超清分辨率，专业室内摄影，照片级真实感，无 AI 生成痕迹，超高细节还原，电影级柔和色调，高动态范围，光影自然细腻，真实材质质感表现。现代简约奶油风客厅，低饱和柔和色调，舒适治愈的居家氛围。白色哑光墙面搭配白色平顶天花板，暖棕色实木地板通铺，木材纹理清晰自然；客厅中央铺设一块浅灰编织纹理的大面积地毯，编织肌理与毛圈细节清晰可见。左侧摆放一张米白色直排布艺大沙发，布艺面料的细腻纹理、褶皱与柔软质感真实还原，搭配浅灰色抱枕，蓬松自然；沙发前是一张原木色圆形矮茶几，天然木材的温润肌理与清晰木纹真实呈现，茶几上摆放着书籍与咖啡杯，细节精致；前景有一把白色伊姆斯风格摇椅，光滑塑料椅身与金属支架的细腻反光质感真实；靠窗位置设有一把浅灰色单人扶手椅，布艺质感柔和细腻。墙面左侧安装透明悬浮置物架，玻璃的通透质感真实，整齐摆放书籍，书页细节清晰；天花板悬挂一盏黑色多头球形玻璃吊灯，金属灯架与柔光玻璃灯罩的质感还原到位；搭配一盏白色简约落地灯，灯光柔和温暖；背景设有弧形白色墙面，柔化空间线条；阳台区域叠放白色洗烘套装，家电的金属与塑料材质质感真实；窗户装有横向百叶窗，百叶窗的光影在墙面与地面形成柔和条纹，搭配半透明白色纱帘，光线自然通透，无过度曝光与死黑区域。整体线条干净利落，光影过渡自然，画面清爽整洁，真实还原布料、木材、金属、玻璃等不同材质的质感，无多余杂物，呈现出简约高级的居家氛围。",
+        "images": [
+            {
+                "url": "/assets/output/online_4b30c373d7.png",
+                "kind": "image",
+                "width": 2816,
+                "height": 1536,
+                "requested_width": 1536,
+                "requested_height": 2048,
+                "requested_size": "1536x2048"
+            }
+        ],
+        "timestamp": 1781258298.8005464,
+        "type": "online",
+        "model": "nano-banana-pro",
+        "provider_id": "grsai",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": "14-0f02e509-3610-4ba4-8243-79ddb97c87dd",
+        "params": {
+            "provider_id": "grsai",
+            "model": "nano-banana-pro",
+            "size": "1536x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_9d4d3453c827.jpg",
+                    "name": "07e8577c1077de7a83ffe0a01f8094c0.jpg",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": null
+    },
+    {
+        "prompt": "晴朗白天的竹林溪谷间，澄澈的蓝色天空像一块无瑕的蓝宝石铺展在头顶，偶有几缕轻薄的白云悠闲飘过，竹林深处的绿意植被层层叠叠，将溪谷包裹在一片温润的翠色之中。日式风格的木质连廊横跨在溪谷之上，深色的护栏沿着连廊边缘延伸，木材的纹理在阳光下清晰可见，带着岁月打磨后的温润质感，连廊一端衔接着白墙木框的建筑，洁白的墙面在竹林的映衬下更显素净，木框的线条简洁利落，传统样式的坡屋顶覆盖着深灰色的瓦片，与连廊的木质结构形成和谐的呼应，连廊下方的木柱稳稳地支撑在溪岸，柱身与水面的距离恰到好处，仿佛从溪谷中自然生长而出。溪谷中的浅溪清澈见底，水面如镜般倒映着连廊的木色身影、白墙建筑的轮廓以及两岸高挺茂密的竹林，阳光透过竹叶的缝隙洒下细碎的光斑，落在水面上随溪流的微动轻轻晃动，溪岸散布着大小不一的岩石，表面覆盖着薄薄的青苔，几株低矮的植被从石缝中钻出，为硬朗的岩石增添了几分柔软，高挺的竹林环绕着整个溪谷，竹竿笔直地刺向天空，竹叶在微风中沙沙作响，形成天然的围合空间，将外界的喧嚣隔绝在外。整个场景中，木质连廊的温润、白墙建筑的素净、清澈溪水的灵动与高挺竹林的清幽相互交织，澄澈的蓝天作为背景更凸显出自然与建筑的融合之美，阳光透过枝叶的光影变化为画面增添了动态的韵律，营造出一种远离尘嚣的清幽雅致，仿佛每一寸空气都浸润着自然的宁静与日式美学的含蓄。",
+        "images": [
+            {
+                "url": "/assets/output/online_09d983ceaf.png",
+                "kind": "image",
+                "width": 1024,
+                "height": 1024,
+                "requested_width": 2048,
+                "requested_height": 2048,
+                "requested_size": "2048x2048"
+            }
+        ],
+        "timestamp": 1781238501.0154984,
+        "type": "online",
+        "model": "nano-banana-pro",
+        "provider_id": "custom-api",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "custom-api",
+            "model": "nano-banana-pro",
+            "size": "2048x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_f10115d2b36d.png",
+                    "name": "bdef349c698b3368dc46942e1dd567de.png",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": {
+            "total_tokens": 1997,
+            "input_tokens": 877,
+            "output_tokens": 1120,
+            "input_tokens_details": {}
+        }
+    },
+    {
+        "prompt": "超写实真实室内照片，8K 超清分辨率，专业室内摄影，照片级真实感，无 AI 生成痕迹，超高细节还原，电影级柔和色调，高动态范围，光影自然细腻，真实材质质感表现。现代简约奶油风客厅，低饱和柔和色调，舒适治愈的居家氛围。白色哑光墙面搭配白色平顶天花板，暖棕色实木地板通铺，木材纹理清晰自然；客厅中央铺设一块浅灰编织纹理的大面积地毯，编织肌理与毛圈细节清晰可见。左侧摆放一张米白色直排布艺大沙发，布艺面料的细腻纹理、褶皱与柔软质感真实还原，搭配浅灰色抱枕，蓬松自然；沙发前是一张原木色圆形矮茶几，天然木材的温润肌理与清晰木纹真实呈现，茶几上摆放着书籍与咖啡杯，细节精致；前景有一把白色伊姆斯风格摇椅，光滑塑料椅身与金属支架的细腻反光质感真实；靠窗位置设有一把浅灰色单人扶手椅，布艺质感柔和细腻。墙面左侧安装透明悬浮置物架，玻璃的通透质感真实，整齐摆放书籍，书页细节清晰；天花板悬挂一盏黑色多头球形玻璃吊灯，金属灯架与柔光玻璃灯罩的质感还原到位；搭配一盏白色简约落地灯，灯光柔和温暖；背景设有弧形白色墙面，柔化空间线条；阳台区域叠放白色洗烘套装，家电的金属与塑料材质质感真实；窗户装有横向百叶窗，百叶窗的光影在墙面与地面形成柔和条纹，搭配半透明白色纱帘，光线自然通透，无过度曝光与死黑区域。整体线条干净利落，光影过渡自然，画面清爽整洁，真实还原布料、木材、金属、玻璃等不同材质的质感，无多余杂物，呈现出简约高级的居家氛围。",
+        "images": [
+            "/assets/output/online_e04d1c2180.png"
+        ],
+        "timestamp": 1781236772.8603394,
+        "type": "online",
+        "model": "nano-banana-pro",
+        "provider_id": "custom-api",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "custom-api",
+            "model": "nano-banana-pro",
+            "size": "1536x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_9d4d3453c827.jpg",
+                    "name": "07e8577c1077de7a83ffe0a01f8094c0.jpg",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": {
+            "total_tokens": 2011,
+            "input_tokens": 891,
+            "output_tokens": 1120,
+            "input_tokens_details": {}
+        }
+    },
+    {
+        "prompt": "超写实真实室内照片，8K 超清分辨率，专业室内摄影，照片级真实感，无 AI 生成痕迹，超高细节还原，电影级柔和色调，高动态范围，光影自然细腻，真实材质质感表现。现代简约奶油风客厅，低饱和柔和色调，舒适治愈的居家氛围。白色哑光墙面搭配白色平顶天花板，暖棕色实木地板通铺，木材纹理清晰自然；客厅中央铺设一块浅灰编织纹理的大面积地毯，编织肌理与毛圈细节清晰可见。左侧摆放一张米白色直排布艺大沙发，布艺面料的细腻纹理、褶皱与柔软质感真实还原，搭配浅灰色抱枕，蓬松自然；沙发前是一张原木色圆形矮茶几，天然木材的温润肌理与清晰木纹真实呈现，茶几上摆放着书籍与咖啡杯，细节精致；前景有一把白色伊姆斯风格摇椅，光滑塑料椅身与金属支架的细腻反光质感真实；靠窗位置设有一把浅灰色单人扶手椅，布艺质感柔和细腻。墙面左侧安装透明悬浮置物架，玻璃的通透质感真实，整齐摆放书籍，书页细节清晰；天花板悬挂一盏黑色多头球形玻璃吊灯，哑光金属灯架与柔光玻璃灯罩的质感还原到位；搭配一盏白色简约落地灯，灯光柔和温暖；背景设有弧形白色墙面，柔化空间线条；阳台区域叠放白色洗烘套装，家电的金属与塑料材质质感真实；窗户装有横向百叶窗，百叶窗的光影在墙面与地面形成柔和条纹，搭配半透明白色纱帘，引入柔和的午后自然光，光线自然通透，无过度曝光与死黑区域。整体线条干净利落，光影过渡自然，画面清爽整洁，真实还原布料、木材、金属、玻璃等不同材质的质感，无多余杂物，呈现出简约高级的居家氛围。",
+        "images": [
+            "/assets/output/online_d60141fecd.png"
+        ],
+        "timestamp": 1781236598.1007142,
+        "type": "online",
+        "model": "nano-banana-pro",
+        "provider_id": "custom-api",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "custom-api",
+            "model": "nano-banana-pro",
+            "size": "1536x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_9d4d3453c827.jpg",
+                    "name": "07e8577c1077de7a83ffe0a01f8094c0.jpg",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": {
+            "total_tokens": 2023,
+            "input_tokens": 903,
+            "output_tokens": 1120,
+            "input_tokens_details": {}
+        }
+    },
+    {
+        "prompt": "超写实真实室内照片，8K 超清分辨率，专业室内摄影，照片级真实感，无 AI 生成痕迹，超高细节还原，电影级柔和色调，高动态范围，光影自然细腻，真实材质质感表现。现代简约奶油风客厅，低饱和柔和色调，舒适治愈的居家氛围。浅灰色哑光墙面搭配深灰色平顶天花板，暖棕色实木地板通铺，木材纹理清晰自然；客厅中央铺设一块灰黑编织纹理的大面积地毯，编织肌理与毛圈细节清晰可见。左侧摆放一张米白色直排布艺大沙发，布艺面料的细腻纹理、褶皱与柔软质感真实还原，搭配浅灰色抱枕，蓬松自然；沙发前是一张原木色圆形矮茶几，天然木材的温润肌理与清晰木纹真实呈现，茶几上摆放着书籍与咖啡杯，细节精致；前景有一把白色伊姆斯风格摇椅，光滑塑料椅身与金属支架的细腻反光质感真实；靠窗位置设有一把浅灰色单人扶手椅，布艺质感柔和细腻。墙面左侧安装透明悬浮置物架，玻璃的通透质感真实，整齐摆放书籍，书页细节清晰；天花板悬挂一盏黑色多头球形玻璃吊灯，哑光金属灯架与柔光玻璃灯罩的质感还原到位；搭配一盏白色简约落地灯，灯光柔和温暖；背景设有弧形白色墙面，柔化空间线条；阳台区域叠放白色洗烘套装，家电的金属与塑料材质质感真实；窗户装有横向百叶窗，百叶窗的光影在墙面与地面形成柔和条纹，搭配半透明白色纱帘，引入柔和的午后自然光，光线自然通透，无过度曝光与死黑区域。整体线条干净利落，光影过渡自然，画面清爽整洁，真实还原布料、木材、金属、玻璃等不同材质的质感，无多余杂物，呈现出简约高级的居家氛围。",
+        "images": [
+            "/assets/output/online_413ec4b82c.png"
+        ],
+        "timestamp": 1781236395.3687086,
+        "type": "online",
+        "model": "nano-banana-pro",
+        "provider_id": "custom-api",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "custom-api",
+            "model": "nano-banana-pro",
+            "size": "1536x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_9d4d3453c827.jpg",
+                    "name": "07e8577c1077de7a83ffe0a01f8094c0.jpg",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": {
+            "total_tokens": 2025,
+            "input_tokens": 905,
+            "output_tokens": 1120,
+            "input_tokens_details": {}
+        }
+    },
+    {
+        "prompt": "晴朗白天的竹林溪谷间，澄澈的蓝色天空像一块无瑕的蓝宝石铺展在头顶，偶有几缕轻薄的白云悠闲飘过，竹林深处的绿意植被层层叠叠，将溪谷包裹在一片温润的翠色之中。日式风格的木质连廊横跨在溪谷之上，深色的护栏沿着连廊边缘延伸，木材的纹理在阳光下清晰可见，带着岁月打磨后的温润质感，连廊一端衔接着白墙木框的建筑，洁白的墙面在竹林的映衬下更显素净，木框的线条简洁利落，传统样式的坡屋顶覆盖着深灰色的瓦片，与连廊的木质结构形成和谐的呼应，连廊下方的木柱稳稳地支撑在溪岸，柱身与水面的距离恰到好处，仿佛从溪谷中自然生长而出。溪谷中的浅溪清澈见底，水面如镜般倒映着连廊的木色身影、白墙建筑的轮廓以及两岸高挺茂密的竹林，阳光透过竹叶的缝隙洒下细碎的光斑，落在水面上随溪流的微动轻轻晃动，溪岸散布着大小不一的岩石，表面覆盖着薄薄的青苔，几株低矮的植被从石缝中钻出，为硬朗的岩石增添了几分柔软，高挺的竹林环绕着整个溪谷，竹竿笔直地刺向天空，竹叶在微风中沙沙作响，形成天然的围合空间，将外界的喧嚣隔绝在外。整个场景中，木质连廊的温润、白墙建筑的素净、清澈溪水的灵动与高挺竹林的清幽相互交织，澄澈的蓝天作为背景更凸显出自然与建筑的融合之美，阳光透过枝叶的光影变化为画面增添了动态的韵律，营造出一种远离尘嚣的清幽雅致，仿佛每一寸空气都浸润着自然的宁静与日式美学的含蓄。",
+        "images": [
+            "/assets/output/online_c03610714e.png"
+        ],
+        "timestamp": 1781236386.2234685,
+        "type": "online",
+        "model": "nano-banana-pro",
+        "provider_id": "custom-api",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "custom-api",
+            "model": "nano-banana-pro",
+            "size": "2048x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_f10115d2b36d.png",
+                    "name": "bdef349c698b3368dc46942e1dd567de.png",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": {
+            "total_tokens": 1997,
+            "input_tokens": 877,
+            "output_tokens": 1120,
+            "input_tokens_details": {}
+        }
+    },
+    {
+        "prompt": "将这张截图渲染成实景照片，提供良好的光照，逼真的材质，保持原本结构不变。",
+        "images": [
+            "/assets/output/online_17062c3924.png"
+        ],
+        "timestamp": 1781235995.815393,
+        "type": "online",
+        "model": "nano-banana-pro",
+        "provider_id": "custom-api",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "custom-api",
+            "model": "nano-banana-pro",
+            "size": "1536x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_81ecbf0339e9.jpg",
+                    "name": "d675e53d7c025f2a63ded5176b82e018.jpg",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": {
+            "total_tokens": 1453,
+            "input_tokens": 333,
+            "output_tokens": 1120,
+            "input_tokens_details": {}
+        }
+    },
+    {
+        "prompt": "将这张截图渲染成实景照片，提供良好的光照，逼真的材质，保持原本结构不变。",
+        "images": [
+            "/assets/output/online_3ab1b1a400.png"
+        ],
+        "timestamp": 1781235966.7310336,
+        "type": "online",
+        "model": "nano-banana-pro",
+        "provider_id": "custom-api",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "custom-api",
+            "model": "nano-banana-pro",
+            "size": "1536x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_9d4d3453c827.jpg",
+                    "name": "07e8577c1077de7a83ffe0a01f8094c0.jpg",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": {
+            "total_tokens": 1453,
+            "input_tokens": 333,
+            "output_tokens": 1120,
+            "input_tokens_details": {}
+        }
+    },
+    {
+        "prompt": "将这张截图渲染成实景照片，提供良好的光照，逼真的材质，保持原本结构不变。",
+        "images": [
+            "/assets/output/online_0373e9fa74.png"
+        ],
+        "timestamp": 1781235838.1813438,
+        "type": "online",
+        "model": "gpt-image-2",
+        "provider_id": "custom-api",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "custom-api",
+            "model": "gpt-image-2",
+            "size": "1536x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_9d4d3453c827.jpg",
+                    "name": "07e8577c1077de7a83ffe0a01f8094c0.jpg",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": {
+            "total_tokens": 6283,
+            "input_tokens": 33,
+            "output_tokens": 6250,
+            "input_tokens_details": {}
+        }
+    },
+    {
+        "prompt": "将这张截图渲染成实景照片，提供良好的光照，逼真的材质，保持原本结构不变。",
+        "images": [
+            "/assets/output/online_aeccc9ad0d.png"
+        ],
+        "timestamp": 1781235812.8008835,
+        "type": "online",
+        "model": "nano-banana-pro",
+        "provider_id": "custom-api",
+        "provider_name": "GRSAI",
+        "task_id": null,
+        "request_id": null,
+        "params": {
+            "provider_id": "custom-api",
+            "model": "nano-banana-pro",
+            "size": "1536x2048",
+            "quality": "auto",
+            "n": 1,
+            "reference_images": [
+                {
+                    "url": "/assets/input/ai_ref_81ecbf0339e9.jpg",
+                    "name": "d675e53d7c025f2a63ded5176b82e018.jpg",
+                    "role": ""
+                }
+            ]
+        },
+        "raw_usage": {
+            "total_tokens": 1453,
+            "input_tokens": 333,
+            "output_tokens": 1120,
+            "input_tokens_details": {}
+        }
+    },
+    {
         "prompt": "参数化山水城市建筑群，马岩松MAD风格，灵感来自中国水墨画的飘逸白色仿生山峰建筑，云雾缭绕在白色的波浪层板间，未来极简，航拍视角. Style direction: 马岩松山水未来派. Theme: 大师概念.",
         "images": [
             "/assets/output/blindbox-local_1780739664_0e0f046863.png"

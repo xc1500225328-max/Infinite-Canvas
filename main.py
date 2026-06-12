@@ -284,7 +284,7 @@ JIMENG_LOGIN_SESSION = {
 }
 
 PROVIDER_ID_RE = re.compile(r"^[a-zA-Z0-9_-]{2,40}$")
-SUPPORTED_PROVIDER_PROTOCOLS = {"openai", "apimart", "gemini", "volcengine", "runninghub", "jimeng"}
+SUPPORTED_PROVIDER_PROTOCOLS = {"openai", "apimart", "gemini", "volcengine", "runninghub", "jimeng", "grsai"}
 
 DESKTOP_OPEN_LOCATIONS = {
     "data": lambda: DATA_ROOT_DIR,
@@ -295,6 +295,20 @@ DESKTOP_OPEN_LOCATIONS = {
     "install": lambda: BASE_DIR,
 }
 RUNNINGHUB_DEFAULT_BASE_URL = "https://www.runninghub.cn"
+GRSAI_DEFAULT_BASE_URL = "https://grsai.dakka.com.cn"
+GRSAI_DEFAULT_IMAGE_MODELS = [
+    "nano-banana",
+    "nano-banana-fast",
+    "nano-banana-2",
+    "nano-banana-2-cl",
+    "nano-banana-2-4k-cl",
+    "nano-banana-pro",
+    "nano-banana-pro-cl",
+    "nano-banana-pro-vip",
+    "nano-banana-pro-4k-vip",
+    "gpt-image-2",
+    "gpt-image-2-vip",
+]
 JIMENG_DEFAULT_IMAGE_MODELS = [
     "5.0",
     "4.6",
@@ -705,6 +719,8 @@ def provider_key_env(provider_id):
         return "RUNNINGHUB_API_KEY"
     if provider_id == "volcengine":
         return "ARK_API_KEY"
+    if provider_id == "grsai":
+        return "GRSAI_API_KEY"
     return f"API_PROVIDER_{re.sub(r'[^A-Za-z0-9]', '_', provider_id).upper()}_KEY"
 
 def runninghub_wallet_key_env():
@@ -814,6 +830,21 @@ def default_api_providers():
             "rh_workflows": RUNNINGHUB_DEFAULT_WORKFLOWS,
         },
         {
+            "id": "grsai",
+            "name": "GRSAI",
+            "base_url": GRSAI_DEFAULT_BASE_URL,
+            "protocol": "grsai",
+            "image_generation_endpoint": "",
+            "image_edit_endpoint": "",
+            "enabled": True,
+            "primary": False,
+            "image_models": GRSAI_DEFAULT_IMAGE_MODELS,
+            "chat_models": [],
+            "video_models": [],
+            "ms_loras": [],
+            "ms_defaults_version": 0,
+        },
+        {
             "id": "volcengine",
             "name": "火山引擎",
             "base_url": VOLCENGINE_DEFAULT_BASE_URL,
@@ -865,6 +896,16 @@ def merge_default_api_providers(providers):
             current["image_models"] = model_list_from_values([*(current.get("image_models") or []), *(rh_default.get("image_models") or [])])
             current["rh_apps"] = merge_runninghub_system_entries(rh_default.get("rh_apps") or [], current.get("rh_apps") or [], "app")
             current["rh_workflows"] = merge_runninghub_system_entries(rh_default.get("rh_workflows") or [], current.get("rh_workflows") or [], "workflow")
+    grsai_default = next((d for d in default_api_providers() if d["id"] == "grsai"), None)
+    if grsai_default:
+        current = next((item for item in merged if item.get("id") == "grsai"), None)
+        if not current:
+            merged.append(grsai_default)
+        else:
+            if not current.get("base_url"):
+                current["base_url"] = grsai_default["base_url"]
+            current["protocol"] = "grsai"
+            current["image_models"] = model_list_from_values([*(current.get("image_models") or []), *GRSAI_DEFAULT_IMAGE_MODELS])
     volc_default = next((d for d in default_api_providers() if d["id"] == "volcengine"), None)
     if volc_default:
         current = next((item for item in merged if item.get("id") == "volcengine"), None)
@@ -1172,6 +1213,9 @@ def normalize_provider(item):
         base_url = base_url or VOLCENGINE_DEFAULT_BASE_URL
         volc_project = volc_project or VOLCENGINE_DEFAULT_PROJECT_NAME
         volc_region = volc_region or VOLCENGINE_DEFAULT_REGION
+    if provider_id == "grsai":
+        protocol = "grsai"
+        base_url = base_url or GRSAI_DEFAULT_BASE_URL
     if provider_id == "jimeng":
         protocol = "jimeng"
         base_url = ""
@@ -3225,6 +3269,13 @@ def extract_image(data):
                 return {"type": "url", "value": url[0]}
             if isinstance(url, str) and url:
                 return {"type": "url", "value": url}
+    result_items = data.get("results") if isinstance(data, dict) else None
+    if isinstance(result_items, list) and result_items:
+        first = result_items[0]
+        if isinstance(first, dict) and first.get("url"):
+            return {"type": "url", "value": first["url"]}
+        if isinstance(first, str) and first:
+            return {"type": "url", "value": first}
     if isinstance(data.get("data"), dict) and isinstance(data["data"].get("data"), dict):
         data = data["data"]["data"]
     images = data.get("data") or []
@@ -3267,6 +3318,9 @@ def is_gemini_provider(provider):
 
 def is_volcengine_provider(provider):
     return provider_protocol(provider) == "volcengine"
+
+def is_grsai_provider(provider):
+    return provider_protocol(provider) == "grsai" or str((provider or {}).get("id") or "").strip().lower() == "grsai"
 
 def is_runninghub_provider(provider):
     return provider_protocol(provider) == "runninghub" or str((provider or {}).get("id") or "").strip().lower() == "runninghub"
@@ -4496,6 +4550,22 @@ def image_dimensions_for_path(path: str) -> Tuple[int, int]:
             return int(img.width or 0), int(img.height or 0)
     except Exception:
         return 0, 0
+
+def media_dimensions_for_url(url: str) -> Tuple[int, int]:
+    path = output_file_from_url(url)
+    if not path:
+        path = local_media_file_by_basename(filename_from_media_url(url, ""))
+    return image_dimensions_for_path(path) if path else (0, 0)
+
+def image_result_item(url: str, request_size: str = "") -> Dict[str, Any]:
+    item: Dict[str, Any] = {"url": url, "kind": "image"}
+    width, height = media_dimensions_for_url(url)
+    if width and height:
+        item.update({"width": width, "height": height})
+    req_w, req_h = parse_size_pair(request_size)
+    if req_w and req_h:
+        item.update({"requested_width": req_w, "requested_height": req_h, "requested_size": f"{req_w}x{req_h}"})
+    return item
 
 def parse_history_size(value) -> Tuple[str, int, int]:
     text = history_first_text(value)
@@ -6187,6 +6257,11 @@ def normalize_gpt_image_2_size(size):
         height = int((height * grow + 15) // 16) * 16
     return f"{width}x{height}"
 
+def is_nano_banana_model(model):
+    raw = str(model or "").strip().lower()
+    compact = re.sub(r"[^a-z0-9]+", "", raw)
+    return "nano-banana" in raw or "nanobanana" in compact
+
 def gpt_image_2_size_error_message(size):
     width, height = parse_size_pair(size)
     display_size = size or "未指定"
@@ -6237,6 +6312,21 @@ def apimart_size_resolution(size):
     ratio = width / height
     best = min(common, key=lambda item: abs(ratio - item[0] / item[1]))
     return best[2], resolution
+
+def add_compat_image_size_fields(body, size, model=""):
+    width, height = parse_size_pair(size)
+    if not width or not height:
+        return body
+    aspect_ratio, resolution = apimart_size_resolution(size)
+    body["size"] = f"{width}x{height}"
+    body["width"] = width
+    body["height"] = height
+    body.setdefault("resolution", resolution)
+    body.setdefault("aspect_ratio", aspect_ratio)
+    body.setdefault("aspectRatio", aspect_ratio)
+    if is_nano_banana_model(model):
+        body.setdefault("imageSize", resolution.upper())
+    return body
 
 VOLCENGINE_MIN_PIXELS = 3_686_400
 VOLCENGINE_MIN_EDGE = 1536
@@ -6465,6 +6555,108 @@ def gemini_reference_part(ref):
     if isinstance(value, str) and value.startswith(("http://", "https://")):
         return {"fileData": {"mimeType": "image/png", "fileUri": value}}
     return None
+
+def grsai_api_root(provider=None):
+    base = str((provider or {}).get("base_url") or GRSAI_DEFAULT_BASE_URL).strip().rstrip("/")
+    for suffix in ("/v1/api", "/v1"):
+        if base.endswith(suffix):
+            base = base[: -len(suffix)]
+    return base or GRSAI_DEFAULT_BASE_URL
+
+def grsai_endpoint_url(provider, path):
+    return f"{grsai_api_root(provider)}/v1/api/{path.lstrip('/')}"
+
+def grsai_model_defaults_payload():
+    models = list(GRSAI_DEFAULT_IMAGE_MODELS)
+    return {
+        "ok": True,
+        "status": 200,
+        "message": "GRSAI ?????????????????? /v1/api/generate?",
+        "model_count": len(models),
+        "image_models": models,
+        "chat_models": [],
+        "video_models": [],
+        "all": models,
+        "raw": {"source": "builtin", "endpoint": "/v1/api/generate"},
+    }
+
+def grsai_image_config(size, model=""):
+    raw = str(size or "").strip()
+    if is_nano_banana_model(model):
+        aspect_ratio, resolution = apimart_size_resolution(size)
+        return {"aspectRatio": aspect_ratio, "imageSize": resolution.upper()}
+    width, height = parse_size_pair(size)
+    lower_model = str(model or "").lower()
+    if "vip" in lower_model and width and height:
+        normalized = normalize_gpt_image_2_size(size) if is_gpt_image_2_model(model) else f"{width}x{height}"
+        return {"aspectRatio": normalized}
+    if width and height:
+        aspect_ratio, _resolution = apimart_size_resolution(size)
+        return {"aspectRatio": aspect_ratio}
+    if raw and re.fullmatch(r"(auto|\d+\s*:\s*\d+|\d{2,5}\s*[xX*]\s*\d{2,5})", raw, flags=re.I):
+        return {"aspectRatio": raw.replace(" ", "").replace("*", "x")}
+    return {"aspectRatio": "1:1"}
+
+def grsai_extract_task_id(raw):
+    if not isinstance(raw, dict):
+        return ""
+    value = raw.get("id") or raw.get("task_id") or raw.get("taskId")
+    return str(value or "").strip()
+
+def grsai_status(raw):
+    if not isinstance(raw, dict):
+        return ""
+    return str(raw.get("status") or "").strip().lower()
+
+def grsai_error_message(raw):
+    if not isinstance(raw, dict):
+        return str(raw)[:300]
+    error = raw.get("error") or raw.get("message") or raw.get("msg") or raw.get("detail")
+    if isinstance(error, dict):
+        error = error.get("message") or error.get("detail") or json.dumps(error, ensure_ascii=False)
+    return str(error or raw)[:500]
+
+async def wait_for_grsai_image_task(client, task_id, provider=None):
+    if not task_id:
+        raise HTTPException(status_code=502, detail="GRSAI ????? ID")
+    endpoint = grsai_endpoint_url(provider, "result")
+    deadline = time.monotonic() + APIMART_IMAGE_TASK_TIMEOUT
+    last_payload = {}
+    while time.monotonic() < deadline:
+        await asyncio.sleep(min(APIMART_IMAGE_POLL_INTERVAL, max(0.0, deadline - time.monotonic())))
+        response = await client.get(endpoint, headers=api_headers(provider=provider), params={"id": task_id})
+        response.raise_for_status()
+        last_payload = response.json() if response.text else {}
+        status = grsai_status(last_payload)
+        if status == "succeeded":
+            return last_payload
+        if status in {"failed", "violation"}:
+            raise HTTPException(status_code=502, detail=f"GRSAI ?????{grsai_error_message(last_payload)}")
+    raise HTTPException(status_code=504, detail=f"GRSAI ?????????? {int(APIMART_IMAGE_TASK_TIMEOUT)} ???{task_id}")
+
+async def generate_grsai_provider_image(prompt, size, model, reference_images=None, provider=None):
+    endpoint = grsai_endpoint_url(provider, "generate")
+    body = {
+        "model": selected_model(model, GRSAI_DEFAULT_IMAGE_MODELS[0]),
+        "prompt": str(prompt or "").strip(),
+        "images": [],
+        "replyType": "json",
+    }
+    body.update(grsai_image_config(size, body["model"]))
+    for ref in (reference_images or [])[:16]:
+        value = reference_to_data_url(ref, max_size=1536)
+        if value:
+            body["images"].append(value)
+    async with httpx.AsyncClient(timeout=httpx.Timeout(connect=20.0, read=1800.0, write=120.0, pool=20.0)) as client:
+        response = await client.post(endpoint, headers=api_headers(provider=provider), json=body)
+        response.raise_for_status()
+        raw = response.json() if response.text else {}
+        status = grsai_status(raw)
+        if status in {"failed", "violation"}:
+            raise HTTPException(status_code=502, detail=f"GRSAI ?????{grsai_error_message(raw)}")
+        if status == "running":
+            raw = await wait_for_grsai_image_task(client, grsai_extract_task_id(raw), provider)
+        return extract_image(raw), raw
 
 async def generate_gemini_provider_image(prompt, size, model, reference_images=None, provider=None):
     model_name = gemini_model_name(model)
@@ -6853,6 +7045,8 @@ async def generate_ai_image(prompt, size, quality, model, reference_images=None,
         return await generate_gemini_provider_image(prompt, size, model, reference_images, provider)
     if is_volcengine_provider(provider):
         return await generate_volcengine_provider_image(prompt, size, model, reference_images, provider)
+    if is_grsai_provider(provider):
+        return await generate_grsai_provider_image(prompt, size, model, reference_images, provider)
     is_gpt2 = is_gpt_image_2_model(model)
     is_apimart = is_apimart_provider(provider)
     quality = str(quality or "").strip().lower()
@@ -7795,6 +7989,8 @@ async def save_providers(payload: List[ApiProviderPayload]):
             provider["protocol"] = "runninghub"
         if provider["id"] == "volcengine":
             provider["protocol"] = "volcengine"
+        if provider["id"] == "grsai":
+            provider["protocol"] = "grsai"
     if not providers:
         raise HTTPException(status_code=400, detail="至少保留一个 API 平台")
     # 强制最多一个 primary（取最后被标记的；都没标记则保持原样不强制）
@@ -7842,6 +8038,8 @@ def protocol_from_payload(payload):
         return "runninghub"
     if provider_id == "jimeng":
         return "jimeng"
+    if provider_id == "grsai":
+        return "grsai"
     protocol = str(getattr(payload, "protocol", "") or "openai").strip().lower()
     return protocol if protocol in SUPPORTED_PROVIDER_PROTOCOLS else "openai"
 
@@ -7870,6 +8068,8 @@ def upstream_models_url(base_url: str, protocol: str):
         return f"{base_url}/models" if base_url.endswith("/api/v3") else f"{base_url}/api/v3/models"
     if protocol == "runninghub":
         return f"{base_url}/openapi/v2/models"
+    if protocol == "grsai":
+        return f"{grsai_api_root({'base_url': base_url})}/v1/api/generate"
     return f"{base_url}/models" if base_url.endswith("/v1") else f"{base_url}/v1/models"
 
 def upstream_model_headers(api_key: str, protocol: str):
@@ -8031,6 +8231,13 @@ async def test_provider_connection(payload: TestConnectionPayload):
             "all": [*JIMENG_DEFAULT_IMAGE_MODELS, *JIMENG_DEFAULT_VIDEO_MODELS],
             "raw": status.get("raw"),
         }
+    if protocol == "grsai":
+        base_url = (payload.base_url or GRSAI_DEFAULT_BASE_URL).strip().rstrip("/")
+        if base_url and not re.match(r"^https?://", base_url):
+            raise HTTPException(status_code=400, detail="??????? http:// ? https:// ??")
+        data = grsai_model_defaults_payload()
+        data["message"] = "GRSAI ??????????????????????????????? /v1/api/generate?"
+        return data
     base_url = (payload.base_url or "").strip().rstrip("/")
     if not base_url:
         raise HTTPException(status_code=400, detail="请先填写请求地址")
@@ -8200,6 +8407,17 @@ async def fetch_models_from_upstream(base_url: str, api_key: str, protocol: str 
             "video_models": JIMENG_DEFAULT_VIDEO_MODELS,
             "all": [*JIMENG_DEFAULT_IMAGE_MODELS, *JIMENG_DEFAULT_VIDEO_MODELS],
         }
+    if protocol == "grsai":
+        data = grsai_model_defaults_payload()
+        return {
+            "total": data["model_count"],
+            "image_models": data["image_models"],
+            "chat_models": data["chat_models"],
+            "video_models": data["video_models"],
+            "all": data["all"],
+            "message": data["message"],
+            "raw": data["raw"],
+        }
     base_url = (base_url or "").strip().rstrip("/")
     if not base_url:
         raise HTTPException(status_code=400, detail="请先填写请求地址")
@@ -8349,7 +8567,7 @@ async def build_online_image_result(payload: OnlineImageRequest):
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"请求上游生图接口失败：{exc}") from exc
 
-    local_urls = [url for url, _raw in generated if url]
+    local_urls = [image_result_item(url, payload.size) for url, _raw in generated if url]
     raw = generated[0][1] if generated else {}
     if not local_urls:
         provider_name = provider.get("name") or provider["id"]

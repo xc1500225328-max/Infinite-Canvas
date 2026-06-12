@@ -73,8 +73,22 @@ const MS_BUILTIN_IMAGE_MODELS = [
 ];
 const MS_DEFAULT_BASE_URL = 'https://api-inference.modelscope.cn/v1';
 const RH_DEFAULT_BASE_URL = 'https://www.runninghub.cn';
+const GRSAI_DEFAULT_BASE_URL = 'https://grsai.dakka.com.cn';
 const EXAMPLE_BASE_URL = 'https://api.example.com/v1';
 const RH_DEFAULT_IMAGE_MODELS = ['/openapi/v2/text2image'];
+const GRSAI_DEFAULT_IMAGE_MODELS = [
+    'nano-banana',
+    'nano-banana-fast',
+    'nano-banana-2',
+    'nano-banana-2-cl',
+    'nano-banana-2-4k-cl',
+    'nano-banana-pro',
+    'nano-banana-pro-cl',
+    'nano-banana-pro-vip',
+    'nano-banana-pro-4k-vip',
+    'gpt-image-2',
+    'gpt-image-2-vip'
+];
 const JIMENG_DEFAULT_IMAGE_MODELS = ['5.0', '4.6', '4.5', '4.1', '4.0', '3.1', '3.0'];
 const JIMENG_DEFAULT_VIDEO_MODELS = ['seedance2.0fast_vip', 'seedance2.0_vip'];
 const JIMENG_LEGACY_IMAGE_MODELS = new Set(['jimeng-image-2k', 'jimeng-image-4k']);
@@ -125,6 +139,16 @@ const RECOMMENDED_APIS = [
         icons:['CODEX','GPT','IMG'],
         summaryKey:'api.recommendFhlSummary',
         advantages:['OpenAI 兼容接入', '配置路径简单', '适合图像与代码相关模型']
+    },
+    {
+        name:'GRSAI',
+        base_url:GRSAI_DEFAULT_BASE_URL,
+        protocol:'grsai',
+        register_url:'https://grsai.dakka.com.cn',
+        tagKeys:['api.tagImageModels','Nano Banana','GPT Image'],
+        icons:['IMG','2K','4K'],
+        summaryKey:'api.recommendGrsaiSummary',
+        advantages:['原生接口传递 aspectRatio 与 imageSize', '适合 nano-banana-pro 与 gpt-image-2', '生成时调用 /v1/api/generate']
     }
 ];
 
@@ -210,7 +234,7 @@ function deriveIdFromName(name, existingId){
 function updateIdPreview(){
     const item = provider();
     if(!item) return;
-    const isBuiltin = item.id === 'comfly' || item.id === 'modelscope' || item.id === 'runninghub' || item.id === 'volcengine' || item.id === 'jimeng';
+    const isBuiltin = item.id === 'comfly' || item.id === 'modelscope' || item.id === 'runninghub' || item.id === 'volcengine' || item.id === 'grsai' || item.id === 'jimeng';
     const idPreview = document.getElementById('idPreview');
     if(!idPreview) return;
     if(isBuiltin){
@@ -231,11 +255,31 @@ function visibleProviders(){
 function isFixedProvider(itemOrId){
     const id = typeof itemOrId === 'string' ? itemOrId : itemOrId?.id;
     // 即梦 CLI 不再是固定平台：可删除、可排序，未添加则不存在。
-    return id === 'modelscope' || id === 'runninghub' || id === 'volcengine';
+    return id === 'modelscope' || id === 'runninghub' || id === 'volcengine' || id === 'grsai';
 }
 function unique(values){
     const seen = new Set();
     return values.map(v => String(v || '').trim()).filter(v => v && !seen.has(v) && seen.add(v));
+}
+function fixedProtocolForProviderId(id){
+    if(id === 'modelscope') return 'openai';
+    if(id === 'runninghub') return 'runninghub';
+    if(id === 'volcengine') return 'volcengine';
+    if(id === 'grsai') return 'grsai';
+    if(id === 'jimeng') return 'jimeng';
+    return '';
+}
+function providerProtocolValue(item){
+    return fixedProtocolForProviderId(item?.id) || String(item?.protocol || 'openai').toLowerCase();
+}
+function protocolDisplayLabel(item){
+    const protocol = providerProtocolValue(item);
+    if(item?.id === 'runninghub') return 'RH';
+    if(item?.id === 'volcengine') return 'Ark';
+    if(protocol === 'grsai') return 'GRSAI';
+    if(protocol === 'apimart') return 'APIMart';
+    if(protocol === 'openai') return 'OpenAI';
+    return protocol.toUpperCase();
 }
 function normalizeRhEntries(values, kind){
     const seen = new Set();
@@ -547,6 +591,10 @@ function applyProviderOnboardingDefaults(id){
         item.video_models = unique([...(item.video_models || []), ...VOLCENGINE_DEFAULT_VIDEO_MODELS]);
         item.volcengine_project_name = item.volcengine_project_name || VOLCENGINE_DEFAULT_PROJECT_NAME;
         item.volcengine_region = item.volcengine_region || VOLCENGINE_DEFAULT_REGION;
+    } else if(id === 'grsai'){
+        item.base_url = GRSAI_DEFAULT_BASE_URL;
+        item.protocol = 'grsai';
+        item.image_models = unique([...(item.image_models || []), ...GRSAI_DEFAULT_IMAGE_MODELS]);
     } else if(id === 'jimeng'){
         item.base_url = '';
         item.protocol = 'jimeng';
@@ -565,13 +613,13 @@ function syncEditor(){
     const item = provider();
     if(!item) return;
     const oldId = item.id;
-    const isBuiltin = item.id === 'comfly' || item.id === 'modelscope' || item.id === 'runninghub' || item.id === 'volcengine' || item.id === 'jimeng';
+    const isBuiltin = item.id === 'comfly' || item.id === 'modelscope' || item.id === 'runninghub' || item.id === 'volcengine' || item.id === 'grsai' || item.id === 'jimeng';
     // 内置和自定义平台的 ID 都保持稳定；新建时若没有 ID 才生成一次。
     const nextId = isBuiltin ? item.id : deriveIdFromName(nameInput.value, item.id);
     item.id = nextId;
     if(oldId !== item.id) selectedId = item.id;
     item.name = nameInput.value.trim() || item.id;
-    const selectedProtocol = item.id === 'modelscope' ? 'openai' : item.id === 'runninghub' ? 'runninghub' : item.id === 'volcengine' ? 'volcengine' : item.id === 'jimeng' ? 'jimeng' : (protocolInput?.value || 'openai');
+    const selectedProtocol = fixedProtocolForProviderId(item.id) || (protocolInput?.value || 'openai');
     item.base_url = selectedProtocol === 'jimeng' ? '' : baseInput.value.trim();
     // 固定平台不从协议下拉读取
     item.protocol = selectedProtocol;
@@ -603,9 +651,9 @@ function ensureRunningHubLists(item){
 }
 function updateProtocolFromInput(){
     const item = provider();
-    if(!item || !protocolInput || item.id === 'modelscope' || item.id === 'runninghub' || item.id === 'volcengine' || item.id === 'jimeng') return;
+    if(!item || !protocolInput || fixedProtocolForProviderId(item.id)) return;
     const value = String(protocolInput.value || 'openai').toLowerCase();
-    item.protocol = ['openai', 'apimart', 'gemini', 'volcengine', 'jimeng'].includes(value) ? value : 'openai';
+    item.protocol = ['openai', 'apimart', 'gemini', 'volcengine', 'grsai', 'jimeng'].includes(value) ? value : 'openai';
     if(item.protocol === 'jimeng') item.base_url = '';
     document.body.classList.toggle('show-jimeng', item.protocol === 'jimeng');
     clearVerifyResult();
@@ -1902,7 +1950,7 @@ function renderRecommendApi(){
                     <div>
                         <div class="recommend-name"><span>${escapeHtml(api.name)}</span></div>
                     </div>
-                    <span class="recommend-badge">${escapeHtml(api.protocol === 'apimart' ? 'APIMart' : 'OpenAI')}</span>
+                    <span class="recommend-badge">${escapeHtml(protocolDisplayLabel(api))}</span>
                 </div>
                 <p class="recommend-platform-summary">${escapeHtml(tr(api.summaryKey))}</p>
                 <div class="recommend-tags">
@@ -1950,9 +1998,10 @@ function renderRecommendApi(){
     refreshIcons();
 }
 function recommendedProviderForApi(api){
-    let item = providers.find(provider => String(provider.name || '').toLowerCase() === api.name.toLowerCase());
+    const preferredId = normalizeId(api.name);
+    let item = providers.find(provider => provider.id === preferredId) || providers.find(provider => String(provider.name || '').toLowerCase() === api.name.toLowerCase());
     if(item) return item;
-    const baseId = normalizeId(api.name) || 'custom-api';
+    const baseId = preferredId || 'custom-api';
     let id = baseId;
     let suffix = 2;
     while(providers.some(provider => provider.id === id)) id = `${baseId}-${suffix++}`;
@@ -1965,7 +2014,7 @@ function recommendedProviderForApi(api){
         image_edit_endpoint:'',
         enabled:true,
         primary:false,
-        image_models:[],
+        image_models:api.protocol === 'grsai' ? [...GRSAI_DEFAULT_IMAGE_MODELS] : [],
         chat_models:[],
         video_models:[],
         has_key:false,
@@ -1996,7 +2045,7 @@ async function saveRecommendedApi(index){
     if(ok) setStatus(trf('api.recommendSaved', {name:api.name}));
 }
 function sortedProviders(){
-    const order = ['modelscope', 'runninghub', 'volcengine'];
+    const order = ['modelscope', 'runninghub', 'grsai', 'volcengine'];
     return visibleProviders().sort((a, b) => {
         const ai = order.indexOf(a.id);
         const bi = order.indexOf(b.id);
@@ -2015,7 +2064,7 @@ function renderProviderList(){
     providerList.innerHTML = sortedProviders().map(item => {
         const active = item.id === selectedId ? 'active' : '';
         const stateClass = item.enabled === false ? 'is-disabled' : (item.has_key || item.has_wallet_key ? 'has-key' : 'missing-key');
-        const protocolLabel = item.id === 'runninghub' ? 'RH' : String(item.protocol || 'openai').toUpperCase();
+        const protocolLabel = protocolDisplayLabel(item);
         if(item.id === 'modelscope'){
             return `
                 <button class="provider-card provider-card-banner ${active} ${stateClass}" type="button" onclick="selectProvider('${escapeHtml(item.id)}')">
@@ -2040,6 +2089,19 @@ function renderProviderList(){
                             <span class="provider-logo-fallback">RunningHub</span>
                         </span>
                         <span class="provider-protocol-pill">RH</span>
+                    </span>
+                </button>
+            `;
+        }
+        if(item.id === 'grsai'){
+            return `
+                <button class="provider-card provider-card-banner ${active} ${stateClass}" type="button" onclick="selectProvider('${escapeHtml(item.id)}')">
+                    <span class="provider-banner-inner">
+                        <span class="provider-logo-wrap grsai-logo-wrap">
+                            <span class="grsai-wordmark">GRSAI</span>
+                            <span class="provider-logo-fallback">GRSAI</span>
+                        </span>
+                        <span class="provider-protocol-pill">GRSAI</span>
                     </span>
                 </button>
             `;
@@ -2124,15 +2186,17 @@ function renderEditor(){
     clearVerifyResult();
     baseInput.placeholder = EXAMPLE_BASE_URL;
     baseInput.value = item.base_url || '';
-    if(protocolInput) protocolInput.value = item.id === 'runninghub' ? 'openai' : item.id === 'volcengine' ? 'volcengine' : item.id === 'jimeng' ? 'jimeng' : (item.protocol || 'openai');
+    if(protocolInput) protocolInput.value = providerProtocolValue(item);
     keyInput.value = '';
     keyInput.placeholder = item.has_key ? `${tr('api.keepCurrentKey')} ${item.key_preview || ''}` : tr('api.enterKey');
     keyHint.textContent = item.has_key ? `${tr('api.keySaved')}${item.key_env || 'API/.env'}` : tr('api.noKey');
     const isModelScope = item.id === 'modelscope';
     const isRunningHub = item.id === 'runninghub';
-    const isVolcengine = item.id === 'volcengine' || String(protocolInput?.value || item.protocol || '').toLowerCase() === 'volcengine';
+    const currentProtocol = providerProtocolValue(item);
+    const isVolcengine = item.id === 'volcengine' || currentProtocol === 'volcengine';
     const isStandaloneVolcengine = item.id === 'volcengine';
-    const isJimeng = item.id === 'jimeng' || String(protocolInput?.value || item.protocol || '').toLowerCase() === 'jimeng';
+    const isGrsai = item.id === 'grsai' || currentProtocol === 'grsai';
+    const isJimeng = item.id === 'jimeng' || currentProtocol === 'jimeng';
     if(isRunningHub){
         ensureRunningHubLists(item);
         if(rhFreeKeyInput){
@@ -2167,6 +2231,13 @@ function renderEditor(){
         if(volcProjectInput) volcProjectInput.value = item.volcengine_project_name || VOLCENGINE_DEFAULT_PROJECT_NAME;
         if(volcRegionInput) volcRegionInput.value = item.volcengine_region || VOLCENGINE_DEFAULT_REGION;
     }
+    if(isGrsai){
+        item.base_url = item.base_url || GRSAI_DEFAULT_BASE_URL;
+        item.protocol = 'grsai';
+        item.image_models = unique([...(item.image_models || []), ...GRSAI_DEFAULT_IMAGE_MODELS]);
+        keyInput.placeholder = item.has_key ? `???? GRSAI API Key ${item.key_preview || ''}` : '?? GRSAI API Key';
+        keyHint.textContent = item.has_key ? `${tr('api.keySaved')}${item.key_env || 'API/.env'}` : '????? GRSAI API Key?';
+    }
     if(isJimeng){
         item.base_url = '';
         item.protocol = 'jimeng';
@@ -2179,6 +2250,7 @@ function renderEditor(){
     document.body.classList.toggle('show-runninghub', isRunningHub);
     document.body.classList.toggle('show-volcengine', isVolcengine);
     document.body.classList.toggle('show-volcengine-standalone', isStandaloneVolcengine);
+    document.body.classList.toggle('show-grsai', isGrsai);
     document.body.classList.toggle('show-jimeng', isJimeng);
     renderProviderOnboarding(item);
     renderRecommendApi();
@@ -2908,13 +2980,11 @@ async function saveProviders(){
     syncEditor();
     providers.forEach(item => {
         item.id = normalizeId(item.id);
-        item.protocol = item.id === 'runninghub'
-            ? 'runninghub'
-            : item.id === 'volcengine'
-            ? 'volcengine'
-            : item.id === 'jimeng'
-            ? 'jimeng'
-            : ['openai', 'apimart', 'gemini', 'volcengine', 'jimeng'].includes(String(item.protocol || '').toLowerCase()) ? String(item.protocol).toLowerCase() : 'openai';
+        item.protocol = fixedProtocolForProviderId(item.id) || (['openai', 'apimart', 'gemini', 'volcengine', 'grsai', 'jimeng'].includes(String(item.protocol || '').toLowerCase()) ? String(item.protocol).toLowerCase() : 'openai');
+        if(item.id === 'grsai'){
+            item.base_url = item.base_url || GRSAI_DEFAULT_BASE_URL;
+            item.image_models = unique([...(item.image_models || []), ...GRSAI_DEFAULT_IMAGE_MODELS]);
+        }
         if(item.id === 'jimeng') item.base_url = '';
         if(item.id === 'jimeng') item.video_models = unique([...(item.video_models || []).filter(model => !JIMENG_LEGACY_VIDEO_MODELS.has(String(model || '').trim())), ...JIMENG_DEFAULT_VIDEO_MODELS]);
         item.image_generation_endpoint = '';
@@ -2946,7 +3016,7 @@ async function saveProviders(){
                 id:item.id,
                 name:item.name,
                 base_url:item.base_url,
-                protocol:(item.id === 'modelscope') ? 'openai' : item.id === 'runninghub' ? 'runninghub' : item.id === 'volcengine' ? 'volcengine' : item.id === 'jimeng' ? 'jimeng' : (item.protocol || 'openai'),
+                protocol:providerProtocolValue(item),
                 image_generation_endpoint:item.image_generation_endpoint || '',
                 image_edit_endpoint:item.image_edit_endpoint || '',
                 enabled:item.enabled !== false,
